@@ -3,10 +3,6 @@ title: "Predict formula and structure of chromatographic peaks from an XcmsExper
 format: html
 editor: visual
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
-vignette: >
-  %\VignetteIndexEntry{Complete end-to-end LC-MS/MS Metabolomic Data analysis}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -30,7 +26,8 @@ prediction, and finally retrieves the results.
 
 This is a foundational example and does not cover all the possible parameters
 for each Sirius tool. For detailed parameter information, consult the `run()`
-function documentation.
+function documentation. More information can be found in the [Sirius
+documentation online](https://v6.docs.sirius-ms.io/).
 
 While this vignette focuses on chromatographic peaks detected with *xcms*, a
 similar workflow applies to features (grouped chromatographic peaks). The
@@ -122,7 +119,7 @@ the console.
 **NOTE** if you have any idea of utility functions that could be implemented do
 not hesitate to ask.
 
-## Feature import
+## Data import
 
 Preprocessed `xcms` data is imported into Sirius, and a summary `data.frame` is
 returned with feature information. This information can also be retrieved using
@@ -260,10 +257,10 @@ structural predictions.
 
 ```{r}
 finalstructredb <- results(srs, 
-                               return.type = "data.frame", 
-                               result.type = "structureDb",
-                               topFormula = 5,
-                               topStructure = 2)
+                           return.type = "data.frame", 
+                           result.type = "structureDb",
+                           topFormula = 5,
+                           topStructure = 2)
 
 head(finalstructredb)
 ```
@@ -284,9 +281,9 @@ the top two formulas of each feature.
 
 ```{r}
 finalcomp <- results(srs, 
-                         return.type = "data.frame", 
-                         result.type = "compoundClass",
-                         topFormula = 2)
+                     return.type = "data.frame", 
+                     result.type = "compoundClass",
+                     topFormula = 2)
 head(finalcomp)
 ```
 
