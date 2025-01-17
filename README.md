@@ -1,4 +1,4 @@
-# RuSiRius 
+# RuSirius 
 
 **RuSirius** is an R package that provides an interface to the Sirius software, enabling seamless integration of **xcms** preprocessing results with Sirius.  
 It is built upon **Rsirius**, the REST API library for the R programming language, which you can find [here](https://github.com/sirius-ms/sirius-client-openAPI/tree/master/client-api_r).
@@ -33,14 +33,13 @@ BiocManager::install("RforMassSpectrometry/RuSirius")
 
 RuSirius comes with two vignettes to help you get started:
 
-1. **Importing Chromatographic Peaks from xcms**  
-   [Insert link]  
+1. **Importing Chromatographic Peaks from xcms** [In work]  
    This vignette demonstrates how to import chromatographic peaks from **xcms** and use them in Sirius.
 
-2. **Importing Features from xcms**  
-   [Insert link]  
+2. **Importing Features from xcms**  [In work]  
    This vignette shows how to import features (i.e., chromatographic peaks) from **xcms** and use them in Sirius.  
-   *Note:* The second vignette is not fully reproducible yet, as the dataset used is not publicly available. However, the code can serve as a template for your use case. A public dataset will be added soon.
+
+*Note:* The second vignette is not fully reproducible yet, as the dataset used is not publicly available. However, the code can serve as a template for your use case. A public dataset will be added soon.
 
 ### Important Notes:
 - Importing features can be time-consuming. To speed up testing, import only a few features at first and limit the process to one MS1 spectrum per feature. Further details are provided in the vignettes.
