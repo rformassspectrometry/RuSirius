@@ -1,0 +1,5 @@
+docs
+local_data
+*.o
+*.so
+*.mzML
