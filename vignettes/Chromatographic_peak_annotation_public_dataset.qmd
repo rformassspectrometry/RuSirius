@@ -1,0 +1,339 @@
+---
+title: "Predict formula and structure of chromatographic peaks from an XcmsExperiment object Sirius through the RuSirius package."
+format: html
+editor: visual
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(Spectra)
+library(MsExperiment)
+library(xcms)
+library(Rsirius)
+library(MetaboAnnotation)
+library(RuSirius)
+library(dplyr)
+```
+
+## Introduction
+
+This vignette demonstrates a basic workflow for importing detected
+*chromatographic peaks* from an `XcmsExperiment` object into *Sirius*. It then
+runs Sirius's main tools: formula identification, structure database search,
+compound class prediction, spectral library matching, *de novo* structure
+prediction, and finally retrieves the results.
+
+This is a foundational example and does not cover all the possible parameters
+for each Sirius tool. For detailed parameter information, consult the `run()`
+function documentation. More information can be found in the [Sirius
+documentation online](https://v6.docs.sirius-ms.io/).
+
+While this vignette focuses on chromatographic peaks detected with *xcms*, a
+similar workflow applies to features (grouped chromatographic peaks). The
+vignette for features is pending the availability of public data, but the steps
+for data preparation differ only slightly and can be adapted without issue.
+
+**IMPORTANT:** This is a work in progress. Feedback is highly valued, especially
+regarding enhancements or additions that could simplify your workflow. Your
+input as a user is essential.
+
+-   **KNOWN ISSUE:** The spectral library matching currently does not work as
+    expected. This issue is under investigation.
+
+## Preprocessing
+
+Here, we apply pre-optimized parameters for processing the example dataset.
+
+```{r, load-data, warning=FALSE}
+dda_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
+                        package = "msdata")
+dda_data <- readMsExperiment(dda_file)
+dda_data <- filterRt(dda_data, rt = c(230, 610))
+
+dda_data |>
+    spectra() |>
+    msLevel() |>
+    table()
+
+prec_int <- estimatePrecursorIntensity(spectra(dda_data))
+cwp <- CentWaveParam(snthresh = 5, noise = 100, ppm = 10,
+                     peakwidth = c(3, 30))
+dda_data <- findChromPeaks(dda_data, param = cwp, msLevel = 1L)
+```
+
+## MS1 and MS2 Extraction
+
+MS2 and MS1 spectra corresponding to the identified chromatographic peaks are
+extracted. Ensure all chromatographic peaks have both MS1 and MS2 spectra.
+Metadata for these peaks is also extracted using the `chromPeakColumns`
+parameter.
+
+```{r, extract-msdata, warning=FALSE}
+# Extract MS1 and MS2 spectra linked to chromatographic peaks
+ms2 <- chromPeakSpectra(dda_data, 
+                        chromPeakColumns = c("mz", "rt", "rtmin", "rtmax"),
+                        msLevel = 2L)
+low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
+ms2 <- filterIntensity(ms2, intensity = low_int)
+ms2 <- ms2[lengths(ms2) > 1]
+cp <- unique(spectraData(ms2)$chrom_peak_id)[1:25]
+ms2 <- ms2[spectraData(ms2)$chrom_peak_id %in% cp]
+
+ms1 <- chromPeakSpectra(dda_data, 
+                        chromPeakColumns = c("mz", "rt", "rtmin", "rtmax"), 
+                        msLevel = 1L, peaks = cp, method = "closest_rt")
+```
+
+## Open Sirius and project set up
+
+The Sirius application is initialized via the API, requiring only a project ID.
+If the project exists, it is opened; otherwise, a new project is created. The
+`srs` object acts as the connection to Sirius and holds project details.
+Properly shut down the connection with `shutdown(srs)` after completing your
+work.
+
+This `srs` variable is needed for any task that necessitate to communicate with
+the application. You can learn more about this object class by running `?Sirius`
+in the console. Below I do not precise the `path` parameter, by default Sirius
+will save your project in the `sirius_projects` folder in your user directory.
+If you want to save it somewhere else you can specify the `path =` parameter.
+
+```{r, start-sirius}
+# Initialize Sirius connection
+srs <- Sirius(projectId = "test_lcmsms") #add path if needed. 
+srs
+```
+
+If the user wants to open and perform computations on a different project they
+can use the utility function below:
+
+```{r}
+srs <- openProject(srs, projectId = "test_lcmsms2")
+srs
+```
+
+You can find all the utility functions of this package by running `?Utils` in
+the console.
+
+**NOTE** if you have any idea of utility functions that could be implemented do
+not hesitate to ask.
+
+## Data import
+
+Preprocessed `xcms` data is imported into Sirius, and a summary `data.frame` is
+returned with feature information. This information can also be retrieved using
+the utility function `featuresInfo()`.
+
+```{r data-import}
+## load back our original project
+srs <- openProject(srs, "test_lcmsms")
+
+## Import data into Sirius
+srs <- import(sirius = srs, ms1Spectra = ms1, ms2Spectra = ms2) 
+
+## See information about the features
+featuresInfo(srs) |> head()
+```
+
+Notes:
+
+-   It could also be discussed that this `data.frame` could be stored direction
+    into the `srs` object
+-   When running `import()` i automatically create a mapping data.frame between
+    the *xcms* feature ID and the *Sirius* feature ID. It is stored in the `srs`
+    object, the `featureMap` slot. This can be used in the future so the user
+    never need to interact with the *Sirius* IDs.
+
+Below is an example of how to extract features ID, the utility function
+`featuresId()` quickly extract all available ID either `sirius` or `xcms`.
+
+```{r}
+fts_id <- featuresId(srs, type = "sirius") 
+```
+
+## Searchable database
+
+Whether it is for structure prediction or spectral library matching, users can
+upload their custom databases into Sirius. In this vignette, we demonstrate how
+to test spectral library matching by creating and loading a custom database into
+Sirius. This process can also be completed easily via the Sirius graphical user
+interface (GUI). If you prefer an interactive approach, you can use the
+`openGUI(srs)` command to open the Sirius app and manage your database directly.
+
+In this example, we downloaded a JSON file from MassBank, which needs to be
+loaded into Sirius to generate a `.sirius.db` file.
+
+**Note:** The API endpoint for creating custom databases is currently not fully
+functional. Therefore, we recommend completing this step interactively either
+through the Sirius app or via R using the `openGUI()` command.
+
+Once the database is created and loaded, you can verify its successful import by
+running the following command:
+
+```{r}
+listDatabases(srs)
+```
+
+## Submit job to Sirius - For structure DB search
+
+Annotation and prediction begin after data import. The `run()` function accepts
+parameters for each Sirius tool, such as formula identification, structure
+database search, and compound class prediction. Parameters can also specify
+adducts or custom databases. Detailed documentation for these parameters is
+available in the `run()` function's help file.
+
+The `wait` parameter ensures the function waits for job completion before
+proceeding. If set to `FALSE`, the job ID is returned, and the user must check
+the status using `jobInfo()`.
+
+```{r run-job}
+## Start computation
+job_id <- run(srs,
+              fallbackAdducts = c("[M + H]+", "[M + Na]+", "[M + K]+"),
+              spectraSearchParams = spectraMatchingParam(spectraSearchDBs  = c("massbank2")),
+              formulaIdParams = formulaIdParam(numberOfCandidates = 5,
+                                numberOfCandidatesPerIonization = 2,
+                                isotopeMs2Settings = c("SCORE"),
+                                performDeNovoBelowMz = 600),
+              predictParams = predictParam(),
+              structureDbSearchParams = structureDbSearchParam(
+                  structureSearchDbs = c("BIO ")
+              ),
+              recompute = TRUE,
+              wait = TRUE
+)
+
+srs
+```
+
+```{r}
+## Get more info for the job
+jobInfo(srs, job_id)
+```
+
+## Retrieve Results
+
+To obtain a summary of all results, including the top formulas, structures, and
+compound class predictions, use the following code. This summary table provides
+a quick overview to evaluate whether the results align with expectations.
+However, we recommend not relying on this table as-is for detailed analysis.
+Instead, use the functions described later in this vignette to explore the
+results in greater depth.
+
+An important aspect of the summary table is the confidence-related columns,
+which provide insight into the reliability of the predictions.
+
+```{r}
+summarytb <- summary(sirius = srs)
+head(summarytb)
+```
+
+## Formula identification results:
+
+For detailed results, the results() function can be used with the `result.type`
+parameter set to `"formulaId"`, `"structureDb"`, `"compoundClass"`, or
+`"deNovo"`. Note that all results are linked to a predicted formula.
+
+The parameters `topFormula` and `topStructure` allow users to specify how many
+formulas or structures should be included in the output. The results can be
+returned either as a list or a data.frame, based on the return.type parameter.
+
+Note: Suggestions for renaming the `results()` function or feedback on this
+implementation are welcome. We aim to adapt based on user needs.
+
+```{r get-res}
+results(srs, 
+       return.type = "data.frame", 
+       result.type = "formulaId",
+       topFormula = 5)
+```
+
+## Structure DBs search results
+
+The following example shows the top two structure annotations for the top five
+formulas of each feature. This can provide an insightful view into the
+structural predictions.
+
+```{r}
+finalstructredb <- results(srs, 
+                           return.type = "data.frame", 
+                           result.type = "structureDb",
+                           topFormula = 5,
+                           topStructure = 2)
+
+head(finalstructredb)
+```
+
+For a more visual exploration of the results, you can open the Sirius GUI with
+the commands below:
+
+```{r}
+# openGUI(srs)
+# closeGUI(srs)
+```
+
+## Compound class prediction results
+
+To retrieve compound class predictions, use the following code. Below is an
+example showing all compound annotations with confidence scores above 50% for
+the top two formulas of each feature.
+
+```{r}
+finalcomp <- results(srs, 
+                     return.type = "data.frame", 
+                     result.type = "compoundClass",
+                     topFormula = 2)
+head(finalcomp)
+```
+
+## Submit job to Sirius - For De Novo structure annotation.
+
+*De novo* structure annotation is computationally intensive and recommended only
+for specific features.
+
+```{r}
+# Determine features that do not have/have poor structure prediction
+fts_denovo <-summarytb$alignedFeatureId[which(summarytb$confidenceApproxMatch < 0.3 |
+                                                  summarytb$confidenceApproxMatch %in% c("NA", "-Infinity"))]
+```
+
+```{r}
+# Compute with zodiac and denovo
+job_id <- run(srs,
+    msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
+    alignedFeaturesIds = fts_denovo,
+    recompute = FALSE, 
+    wait = TRUE
+) 
+
+## Get info for the job
+jobInfo(srs, job_id)
+```
+
+## Retrieve results
+
+```{r}
+summraryDeNovo <- summary(srs, deNovo = TRUE)
+head(summraryDeNovo)
+```
+
+Below is the full results.
+
+```{r}
+full_de_novo <- results(srs, 
+                        return.type = "data.frame", 
+                        result.type = "deNovo",
+                        topFormula = 5)
+
+head(full_de_novo)
+```
+
+## CleanUp
+
+```{r}
+#delete results
+file.remove(projectInfo(srs)$location)
+# Close the Sirius session
+shutdown(srs)
+```
