@@ -1,0 +1,391 @@
+---
+title: "Predict formula and structure of feature from an XcmsExperiment object using Sirius through the RuSrius package."
+format: html
+editor: visual
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(Spectra)
+library(MsExperiment)
+library(xcms)
+library(Rsirius)
+library(MetaboAnnotation)
+library(RuSirius)
+library(MetaboCoreUtils)
+```
+
+## Introduction
+
+This vignette demonstrate a basic workflow to import detected feature of an
+XcmsExperiement object into Sirius and run the main Sirius tool such as formula
+identification, structure annotation, compound class prediction and spectral
+library matching and finally retrieve the results.
+
+This vignette is a basic example and does not cover all the possible parameters
+that can be set for each tool. For more information on the parameters that can
+be set for each tool, please refer to the documentation of the `run()` function.
+
+I have written documentation for the functions used in this vignette. However in
+depth documentation of the tools and results can be found in the [Sirius
+documentation online](https://v6.docs.sirius-ms.io/)
+
+Moreover, the data used in this vignette is not yet publicly available. If you
+do not have it please use the other vignette in this package named "Annotation
+of chromatographic peaks from an xcmsExperiment object Sirius."
+
+Lastly, some "NOTE" sentences can be found throughout this workflow. These are
+points that I am very happy to discuss. I welcome any feedback/idea of
+implementation i can do to make this package more user friendly.
+
+## Load data
+
+We import mzML files of a mixture of standards spiked in blood (or plasma ?).
+
+```{r, warning=FALSE}
+pth <- file.path( "~/GitHub/RuSirius_tmp/vignettes/doc/")
+fls <- list.files(pth, pattern = "mzML", full.names = TRUE)
+fls <- fls[1:5]
+mse <- readMsExperiment(spectraFiles = fls)
+```
+
+## Processing example dataset
+
+We quickly process the data to get features. The parameters chosen were
+previously optimized for this dataset.
+
+```{r message=FALSE, warning=FALSE}
+cwp <- CentWaveParam(ppm = 50,
+                     peakwidth = c(2, 18),
+                     snthresh = 5,
+                     mzdiff = 0.001,
+                     prefilter = c(4, 300),
+                     noise = 100,
+                     integrate = 2)
+data <- findChromPeaks(mse, param = cwp) 
+#' Peak refinement
+mnp <- MergeNeighboringPeaksParam(expandRt = 3.5, expandMz = 0.001,
+                                  minProp = 3/4)
+data <- refineChromPeaks(data, param = mnp)
+#' Alignment
+sampleData(data)$highRes <- TRUE
+pdp1 <- PeakDensityParam(sampleGroups = sampleData(data)$highRes, bw = 3,
+                         minFraction = 0.7, binSize = 0.015)
+data <- groupChromPeaks(data, param = pdp1)
+pgp <- PeakGroupsParam(minFraction = 0.8, extraPeaks = 100, span = 0.8)
+data <- adjustRtime(data, param = pgp)
+#' Correspondence analysis
+pdp2 <- PeakDensityParam(sampleGroups =sampleData(data)$highRes, bw = 3,
+                         minFraction = 0.3, binSize = 0.015) #change 0.3 to higher if find psectra 
+data <- groupChromPeaks(data, param = pdp2)
+#' Gap-filling
+data <- fillChromPeaks(data, param = ChromPeakAreaParam())
+
+nrow(featureDefinitions(data))
+```
+
+## Match features to known spiked compounds
+
+Below we load our list of spiked standard. Using `matchMz()` we match the
+theoretical m/z of the standards to the m/z of the features in the data. We
+filter the matches to keep only the ones that are within 10 seconds of the
+target retention time.
+
+```{r}
+std <- read.table("standards_dilution.txt",
+                           sep = "\t", header = TRUE)
+std$exactmass <- calculateMass(std$formula)
+adducts <- c("[M+H]+", "[M+2H]2+", "[M+Na]+", "[M+K]+", "[M+NH4]+",
+             "[M+H-H2O]+", "[M+H+Na]2+", "[M+2Na]2+", "[M+H-NH3]+",
+             "[M+2Na-H]+", "[M+2K-H]+",
+             "[2M+H]+", "[M+H-H4O2]+", "[M+H-Hexose-H2O]+", "[M+H-CH2O2]+")
+query <- featureDefinitions(data)
+query$fts_id <- rownames(featureDefinitions(data))
+prm <- Mass2MzParam(adducts = adducts, ppm = 30)
+mtchs <- matchMz(query, std, param = prm, mzColname = "mzmed")
+mtchs_sub <- mtchs[whichQuery(mtchs)]
+mD <- matchedData(
+    mtchs_sub, columns = c("fts_id", "mzmed", "ppm_error", "rtmed",
+                           "target_RT", "target_name", "adduct",
+                           "target_formula"))
+mD <- mD[which(abs(mD$rtmed - mD$target_RT) < 10), ]
+mD <- mD[order(mD$target_name), ]
+```
+
+## Select features for annotation
+
+There are 55 features that we could import into Sirius.
+
+## Spectra extraction
+
+To prepare the data for *Sirius*, we extract the MS2 and MS1 spectra for the
+features we selected. It is important to ensure that all the feature that we
+want to import have both MS1 and MS2 spectra.
+
+We also extract the necessary metadata for these features thought the parameter
+`featureColumns`.
+
+```{r warning=FALSE}
+ms2_spectra <- featureSpectra(data, expandRt = 3, return.type = "Spectra",
+                              ppm = 20, expandMz = 0, 
+                              featureColumns = c("mzmed", "rtmed", "rtmin", "rtmax"))
+
+## filter ms2 
+low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
+ms2_spectra <- filterIntensity(ms2_spectra, intensity = low_int)
+ms2_spectra <- ms2_spectra[lengths(ms2_spectra) > 1]
+
+features <- unique(spectraData(ms2_spectra)$feature_id)[1:10]
+features
+
+## now we extract the ms1 spectra 
+ms1_spectra <- featureSpectra(data, return.type = "Spectra",
+                      features = features, 
+                      msLevel = 1L, 
+                      featureColumns = c("mzmed", "rtmed",
+                                         "rtmin", "rtmax"),
+                      chromPeakColumns = c("maxo"),
+                          method = "closest_rt")
+
+## filter ms1 
+ms1_spectra <- filterIntensity(ms1_spectra, intensity = low_int)
+ms1_spectra <- ms1_spectra[lengths(ms1_spectra) > 1]
+```
+
+The process to import data into sirius is extremely slow, with the MS1 spectra
+being a bottle neck. As of now we advise to only import one spectra per feature
+to facilitate this. The user can combine the MS1 spectra of all chrompeaks for a
+feature using `combinePsectra()` or (and we will do this below) we select the
+MS1 spectra with the highest intensity. Therefore for each feature we only keep
+the MS1 spectra that has the hihgest "maxo".
+
+```{r}
+sp <- split(spectraData(ms1_spectra), spectraData(ms1_spectra)$feature_id)
+
+cp <- vapply(sp, function(x){
+    x$chrom_peak_id[which.max(x$chrom_peak_maxo)]
+}, character(1))
+ms1_spectra <- ms1_spectra[which(spectraData(ms1_spectra)$chrom_peak_id %in% cp)]
+```
+
+## Sirius connection and project set up
+
+Below we connect to the *Sirius* app through the API. The user only need to
+provide the project ID. If it exist already it will be opened, if not it will be
+created.
+
+```{r}
+# Initialize Sirius connection
+srs <- Sirius(projectId = "standards", path = "C:/Users/phili/sp")
+projectInfo(srs)
+```
+
+The `srs` variable contains the connection to the *Sirius* app (e.g. the sdk) as
+well as the current project the user is working on. It does not hold any data
+per-se but has all the information necessary that is needed to get any
+information wanted from the application. Here this `srs` variable is needed for
+any task that necessitate to communicate with the application. You can learn
+more about the this object class by running `?connectSirius` in the console.
+Below I do not precise the `path` parameter, by default Sirius will save your
+project in the `sirius_projects` folder in your user directory. If you want to
+save it somewhere else you can specify the `path.`
+
+NOTE: we can discuss the naming of the function and object. Possible
+alternatives are Sirius, siriusProject, siriusEnv, ... ?
+
+If the user wants to open and perform computations on a different project they
+can use the utility function below:
+
+```{r}
+srs <- loadProject(srs, projectId = "standard2", path = "C:/Users/phili/sp")
+projectInfo(srs)
+```
+
+In general, you can find all the utility function of this package by running
+`?Utils` in the console. It's important that if you want to stop working on the
+project, you properly shutdown the connection to the application and the
+application using the function `shutdownSirius(srs)`.
+
+## Import data into Sirius
+
+Below we now use our connection object to import the data into Sirius.
+
+```{r message=FALSE, warning=FALSE}
+## load back to original project
+srs <- loadProject(srs, projectId = "standards", path = "C:/Users/phili/sp")
+
+## Import data into Sirius
+srs <- import(sirius = srs, ms1Spectra = ms1_spectra, ms2Spectra = ms2_spectra) #13:25
+
+## See information about the features
+featuresInfo(srs) |> head()
+```
+
+Notes:
+
+-   It could also be discussed that this `data.frame` could be stored direction
+    into the `srs` variables. Also need to fix it because the detected adducts
+    columns is nested
+-   When running `import()` i automatically create a mapping data.frame between
+    the *xcms* feature ID and the *Sirius* feature ID. It is stored in the `srs`
+    object, the `featureMap` slot. This can be used in the future so the user
+    never need to interest with the *Sirius* IDs.
+
+```{r}
+srs@featureMap
+```
+
+## Submit job to Sirius
+
+Below is an example of how to use the slot featureMap, the utility function
+`listFeaturesId()` quickly extract all available ID either `Sirius` or `Xcms`.
+This can help for the input to the job config.
+
+```{r}
+fts_id <- listFeaturesId(srs, type = "sirius") 
+```
+
+Now that our data is imported, we can begin the annotation/prediction process.
+The `run()` function accepts all the parameters that the user can specify for
+running any *Sirius* tools. If a parameter is provided, the corresponding tool
+will be used. For example, in the code below, we aim to run the formula
+identification tool, the structure database search tool, and the compound class
+prediction tool. The `predictParams` parameter refers to the use of fingerprint
+prediction and compound class prediction. Additionally, we want to perform
+spectral library matching.
+
+Each parameter corresponds to a specific algorithm, and its settings can be
+adjusted accordingly. Detailed information about these parameters can be found
+in their respective documentation. Multiple parameters related to adducts can be
+specified. Below we input the adducts that we believe could be in the data.
+
+Only a few parameters are shown here, but there are many more that can be
+configured. For more information, please refer to the documentation of the
+`run()` function as well as each parameter/algorithm documentation.
+
+This function will then start the job on the Sirius server. The `wait` parameter
+is set to `TRUE` to ensure that the function waits for the job to finish before
+proceeding. If set to `FALSE`, the function will return the job ID and the user
+will need to use the `listJobInfo()` function to check the status of the job.
+
+```{r warning=FALSE}
+## Stat computation
+job_id <- run(srs,
+    detectableAdducts = c("[M+H]+", "[M+Na]+", "[M+K]+",
+                          "[M+H-H2O]+", "[M+2Na-H]+", "[M+2K-H]+",
+                          "[M+H-H4O2]+"),
+    spectraSearchParams = spectraMatchingParam(spectraSearchDBs = c("massbank2")),
+    formulaIdParams = formulaIdParam(numberOfCandidates = 5,
+                                     numberOfCandidatesPerIonization = 2,
+                                     isotopeMs2Settings = c("SCORE"), 
+                                     minPeaksToInjectSpecLibMatch = 4),
+    predictParams = predictParam(),
+    structureDbSearchParams = structureDbSearchParam(),
+    recompute = TRUE
+) 
+
+## Get info for the job
+jobInfo(srs, job_id)
+```
+
+Notes:
+
+-   Also not super happy about the naming. we can discuss this. would make sense
+    that the three steps (connect, import data and run job) have names that go
+    together and make sense. Do they really need to have Sirius in their name?
+-   I am thinking of regrouping all the tools/algo into one .R file...
+-   I think i will separate the predictParams into the actual 2 different tools
+    (canopus - compound class prediction and CSI:FingerID - fingerprint
+    prediction). I initially put them together because they are grouped in the
+    GUI and because CANOPUS has no parameter to set up.
+
+## Retrieve results
+
+Below we show how to get a a summary of all result. This means only the top
+formula, structure, compound class prediciton,... are shown. We would not advise
+to use this table as-is. This is a good way to quickly see if the results are as
+expected and if they are, the user can then look a bit more in depth with the
+function presented later down.
+
+An important information from this table is the confidence-related columns.
+
+```{r, warning=FALSE}
+summarytb <- summary(Sirius = srs)
+head(summarytb)
+```
+
+### Formula identification results:
+
+For more detailed results, the user can run the `results()` function with the
+`result.type` parameter set to either `"formulaId"`, `"structureDb"`, or
+`"compoundClass"` or `"deNovo"`. For any other input than `formulaId`, the
+\``formulaId` will be displayed as all structure and compound class are linked
+to a predicted formula. The `topFormula` and `topStructure` parameters can be
+used to specify the number of formulas and structures to be included in the
+result table. The results can be returned as a `list` or a `data.frame` by
+specifying the `return.type` parameter.
+
+Note: I'd be more than happy to rename this function something else ! And
+discuss this implementation method. I am also waiting to share it to tester to
+see what type of out put they would need.
+
+```{r get-res}
+finaltb <- results(srs, 
+                       return.type = "data.frame", 
+                       result.type = "formulaId",
+                       topFormula = 5)
+finaltb
+```
+
+### structure DBs search results
+
+Below we show the top2 structure annotation for the top2 formula of each
+features.
+
+```{r, warning=FALSE}
+finalstructredb <- results(srs, 
+                               return.type = "data.frame", 
+                               result.type = "structureDb",
+                               topFormula = 5,
+                               topStructure = 2)
+finalstructredb
+```
+
+You can check out results in the GUI if you run the code below
+
+```{r}
+# openGUI(srs)
+# closeGUI(srs)
+```
+
+### Compound class prediction results
+
+```{r, warning=FALSE}
+finalcomp <- results(srs, 
+                         return.type = "data.frame", 
+                         result.type = "compoundClass",
+                         topFormula = 5,
+                         topStructure = 2)
+head(finalcomp)
+```
+
+We are not showing de novo structure prediction here but the other vignette
+discuss it.
+
+Future developments ideas:
+
+-   Return fragmentation tree/single peak annotation
+-   Implement spectra merging within xcms
+-   docker image
+-   filtering based on.. (adduct,..)
+-   use formula results for feature grouping in xcms
+
+## Clean up
+
+```{r}
+#delete results
+file.remove(projectInfo(srs)$location)
+# Close the Sirius session
+shutdown(srs)
+```
