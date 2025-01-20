@@ -19,7 +19,16 @@ language, which you can find
 ```bash
 conda install conda-forge::r-sirius-ms
 ```
-2.  Then install RuSirius and it's dependencies :
+
+2.  Then install `ProtGenerics` and `Spectra` development versions as they are needed (in this order):
+
+```r
+library(remotes)
+BiocManager::install("RforMassSpectrometry/ProtGenerics")
+BiocManager::install("RforMassSpectrometry/Spectra")
+```
+
+3.  Finally install RuSirius:
 ```r
 library(remotes)
 BiocManager::install("RforMassSpectrometry/RuSirius")
@@ -32,12 +41,20 @@ Alternatively, you can manually install Sirius and then RuSirius:
 1.  Download the Sirius software from the [official releases
     page](https://github.com/sirius-ms/sirius/releases). RuSirius is dependent
     on Sirius 6.1, please ensure you have the right version downloaded.
-2.  Install RuSirius and it's dependencies (which includes the R-api) by running the following code in R:
+2.  Then install `ProtGenerics` and `Spectra` development versions as they are needed (in this order):
 
+```r
+library(remotes)
+BiocManager::install("RforMassSpectrometry/ProtGenerics")
+BiocManager::install("RforMassSpectrometry/Spectra")
+```
+
+3.  Finally install RuSirius:
 ```r
 library(remotes)
 BiocManager::install("RforMassSpectrometry/RuSirius")
 ```
+
 
 --------------------------------------------------------------------------------
 
