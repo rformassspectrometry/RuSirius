@@ -29,6 +29,7 @@ Suggests:
     BiocStyle,
     xcms (>= 4.5.2), 
     MsExperiment, 
+    msdata
 License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown=TRUE)
