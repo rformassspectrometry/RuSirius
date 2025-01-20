@@ -1,4 +1,4 @@
-#  RuSiRius
+#  RuSirius
 
 IMPORTANT: THIS IS ACTIVELY DEVELOPED.
 
@@ -16,7 +16,7 @@ language, which you can find
 
 You can install RuSirius using **conda** with the following command:
 
-``` bash
+```bash
 conda install conda-forge::r-sirius-ms
 ```
 
@@ -31,12 +31,9 @@ Alternatively, you can manually install the RuSirius R package:
     on Sirius 6.1, please ensure you have the right version downloaded.
 2.  Install the R API by running the following code in R:
 
-``` r
-install.packages("BiocManager")
-install_github(repo = "sirius-ms/sirius-client-openAPI", 
-               subdir = "client-api_r/generated", 
-               ref = "master", 
-               build = TRUE)
+```r
+library(remotes)
+BiocManager::install("RforMassSpectrometry/RuSirius")
 ```
 
 --------------------------------------------------------------------------------
