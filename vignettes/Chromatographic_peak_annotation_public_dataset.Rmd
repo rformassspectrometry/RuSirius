@@ -1,8 +1,14 @@
 ---
 title: "Predict formula and structure of chromatographic peaks from an XcmsExperiment object Sirius through the RuSirius package."
-format: html
-editor: visual
-date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+output:
+    BiocStyle::html_document:
+        toc_float: true
+vignette: >
+    %\VignetteIndexEntry{Predict formula and structure of chromatographic peaks from an XcmsExperiment object Sirius through the RuSirius package.}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+    %\VignettePackage{RuSirius}
+    %\VignetteDepends{Spectra, MsExperiment, xcms, Rsirius, MetaboAnnotation, RuSirius, dplyr}
 ---
 
 ```{r setup, include=FALSE}
