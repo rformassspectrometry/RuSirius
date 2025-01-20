@@ -35,8 +35,7 @@ Roxygen: list(markdown=TRUE)
 RoxygenNote: 7.3.2
 Remotes:
     sirius-ms/sirius-client-openAPI/client-api_r/generated,
-    rformassspectrometry/Spectra,
-    sneumann/xcms
+    rformassspectrometry/Spectra
 VignetteBuilder: knitr
 Collate: 
     'Sirius.R'
