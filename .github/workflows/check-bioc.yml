@@ -144,7 +144,7 @@ jobs:
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
 
-      - name: Install dependencies
+      - name: Install dependencies pass 1
         run: |
           ## Try installing the package dependencies in steps. First the local
           ## dependencies, then any remaining dependencies to avoid the
@@ -153,22 +153,29 @@ jobs:
           ## https://github.com/r-lib/remotes/issues/296
           ## Ideally, all dependencies should get installed in the first pass.
 
+          ## For running the checks
+          message(paste('****', Sys.time(), 'installing rcmdcheck and BiocCheck ****'))
+          install.packages(c("rcmdcheck", "BiocCheck"), repos = BiocManager::repositories())
+
           ## Pass #1 at installing dependencies
           message(paste('****', Sys.time(), 'pass number 1 at installing dependencies: local dependencies ****'))
+          remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = FALSE, upgrade = TRUE)
+        continue-on-error: true
+        shell: Rscript {0}
+
+      - name: Install dependencies pass 2
+        run: |
           ## Pass #2 at installing dependencies
           message(paste('****', Sys.time(), 'pass number 2 at installing dependencies: any remaining dependencies ****'))
-          remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = TRUE, upgrade = TRUE)
+          remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = TRUE, upgrade = TRUE, force = TRUE)
+        shell: Rscript {0}
 
+      - name: Install dependencies pass manual
+        run: |
           ## Manually install required packages
           BiocManager::install("msdata")
           BiocManager::install("msentropy") # not because of `RuSirius` but `Spectra`
           BiocManager::install("sneumann/xcms", ref = "devel")
-
-          # BiocManager::install(c("devtools", "usethis", "vdiffr"), dependencies = TRUE, ask = FALSE, update = FALSE)
-          ## For running the checks
-          message(paste('****', Sys.time(), 'installing rcmdcheck and BiocCheck ****'))
-          remotes::install_cran("rcmdcheck")
-          BiocManager::install("BiocCheck")
         shell: Rscript {0}
 
       - name: Install BiocGenerics
