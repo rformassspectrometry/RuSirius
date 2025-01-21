@@ -42,7 +42,7 @@ setClass("Sirius",
                  stop("A username was provided but no password.")
              if (!length(object@username) && length(object@password))
                  stop("A password was provided but no username.")
-             if (length(object@projectId > 1))
+             if (length(object@projectId) > 1)
                  stop("projectId should be a character vector of length 1.")
          }
 )
