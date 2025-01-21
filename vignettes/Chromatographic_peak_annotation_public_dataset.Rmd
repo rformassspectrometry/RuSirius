@@ -108,7 +108,7 @@ If you want to save it somewhere else you can specify the `path =` parameter.
 
 ```{r, start-sirius}
 # Initialize Sirius connection
-srs <- Sirius(projectId = "test_lcmsms") #add path if needed. 
+srs <- Sirius(projectId = "test_lcmsms") #add `path = "your/directory"` if needed. 
 srs
 ```
 
@@ -116,12 +116,12 @@ If the user wants to open and perform computations on a different project they
 can use the utility function below:
 
 ```{r}
-srs <- openProject(srs, projectId = "test_lcmsms2")
+srs <- openProject(srs, projectId = "test_lcmsms2") # `path =` also available here
 srs
 ```
 
 You can find all the utility functions of this package by running `?Utils` in
-the console.
+the console. 
 
 **NOTE** if you have any idea of utility functions that could be implemented do
 not hesitate to ask.
