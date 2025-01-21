@@ -161,6 +161,7 @@ jobs:
 
           ## Manually install required packages
           BiocManager::install("msdata")
+          BiocManager::install("msentropy") # not because of `RuSirius` but `Spectra`
           BiocManager::install("sneumann/xcms", ref = "devel")
 
           # BiocManager::install(c("devtools", "usethis", "vdiffr"), dependencies = TRUE, ask = FALSE, update = FALSE)
