@@ -30,14 +30,13 @@ Suggests:
     xcms (>= 4.5.2), 
     MsExperiment, 
     msdata
-Remotes:
-    RforMassSpectrometry/ProtGenerics
-    RforMassSpectrometry/Spectra
 License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown=TRUE)
 RoxygenNote: 7.3.2
 Remotes:
+    RforMassSpectrometry/ProtGenerics
+    RforMassSpectrometry/Spectra
     sirius-ms/sirius-client-openAPI/client-api_r/generated
 VignetteBuilder: knitr
 Collate: 
