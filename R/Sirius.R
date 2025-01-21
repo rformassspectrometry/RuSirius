@@ -137,7 +137,7 @@ setMethod("show", signature(object = "Sirius"),
                   object@api$info_api$GetInfo()[["siriusVersion"]], "\n")
               cat("Sirius update available: ",
                   object@api$info_api$GetInfo()[["updateAvailable"]], "\n")
-              if (object@projectId != "") {
+              if (length(object@projectId)) {
                   cat("Project ID: ", object@projectId, "\n")
                   cat("Number of features in the project: ",
                       projectInfo(object)$numOfFeatures, "\n")
