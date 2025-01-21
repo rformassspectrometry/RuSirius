@@ -69,6 +69,15 @@ cwp <- CentWaveParam(snthresh = 5, noise = 100, ppm = 10,
 dda_data <- findChromPeaks(dda_data, param = cwp, msLevel = 1L)
 ```
 
+## Install xcms dev version
+
+As packages in `Suggests` do not respect required version on install, we first
+need to download the `xcms` dev version:
+
+```{r, install-xcms-dev, warning=FALSE}
+install("sneumann/xcms@devel")
+```
+
 ## MS1 and MS2 Extraction
 
 MS2 and MS1 spectra corresponding to the identified chromatographic peaks are
