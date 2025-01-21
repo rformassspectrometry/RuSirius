@@ -1,4 +1,9 @@
-# Version 0.1.0
+# Version 0.1
+
+## Changes in 0.1.2
+
+- Fix installation of Spectra dev version 
+- Addition of code to install devel version of xcms in readme.md
 
 ## Changes in 0.1.1
 
