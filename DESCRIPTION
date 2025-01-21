@@ -1,6 +1,6 @@
 Package: RuSirius
 Title: R Implementation of the Sirius software
-Version: 0.1.1
+Version: 0.1.2
 Description: The RuSirius package allows the user to interact with the Sirius
              software from R. Sirius is a software for the analysis and
              annotation of mass spectrometry data. RuSirius makes use of the

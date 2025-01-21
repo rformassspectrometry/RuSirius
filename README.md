@@ -39,6 +39,13 @@ library(remotes)
 BiocManager::install("RforMassSpectrometry/RuSirius")
 ```
 
+Laslty, please install the devel version of xcms (this is temporary and will not 
+be needed after the next bioconductor release.)
+
+```r
+BiocManager::install("sneumann/xcms", ref = "devel")
+```
+
 --------------------------------------------------------------------------------
 
 ## Usage
