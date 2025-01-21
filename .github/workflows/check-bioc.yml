@@ -183,7 +183,7 @@ jobs:
       - name: Install dependencies pass manual
         run: |
           ## Manually install required packages
-          BiocManager::install("msentropy") # NOTE not because of `RuSirius` but `Spectra`
+          BiocManager::install("msentropy") # NOTE: not because of `RuSirius` but `Spectra`
           BiocManager::install("sneumann/xcms", ref = "devel")
         shell: Rscript {0}
         
