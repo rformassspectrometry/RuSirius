@@ -394,3 +394,10 @@ removeDb(srs, databaseId = "massbankeuCustom")
 # Close the Sirius session
 shutdown(srs)
 ```
+
+## Session info 
+
+```{r}
+sessionInfo()
+```
+

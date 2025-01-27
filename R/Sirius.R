@@ -117,7 +117,9 @@ Sirius <- function(username = character(), password = character(),
     } else message("You are already logged in.")
     if (length(projectId)) {
         tryCatch({
-            srs <- openProject(sirius = srs, projectId = projectId, path = path)
+            srs <- openProject(sirius = srs,
+                               projectId = projectId,
+                               path = path)
             if (projectInfo(srs)$numOfFeatures != 0)
                 srs@featureMap <- mapFeatures(srs)
             }, error = function(e) {
@@ -136,7 +138,8 @@ Sirius <- function(username = character(), password = character(),
 setMethod("show", signature(object = "Sirius"),
           definition = function(object) {
               cat("Sirius object\n")
-              cat("Valid connection to Sirius: ", checkConnection(object), "\n")
+              cat("Valid connection to Sirius: ", checkConnection(object),
+                  "\n")
               cat("Logged In: ", object@api$login_and_account_api$IsLoggedIn(),
                   "\n")
               cat("Sirius version: ",
@@ -148,11 +151,13 @@ setMethod("show", signature(object = "Sirius"),
                   cat("Number of features in the project: ",
                       projectInfo(object)$numOfFeatures, "\n")
                   j <- object@api$jobs_api$GetJobs(object@projectId,
-                                                   c("command", "progress", "affectedIds"))
+                                                   c("command", "progress",
+                                                     "affectedIds"))
                   if (!is.null(j)) {
-                      ids <- as.numeric(sapply(j, `[[`, "id"))
+                      ids <- as.numeric(vapply(j, `[[`, "id", character(1)))
                       cat("Job ids available: ", ids, "\n")
-                      cat("State of latest job: ", j[[which.max(ids)]]$progress$state, "\n")
+                      cat("State of latest job: ",
+                          j[[which.max(ids)]]$progress$state, "\n")
                   } else cat("No job was run/is running on this project. \n")
               } else cat("No project is currently loaded\n")
           }

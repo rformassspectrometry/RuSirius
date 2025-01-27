@@ -9,9 +9,9 @@
 #'        loaded project
 #' @param adducts `character` vector of the adducts know to refer to the
 #'        features that are being. Needs to be of either length 1 or the same
-#'        length as the number of features being imported. If of length 1, and less than
-#'        the number of features being imported, the same adduct will be used for all
-#'        features.
+#'        length as the number of features being imported. If of length 1, and
+#'        less than the number of features being imported, the same adduct will
+#'        be used for all features.
 #' @param deleteExistingFeatures `logical(1)`, if `TRUE`, all existing features
 #'        will be deleted before importing the new ones.
 #'
@@ -32,16 +32,17 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
          id_field <- "feature_id"
     else id_field <- "chrom_peak_id"
     if (!length(adducts)) adducts <- "[M+?]+" # or have it as the default.
-    if (length(adducts) != length(unique(spectraData(ms1Spectra)[[id_field]]))) {
+    if (length(adducts) != length(unique(ms1Spectra[[id_field]]))) {
         if (length(adducts) == 1)
             adducts <- rep(adducts,
-                           length(unique(spectraData(ms1Spectra)[[id_field]])))
+                           length(unique(ms1Spectra[[id_field]])))
         else
             stop("The number of adducts must be either 1 or the same as the ",
                  "number of features being imported.")
     }
     if (deleteExistingFeatures) sirius <- deleteFeatures(sirius)
-    fts <- .process_feature_import(srs, ms1Spectra, ms2Spectra, id_field, adducts = adducts)
+    fts <- .process_feature_import(srs, ms1Spectra, ms2Spectra, id_field,
+                                   adducts = adducts)
     .upload_feature_import(srs, fts)
     srs@featureMap <- mapFeatures(srs)
     srs
@@ -57,7 +58,8 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
     )
 }
 
-.process_feature_import <- function(srs, ms1Spectra, ms2Spectra, id_field, adducts) {
+.process_feature_import <- function(srs, ms1Spectra, ms2Spectra,
+                                    id_field, adducts) {
     unmatched_ids <- setdiff(unique(ms1Spectra[[id_field]]),
                              unique(ms2Spectra[[id_field]]))
     if (length(unmatched_ids) > 0) {
@@ -78,7 +80,8 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
 }
 
 # Create a FeatureImport object
-.createFeatureImport <- function(feature_id, ms1_tmp, ms2_tmp, id_field, adduct) {
+.createFeatureImport <- function(feature_id, ms1_tmp, ms2_tmp, id_field,
+                                 adduct) {
     ms1_processed <- .processSpectra(ms1_tmp) # slow
     ms2_processed <- .processSpectra(ms2_tmp) # super fast
     if (id_field == "feature_id")
@@ -126,7 +129,3 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
         peaks = peaks
     )
 }
-
-
-
-

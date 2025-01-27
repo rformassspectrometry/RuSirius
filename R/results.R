@@ -43,13 +43,13 @@ summary <- function(sirius, result.type = c("formulaId", "structure", "deNovo",
                                             "spectralDbMatch")) {
     result.type <- match.arg(result.type)
     res <- switch(result.type,
-                  formulaId = .fetch_aligned_features(sirius,
-                                                    opt_fields = c("topAnnotations")),
-                  structure = .fetch_aligned_features(sirius,
-                                                      opt_fields = c("topAnnotations")),
-                  deNovo = .fetch_aligned_features(sirius,
-                                                   opt_fields = c("topAnnotationsDeNovo")),
-                  spectralDbMatch = .fetch_spectral_db_best_match(sirius))
+      formulaId = .fetch_aligned_features(sirius,
+                                        opt_fields = c("topAnnotations")),
+      structure = .fetch_aligned_features(sirius,
+                                          opt_fields = c("topAnnotations")),
+      deNovo = .fetch_aligned_features(sirius,
+                                       opt_fields = c("topAnnotationsDeNovo")),
+      spectralDbMatch = .fetch_spectral_db_best_match(sirius))
 }
 
 #Helper for summary
@@ -57,8 +57,9 @@ summary <- function(sirius, result.type = c("formulaId", "structure", "deNovo",
 .fetch_aligned_features <- function(sirius, opt_fields) {
     res <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId,
                                                       opt_fields = opt_fields)
-    flattened <- lapply(res, function(x) as.data.frame(.flatten_list(x$toSimpleType()),
-                                                       stringsAsFactors = FALSE))
+    flattened <- lapply(res, function(x)
+        as.data.frame(.flatten_list(x$toSimpleType()),
+                      stringsAsFactors = FALSE))
     return(dplyr::bind_rows(flattened))
 }
 
@@ -77,11 +78,15 @@ summary <- function(sirius, result.type = c("formulaId", "structure", "deNovo",
 
 .fetch_spectral_db_best_match <- function(sirius) {
     df <- data.frame(alignedFeatureId = featuresId(sirius))
-    res <- lapply(featuresId(sirius), function(fts_id) {
-        sirius@api$features_api$GetSpectralLibraryMatchesSummary(sirius@projectId, fts_id)
+    res <- lapply(featuresId(sirius),
+    function(fts_id) {
+      sirius@api$features_api$GetSpectralLibraryMatchesSummary(sirius@projectId,
+                                                               fts_id)
     })
-    flattened <- lapply(res, function(x) as.data.frame(.flatten_list(x$toSimpleType()),
-                                                       stringsAsFactors = FALSE))
+    flattened <- lapply(res,
+                        function(x)
+                            as.data.frame(.flatten_list(x$toSimpleType()),
+                                          stringsAsFactors = FALSE))
     res <-dplyr::bind_rows(flattened)
     return(cbind(df, res))
 }
@@ -99,56 +104,59 @@ results <- function(sirius,
                     topSpectralMatches = 5) {
     result.type <- match.arg(result.type)
     return.type <- match.arg(return.type)
-    process_function <- switch(result.type,
-                               formulaId = function(feature_id) {
-                                   .process_single_feature(sirius, feature_id,
-                                                           top = topFormula)
-                               },
-                               structureDb = function(feature_id) {
-                                   form_res <- .process_single_feature(sirius,
-                                                                       feature_id,
-                                                                       top = topFormula)
-                                   .structure_for_one_feature(sirius, feature_id,
-                                                              form_res, topStructure)
-                               },
-                               compoundClass = function(feature_id) {
-                                   form_res <- .process_single_feature(sirius,
-                                                                       feature_id,
-                                                                       top = topFormula)
-                                   .compound_for_one_feature(sirius,
-                                                             feature_id,
-                                                             form_res)
-                               },
-                               deNovo = function(feature_id) {
-                                   form_res <- .process_single_feature(sirius,
-                                                                       feature_id,
-                                                                       top = topFormula)
-                                   .de_novo_for_one_feature(sirius,
-                                                            feature_id,
-                                                            form_res,
-                                                            topStructure)
-                               },
-                               spectralDbMatch = function(feature_id) {
-                                   .spectral_match_for_one_feature(sirius,
-                                                                   feature_id,
-                                                              top = topSpectralMatches)
-                               },
-                               fragTree = function(feature_id) {
-                                   form_res <- .process_single_feature(sirius,
-                                                                       feature_id,
-                                                                       top = topFormula)
-                                   .fragTree_for_one_feature(sirius,
-                                                              feature_id,
-                                                              form_res)
-                               },
-                               stop("Invalid result type specified."))
+    process_function <-
+        switch(result.type,
+               formulaId = function(feature_id) {
+                   .process_single_feature(sirius, feature_id,
+                                           top = topFormula)
+                   },
+               structureDb = function(feature_id) {
+                   form_res <- .process_single_feature(sirius,
+                                                       feature_id,
+                                                       top = topFormula)
+                   .structure_for_one_feature(sirius, feature_id,
+                                              form_res, topStructure)
+                   },
+               compoundClass = function(feature_id) {
+                   form_res <- .process_single_feature(sirius,
+                                                       feature_id,
+                                                       top = topFormula)
+                   .compound_for_one_feature(sirius,
+                                             feature_id,
+                                             form_res)
+                   },
+               deNovo = function(feature_id) {
+                   form_res <- .process_single_feature(sirius,
+                                                       feature_id,
+                                                       top = topFormula)
+                   .de_novo_for_one_feature(sirius,
+                                            feature_id,
+                                            form_res,
+                                            topStructure)
+                   },
+               spectralDbMatch = function(feature_id) {
+                   .spectral_match_for_one_feature(sirius,
+                                                   feature_id,
+                                              top = topSpectralMatches)
+                   },
+               fragTree = function(feature_id) {
+                   form_res <- .process_single_feature(sirius,
+                                                       feature_id,
+                                                       top = topFormula)
+                   .fragTree_for_one_feature(sirius,
+                                              feature_id,
+                                              form_res)
+                   },
+               stop("Invalid result type specified."))
     .process_features(sirius, features, process_function, return.type)
 }
 
 
 # Shared low-level operations
 ## Process a list of features
-.process_features <- function(sirius, features, process_fn, return.type = "list") {
+.process_features <- function(sirius, features,
+                              process_fn,
+                              return.type = "list") {
     if (!length(features)) {
         features <- featuresId(sirius)
         if (length(features) == 0) stop("No available features to process.")
@@ -170,7 +178,7 @@ results <- function(sirius,
         project_id = sirius@projectId,
         aligned_feature_id = feature_id
     )
-    if (length(candidates) > top) candidates <- candidates[1:top]
+    if (length(candidates) > top) candidates <- candidates[seq_len(top)]
     df <- lapply(candidates, function(c) as.data.frame(c$toSimpleType()))
     results <- if (length(df)) dplyr::bind_rows(df) else data.frame()
     results$xcms_fts <- .map_sirius_to_xcms(sirius, feature_id)
@@ -249,23 +257,30 @@ results <- function(sirius,
         df$formulaId <- formula_id
         return(df)
     }, error = function(e) {
-        warning(paste("Formula:", formula_id, "for feature:", fts_id, "does ",
-                      "not have compound classes information."))
+        warning("Formula:", formula_id, "for feature:", fts_id, "does ",
+                      "not have compound classes information.")
         return(data.frame(formulaId = formula_id, stringsAsFactors = FALSE))
     })
 }
 
 .process_compound_classes <- function(parsed_json) {
     # Process NPC data
-    npc_df <- dplyr::bind_rows(lapply(names(parsed_json)[1:3], function(section) {
-        cbind(section = section, as.data.frame(parsed_json[[section]], stringsAsFactors = FALSE))
+    npc_df <- dplyr::bind_rows(lapply(names(parsed_json)[seq_len(3)],
+                                      function(section) {
+        cbind(section = section, as.data.frame(parsed_json[[section]],
+                                               stringsAsFactors = FALSE))
     }))
     # Process ClassyFire lineage and alternatives
-    cf_lineage_df <- .convert_to_dataframe(parsed_json$classyFireLineage, "classyFireLineage")
-    cf_alternatives_df <- .convert_to_dataframe(parsed_json$classyFireAlternatives, "classyFireAlternatives")
+    cf_lineage_df <- .convert_to_dataframe(parsed_json$classyFireLineage,
+                                           "classyFireLineage")
+    cf_alternatives_df <- .convert_to_dataframe(parsed_json$classyFireAlternatives,
+                                                "classyFireAlternatives")
     cf_df <- dplyr::bind_rows(cf_lineage_df, cf_alternatives_df)
     if ("level" %in% colnames(cf_df)) {
-        cf_df$level <- factor(cf_df$level, levels = c("Kingdom", "Superclass", "Class", "Subclass"))
+        cf_df$level <- factor(cf_df$level, levels = c("Kingdom",
+                                                      "Superclass",
+                                                      "Class",
+                                                      "Subclass"))
     }
     final_df <- dplyr::bind_rows(npc_df, cf_df)
     return(final_df)
@@ -307,7 +322,8 @@ results <- function(sirius,
     combined <- lapply(c("fragments", "losses"), function(type) {
         items <- frag_tree[[type]]
         if (length(items) > 0) {
-            df <- dplyr::bind_rows(lapply(items, function(x) as.data.frame(x$toSimpleType())))
+            df <- dplyr::bind_rows(lapply(items, function(x)
+                as.data.frame(x$toSimpleType())))
             df$type <- type
             return(df)
         } else return(data.frame())
@@ -334,7 +350,9 @@ results <- function(sirius,
     if (nrow(sirius@featureMap) == 0)
         sirius@featureMap <- mapFeatures(sirius)
     matching_xcms <- sirius@featureMap$fts_xcms[sirius_id == sirius@featureMap$fts_sirius]
-    if (length(matching_xcms) == 0) warning("No matching XCMS ID found for the given Sirius ID: ", sirius_id)
+    if (length(matching_xcms) == 0)
+        warning("No matching XCMS ID found for the given Sirius ID: ",
+                sirius_id)
     return(matching_xcms)
 }
 

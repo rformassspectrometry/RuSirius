@@ -34,6 +34,8 @@ License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown=TRUE)
 RoxygenNote: 7.3.2
+BugReports: https://github.com/RforMassSpectrometry/RuSirius/issues
+URL: https://github.com/RforMassSpectrometry/RuSirius
 Remotes:
     RforMassSpectrometry/ProtGenerics,
     RforMassSpectrometry/Spectra,

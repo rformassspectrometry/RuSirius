@@ -49,7 +49,11 @@ infoDb <- function(sirius, databaseId = character()) {
 #' Delete a database from Sirius.
 #'
 #' @param sirius A `Sirius` object representing the Sirius connection.
-#' @param databaseId A `character(1)` string specifying the database ID to delete.
+#' @param databaseId A `character(1)` string specifying the database ID to
+#'        delete.
+#'
+#' @return A `logical(1)` indicating whether the database was successfully
+#'         removed.
 #'
 #' @export
 removeDb <- function(sirius, databaseId = character()) {
@@ -79,18 +83,22 @@ createDB <- function(sirius, databaseId = character(), files = character(),
                      location = getwd()) {
     if (!checkConnection(sirius))
         stop("The connection to the Sirius instance is not valid.")
-    if (!length(databaseId) || length(databaseId) > 1 || !is.character(databaseId))
+    if (!length(databaseId) || length(databaseId) > 1 ||
+        !is.character(databaseId))
         stop("Please provide a single valid database ID.")
     if (length(files) == 0 || !all(file.exists(files)))
         stop("Please provide valid file(s) that exist.")
     if (length(location) != 1 || !dir.exists(location))
-        stop("Please provide a valid directory path for the `location` parameter.")
+        stop("Please provide a valid directory path for the `location` ",
+             "parameter.")
 
     db_path <- file.path(location, paste0(databaseId, ".siriusdb"))
 
     tryCatch({
-        sirius@api$searchable_databases_api$CreateDatabase(database_id = databaseId, data_file = db_path)
-        db <- sirius@api$searchable_databases_api$ImportIntoDatabase(database_id = databaseId, input_file = files)
+        sirius@api$searchable_databases_api$CreateDatabase(
+            database_id = databaseId, data_file = db_path)
+        db <- sirius@api$searchable_databases_api$ImportIntoDatabase(
+            database_id = databaseId, input_file = files)
     }, error = function(e) {
         stop("Failed to create the database: ", e$message)
     })

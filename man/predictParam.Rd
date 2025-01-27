@@ -32,7 +32,8 @@ class even if no molecular structure of that class exists in the molecular
 structure database.
 }
 \note{
-For more information, see the Sirius \href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
+For more information, see the Sirius
+\href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
 }
 \examples{
 # Example of setting up the parameters for the prediction of molecular

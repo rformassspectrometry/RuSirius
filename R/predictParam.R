@@ -30,7 +30,8 @@
 #' @importClassesFrom ProtGenerics Param
 #'
 #' @note
-#' For more information, see the Sirius [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#' For more information, see the Sirius
+#' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
 #' @references reference
 #'

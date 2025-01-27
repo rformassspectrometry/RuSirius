@@ -7,6 +7,9 @@ NULL
 #' @param username `character(1)`, the username to use for the connection
 #' @param password `character(1)`, the password to use for the connection
 #' @param sirius a valid `Sirius` object
+#'
+#' @return A `message` whether the user is successfully logged in or not.
+#'
 #' @export
 logIn <- function(sirius, username, password) {
     if (!length(username) && !length(password))
@@ -29,6 +32,9 @@ logIn <- function(sirius, username, password) {
 #' @description returns `TRUE` if the connection to the Sirius is valid,
 #' `FALSE` otherwise.
 #' @param sirius a `Sirius` object
+#'
+#' @return `logical`, `TRUE` if the connection is valid, `FALSE` otherwise.
+#'
 #' @export
 checkConnection <- function(sirius) {
     tryCatch({
@@ -45,6 +51,8 @@ checkConnection <- function(sirius) {
 #' to Sirius.
 #' @param closeProject `logical`, whether to close the project before
 #' shutting down Sirius. Default is `TRUE`.
+#'
+#' @return `message` whether the project is closed or not.
 #'
 #' @export
 shutdown <- function(sirius, closeProject = TRUE) {
@@ -64,6 +72,9 @@ shutdown <- function(sirius, closeProject = TRUE) {
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
+#'
+#' @return nothing, will open the web API in the default browser.
+#'
 #' @export
 openWebApi <- function(sirius) {
     browseURL(sirius@api$projects_api$api_client$base_path)
@@ -71,6 +82,7 @@ openWebApi <- function(sirius) {
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
+#' @return `TRUE` if the GUI opens correctly.
 #' @export
 openGUI <- function(sirius) {
     #check that the project is open (open it if necessary)
@@ -79,6 +91,7 @@ openGUI <- function(sirius) {
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object.
+#' @return `TRUE` if the GUI closes correctly.
 #' @export
 closeGUI <- function(sirius) {
     #check that the GUI is open
@@ -90,7 +103,7 @@ closeGUI <- function(sirius) {
 #' @param infoType `character` vector of length 1 or 2, specifying the type of
 #' information to retrieve. Possible values are `"compatibilityInfo"` and
 #'`"sizeInformation"`.
-#'
+#' @return a `list` with the information requested.
 #' @export
 projectInfo <- function(sirius,
                         infoType = c("compatibilityInfo", "sizeInformation")) {
@@ -101,6 +114,7 @@ projectInfo <- function(sirius,
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
+#' @return a `character` vector with the open projects.
 #' @export
 listOpenProjects <- function(sirius) {
     tst <- sirius@api$projects_api$GetProjects()
@@ -117,6 +131,7 @@ listOpenProjects <- function(sirius) {
 #'        `"Sys.getenv("HOME")/sirius-projects"` in other OS. It will not be
 #'        created automatically, if you want to use this default please create
 #'        it beforehand.
+#' @return a `Sirius` object with the project opened.
 #' @export
 openProject <- function(sirius, projectId, path = character()) {
     if (!checkConnection(sirius))
@@ -133,14 +148,15 @@ openProject <- function(sirius, projectId, path = character()) {
             stop("The 'path' provided does not exist.")
     } else {
         if (.Platform$OS.type == "windows") {
-            path <- file.path("C:/Users", Sys.getenv("USERNAME"), "sirius-projects")
+            path <- file.path("C:/Users", Sys.getenv("USERNAME"),
+                              "sirius-projects")
         } else {
             path <- file.path(Sys.getenv("HOME"), "sirius-projects")
         }
         if (!file.exists(path)) {
             stop("The default path that Sirius uses does not exist. ",
-                 "Either specify a valid path or create the default directory at '",
-                 path, "'.")
+                 "Either specify a valid path or create the default ",
+                 "directory at '", path, "'.")
         }
     }
     f <- file.path(path, paste0(projectId, ".sirius"))
@@ -156,8 +172,9 @@ openProject <- function(sirius, projectId, path = character()) {
 #' @rdname Utils
 #' @param sirius a `Sirius` object
 #' @param type `character` vector of length 1, specifying the type of features
-#'        ID to list. Possible values are "sirius" and "xcms". Default
+#'        ID to list. Possible values are `"sirius"` and `"xcms"`. Default
 #'        is `"sirius"`.
+#' @return a `character` vector with the features ID.
 #' @export
 featuresId <- function(sirius, type = c("sirius", "xcms")) {
     type <- match.arg(type)
@@ -170,6 +187,7 @@ featuresId <- function(sirius, type = c("sirius", "xcms")) {
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
+#' @return a `data.frame` with the features information.
 #' @export
 featuresInfo <- function(sirius) {
     fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
@@ -179,21 +197,24 @@ featuresInfo <- function(sirius) {
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
-#' @param featureId `character()` vector specifying the id of the feature to remove.
-#'            By default remove all.
+#' @param featureId `character()` vector specifying the id of the feature to
+#'        remove. By default remove all.
+#' @return A `Sirius` object with the features removed.
 #' @export
 deleteFeatures <- function(sirius, featureId = featuresId(sirius)) {
     if (!all(featureId %in% featuresId(sirius)))
         stop("Some of the featureId provided are not in the project.")
     for (ft in featureId) {
         sirius@api$features_api$DeleteAlignedFeature(sirius@projectId, ft)
-        sirius@featureMap <- sirius@featureMap[!sirius@featureMap$fts_sirius %in% ft, ]
+        sirius@featureMap <- sirius@featureMap[!sirius@featureMap$fts_sirius
+                                               %in% ft, ]
     }
     sirius
 }
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
+#' @return a `data.frame` with the features mapping.
 #' @export
 mapFeatures <- function(sirius) {
     fts_sirius <- featuresId(sirius, type = "sirius")
@@ -208,6 +229,7 @@ mapFeatures <- function(sirius) {
 #' @param config a `configSirius` object
 #' @param name `character` vector of length 1, specifying the name of the
 #' configuration to load.
+#' @return nothing, will save the configuration locally.
 #' @export
 saveConfig <- function(sirius, config, name) {
     if (!length(name))
@@ -215,73 +237,69 @@ saveConfig <- function(sirius, config, name) {
     sirius@api@jobs_api$SaveJobConfig(name, config) # see where it saves it.
 }
 
-## jobs
 #' @rdname Utils
 #' @param sirius a `Sirius` object
 #' @param jobId `character(1)` specifying the id of the job to retrieve.
+#' @return a `character` vector with the job information.
 #' @export
 jobInfo <- function(sirius, jobId = character()) {
     if (!length(jobId))
         stop("Please provide a jobId that you wish to retrieve")
     j <- sirius@api$jobs_api$GetJob(sirius@projectId, jobId,
-                            c("command", "progress", "affectedIds"))
-    return(cat(.clean_output(j)))
+                                    c("command", "progress", "affectedIds"))
+    return(.clean_output(j))
 }
 
 #' @rdname Utils
 #' @param sirius a `Sirius` object
 #' @param jobId `character(1)` specifying the id of the job to delete.
 #' @param all `logical`, whether to delete all jobs. Default is `FALSE`.
+#' @return nothing, will delete the job from Sirius.
 #' @export
 deleteJob <- function(sirius, jobId = character(), all = FALSE) {
     if (!all) {
         if (!length(jobId))
             stop("Please provide a jobId that you wish to delete or set",
-                 "all = FALSE.")
+                 "all = TRUE to delete all jobs.")
         sirius@api$jobs_api$DeleteJob(sirius@projectId, jobId)
+    } else {
+        sirius@api$jobs_api$DeleteJob(sirius@projectId)
     }
-    else sirius@api$jobs_api$DeleteJob(sirius@projectId)
 }
 
+## Helper functions for job output formatting
 
-##cleaning jobInfo output - move to helper file
 # Function to format and clean settings
 .format_command <- function(command) {
-    cleaned_command <- ""
     l <- unlist(strsplit(command, " "))
     l <- l[l != "config"]
-    lp <- paste0(l, collapse = "\n")
-    cleaned_command <- paste0(cleaned_command, lp)
-    cleaned_command
+    return(paste(l, collapse = "\n"))
 }
 
 # Function to clean and format job output
 .clean_output <- function(output) {
-    cleaned_output <- ""
-    cleaned_output <- paste0(cleaned_output, "Job ID: ", output$id, "\n\n")
-
-    cleaned_output <- paste0(cleaned_output, "Command: \n",
-                             .format_command (output$command), "\n\n")
-
-    cleaned_output <- paste0(cleaned_output, "Progress: \n")
-    cleaned_output <- paste0(cleaned_output, "   State: ",
-                             output$progress$state, "\n")
-    cleaned_output <- paste0(cleaned_output, "   Current Progress: ",
-                             output$progress$currentProgress, "\n")
-    cleaned_output <- paste0(cleaned_output, "   Max Progress: ",
-                             output$progress$maxProgress, "\n\n")
-
-    cleaned_output <- paste0(cleaned_output, "Affected Compound IDs: \n")
-    cleaned_output <- paste0(cleaned_output, "   ",
-                             paste(output$affectedCompoundIds,
-                                   collapse = ", "), "\n\n")
-
-    cleaned_output <- paste0(cleaned_output, "Affected Aligned Feature IDs: \n")
-    for (i in seq_along(output$affectedAlignedFeatureIds)) {
-        cleaned_output <- paste0(cleaned_output,
-                                 paste(output$affectedAlignedFeatureIds[[i]],
-                                       collapse = ", "), "\n")
-    }
-    return(cleaned_output)
+    paste(
+        sprintf("Job ID: %s", output$id),
+        "",
+        sprintf("Command: \n%s", .format_command(output$command)),
+        "",
+        "Progress:",
+        sprintf("   State: %s", output$progress$state),
+        sprintf("   Current Progress: %d", output$progress$currentProgress),
+        sprintf("   Max Progress: %d", output$progress$maxProgress),
+        "",
+        "Affected Compound IDs:",
+        sprintf("   %s", paste(output$affectedCompoundIds, collapse = ", ")),
+        "",
+        "Affected Aligned Feature IDs:",
+        paste(
+            sapply(output$affectedAlignedFeatureIds, function(x) {
+                paste(x, collapse = ", ")
+            }),
+            collapse = "\n"
+        ),
+        "",
+        sep = "\n"
+    )
 }
 

@@ -3,9 +3,10 @@
 #' @name structureDbSearchParam
 #'
 #' @description
-#' This function creates an object of class `structureDbSearchParam` that can be
-#' used to configure the structure database search in Sirius. The object can be
-#' passed to the `runSirius` function to perform the structure database search.
+#' This function creates an object of class `structureDbSearchParam` that can
+#' be used to configure the structure database search in Sirius. The object can
+#' be passed to the `runSirius` function to perform the structure database
+#' search.
 #'
 #' By default, *SIRIUS* searches for molecular structures in a biomolecule
 #' structure database. It can also search in the (extremely large) PubChem
@@ -33,16 +34,20 @@
 #' @importFrom methods setClass new
 #' @importClassesFrom ProtGenerics Param
 #'
+#' @return An object of class `structureDbSearchParam`.
+#'
 #' @note
-#' For more information, see the Sirius [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#' For more information, see the Sirius
+#' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
 #' @references reference
 #'
 #' @examples
 #' # Example of setting up the parameters for structure database search
-#' param <- structureDbSearchParam(structureSearchDbs = c("BIO", "massbank"),
-#'                                 tagStructuresWithLipidClass = TRUE,
-#'                                 expansiveSearchConfidenceMode = "APPROXIMATE")
+#' param <- structureDbSearchParam(
+#'                  structureSearchDbs = c("BIO", "massbank"),
+#'                  tagStructuresWithLipidClass = TRUE,
+#'                  expansiveSearchConfidenceMode = "APPROXIMATE")
 #'
 #'
 NULL

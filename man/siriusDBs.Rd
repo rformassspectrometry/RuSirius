@@ -36,6 +36,9 @@ A \code{data.frame} containing details of searchable databases.
 
 A \code{list} containing details of the specified database.
 
+A \code{logical(1)} indicating whether the database was successfully
+removed.
+
 A \code{list} containing details of the created database.
 }
 \description{
