@@ -218,7 +218,7 @@ results <- function(sirius,
 
 .spectral_match_for_one_feature <- function(sirius, feature_id, top) {
     candidates <- sirius@api$features_api$GetSpectralLibraryMatches(sirius@projectId, feature_id)
-    if (length(candidates) > top) candidates <- candidates[1:top]
+    if (length(candidates) > top) candidates <- candidates[seq_len(top)]
     df <- lapply(candidates, function(c) as.data.frame(c$toSimpleType()))
     results <- if (length(df)) dplyr::bind_rows(df) else return(data.frame())
     results$xcms_fts <- .map_sirius_to_xcms(sirius, feature_id)
@@ -231,7 +231,7 @@ results <- function(sirius,
         sirius@projectId, fts_id, formula_id, opt_fields = c("libraryMatches")
     )
     candidates <- lapply(structures, function(x) x$toSimpleType())
-    if (length(candidates) > top) candidates <- candidates[1:top]
+    if (length(candidates) > top) candidates <- candidates[seq_len(top)]
     df <- dplyr::bind_rows(lapply(candidates, as.data.frame))
     df$formulaId <- formula_id
     return(df)
@@ -242,7 +242,7 @@ results <- function(sirius,
         sirius@projectId, fts_id, formula_id, opt_fields = c("libraryMatches")
     )
     candidates <- lapply(de_novo_structures, function(x) x$toSimpleType())
-    if (length(candidates) > top) candidates <- candidates[1:top]
+    if (length(candidates) > top) candidates <- candidates[seq_len(top)]
     df <- dplyr::bind_rows(lapply(candidates, as.data.frame))
     df$formulaId <- formula_id
     return(df)

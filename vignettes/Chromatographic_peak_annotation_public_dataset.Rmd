@@ -41,9 +41,9 @@ similar workflow applies to features (grouped chromatographic peaks). The
 vignette for features is pending the availability of public data, but the steps
 for data preparation differ only slightly and can be adapted without issue.
 
-**IMPORTANT:** This is a work in progress. Feedback is highly valued, especially
-regarding enhancements or additions that could simplify your workflow. Your
-input as a user is essential.
+**IMPORTANT:** This is a work in progress. Feedback is highly valued, 
+especially regarding enhancements or additions that could simplify your 
+workflow. Your input as a user is essential.
 
 ## Preprocessing
 
@@ -102,7 +102,8 @@ work.
 This `srs` variable is needed for any task that necessitate to communicate with
 the application. You can learn more about this object class by running `?Sirius`
 in the console. Below I do not precise the `path` parameter, by default Sirius
-will try save your project in the `sirius_projects` folder in your user directory.
+will try save your project in the `sirius_projects` folder in your user 
+directory.
 Note that this folder will *not* be created automatically. 
 If you want to save it somewhere else you can specify the `path =` parameter.
 
@@ -345,13 +346,14 @@ head(resulttree)
 
 ## Submit job to Sirius - For De Novo structure annotation.
 
-*De novo* structure annotation is computationally intensive and recommended only
-for specific features.
+*De novo* structure annotation is computationally intensive and recommended 
+only for specific features.
 
 ```{r}
 # Determine features that do not have/have poor structure prediction
-fts_denovo <-summarytb$alignedFeatureId[which(summarytb$confidenceApproxMatch < 0.3 |
-                                                  summarytb$confidenceApproxMatch %in% c("NA", "-Infinity"))]
+fts_denovo <-summarytb$alignedFeatureId[which(
+    summarytb$confidenceApproxMatch < 0.3 |
+        summarytb$confidenceApproxMatch %in% c("NA", "-Infinity"))]
 ```
 
 ```{r}

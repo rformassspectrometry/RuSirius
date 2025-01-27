@@ -293,9 +293,9 @@ deleteJob <- function(sirius, jobId = character(), all = FALSE) {
         "",
         "Affected Aligned Feature IDs:",
         paste(
-            sapply(output$affectedAlignedFeatureIds, function(x) {
+            vapply(output$affectedAlignedFeatureIds, function(x) {
                 paste(x, collapse = ", ")
-            }),
+            }, character(1),
             collapse = "\n"
         ),
         "",

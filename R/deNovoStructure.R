@@ -39,19 +39,20 @@ NULL
 
 #' @noRd
 setClass("deNovoStructureParam",
-         slots = c(numberOfCandidateToPredict = "numeric"),
-         contains = "Param",
-         prototype = prototype(c(numberOfCandidateToPredict = 10)),
-         validity = function(object) {
-           if (object@numberOfCandidateToPredict < 1 || object@numberOfCandidateToPredict > 128)
-             stop("numberOfCandidateToPredict must be between 1 and 128.")
-           TRUE
+        slots = c(numberOfCandidateToPredict = "numeric"),
+        contains = "Param",
+        prototype = prototype(c(numberOfCandidateToPredict = 10)),
+        validity = function(object) {
+            if (object@numberOfCandidateToPredict < 1 ||
+                object@numberOfCandidateToPredict > 128)
+                stop("numberOfCandidateToPredict must be between 1 and 128.")
+            TRUE
          }
 )
 
 #' @rdname deNovoStructureParam
 #' @export
 deNovoStructureParam <- function(numberOfCandidateToPredict = 10) {
-  new("deNovoStructureParam",
-      numberOfCandidateToPredict = numberOfCandidateToPredict)
+    new("deNovoStructureParam",
+        numberOfCandidateToPredict = numberOfCandidateToPredict)
 }
