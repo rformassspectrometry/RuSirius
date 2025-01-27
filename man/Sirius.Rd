@@ -2,6 +2,7 @@
 % Please edit documentation in R/Sirius.R
 \name{Sirius}
 \alias{Sirius}
+\alias{show,Sirius-method}
 \title{Connection to a Sirius instance}
 \usage{
 Sirius(
@@ -11,6 +12,8 @@ Sirius(
   path = character(),
   verbose = FALSE
 )
+
+\S4method{show}{Sirius}(object)
 }
 \arguments{
 \item{username}{\code{character(1)}, the username to use for the connection}
@@ -19,11 +22,17 @@ Sirius(
 
 \item{projectId}{\code{character(1)}, the project id to use for the connection}
 
-\item{path}{\code{character(1)}, the path to the Sirius project you want to open
-or create.}
+\item{path}{\code{character(1)} path where to find the existing project or where
+to create a new one.By default Sirius will open or create a project
+in the folder \code{"C:/Users/<username>/sirius_projects"} for windows and
+\verb{"Sys.getenv("HOME")/sirius-projects"} in other OS. It will not be
+created automatically, if you want to use this default please create
+it beforehand.}
 
 \item{verbose}{\code{logical(1)}, if \code{TRUE} the function will print all messages
 to the console. Use if need debug, default is \code{FALSE}.}
+
+\item{object}{\code{Sirius}, the object to show,}
 }
 \value{
 \code{Sirius} object with the Sirius api connected.

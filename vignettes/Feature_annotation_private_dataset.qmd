@@ -36,9 +36,6 @@ chromatographic peaks from an xcmsExperiment object Sirius."
 regarding enhancements or additions that could simplify your workflow. Your
 input as a user is essential.
 
--   **KNOWN ISSUE:** The spectral library matching currently does not work as
-    expected. This issue is under investigation.
-
 ## Load data
 
 We import mzML files of a mixture of standards spiked in blood (or plasma ?).
@@ -135,7 +132,7 @@ low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
 ms2_spectra <- filterIntensity(ms2_spectra, intensity = low_int)
 ms2_spectra <- ms2_spectra[lengths(ms2_spectra) > 1]
 
-features <- unique(spectraData(ms2_spectra)$feature_id)[1:10] #reduce to make import faster.
+features <- unique(spectraData(ms2_spectra)$feature_id)[1:20] #reduce to make import faster.
 
 features
 
@@ -234,19 +231,28 @@ Sirius. This process can also be completed easily via the Sirius graphical user
 interface (GUI). If you prefer an interactive approach, you can use the
 `openGUI(srs)` command to open the Sirius app and manage your database directly.
 
-In this example, we downloaded a JSON file from MassBank, which needs to be
-loaded into Sirius to generate a `.sirius.db` file.
+In this example, we download the MassBank library from GNPS, which needs to be
+loaded into Sirius to generate a `.sirius.db` file. Below we will download in
+our current directory but you can precise where you want to save it using
+`location =` parameter.
 
-**Note:** The API endpoint for creating custom databases is currently not fully
-functional. Therefore, we recommend completing this step interactively either
-through the Sirius app or via R using the `openGUI()` command.
+```{r}
+## Download the MassBank EU library
+download.file("https://external.gnps2.org/gnpslibrary/MASSBANKEU.mgf",
+              destfile = "MASSBANKEU.mgf")
+createDB(srs, databaseId = "massbankeuCustom", files = "MASSBANKEU.mgf")
+```
 
-Once the database is created and loaded, you can verify its successful import by
+NOTE: THis takes quite a while, will change to a smaller database later. Once
+the database is created and loaded, you can verify its successful import by
 running the following command:
 
 ```{r}
-listDatabases(srs)
+listDBs(srs)
 ```
+
+Find more on how to handle databases in Sirius by typing `?siriusDBs` in the
+console.
 
 ## Submit job to Sirius
 
@@ -267,7 +273,7 @@ job_id <- run(srs,
                           "[M+H-H2O]+", "[M+2Na-H]+", "[M+2K-H]+",
                           "[M+H-H4O2]+"),
               spectraSearchParams = spectraMatchingParam(
-                  spectraSearchDBs = c("massbank2")),
+                  spectraSearchDBs = c("massbankeuCustom")),
               formulaIdParams = formulaIdParam(numberOfCandidates = 5,
                                      numberOfCandidatesPerIonization = 2,
                                      isotopeMs2Settings = c("SCORE"), 
@@ -298,7 +304,7 @@ An important aspect of the summary table is the confidence-related columns,
 which provide insight into the reliability of the predictions.
 
 ```{r, warning=FALSE}
-summarytb <- summary(sirius = srs)
+summarytb <- summary(sirius = srs, result.type = "structure")
 head(summarytb)
 ```
 

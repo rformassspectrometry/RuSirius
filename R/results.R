@@ -1,40 +1,37 @@
-#' @title Get results from Sirius
+#' @title Fetch Results from Sirius
 #'
 #' @name results
 #'
 #' @description
-#' The function below are used to fetch results from the *Sirius* project.
+#' Functions to retrieve results from the *Sirius* project, allowing
+#' customization of the result type, feature selection, and return format.
 #'
+#' @param sirius A `Sirius` object.
+#' @param features `character()` vector specifying feature IDs to retrieve
+#'        results for. Defaults to all available features.
+#' @param result.type `character(1)` specifying the type of results to fetch.
+#'        Options are "formulaId", "structureDb", "compoundClass", "deNovo",
+#'        "spectralDbMatch", and "fragTree". Defaults to "formulaId".
 #'
-#' @param sirius a `Sirius` object
+#' @param return.type `character(1)` specifying return format. Either
+#'        "data.frame" (default) or "list".
+#' @param topFormula `numeric(1)` Maximum number of formula candidates to
+#'        retrieve per feature. Defaults to 5.
+#' @param topStructure `numeric(1)` Maximum number of structure candidates per
+#'        formula. Defaults to 5.
+#' @param topSpectralMatches `numeric(1)` Maximum number of spectral matches
+#'        per feature. Defaults to 5.
 #'
-#' @param deNovo `logical(1)` specifying if the summary results should be fetched
-#'        for the de novo candidates. Defaults to `FALSE`.
-#'
-#' @param features `character()` vector specifying the feature IDs to retrieve
-#'       results for. If not provided, all available features will be used.
-#'
-#' @param return.type `character(1)` specifying the return type. Either
-#'        `"data.frame"`, which will return a single `data.frame` with all
-#'        results. Or `"list"`, which will return a `list` of `data.frame`
-#'        where each element corresponds to the results for a single feature.
-#'        Defaults to `"data.frame"`.
-#'
-#' @param topFormula `numeric(1)` specifying the maximum number of formula
-#'       candidates to retrieve for each feature.
-#'
-#' @param topStructure `numeric(1)` specifying the maximum number of structure
-#'      candidates to retrieve for each formula.
-#'
-#' @param result.type `character(1)` specifying the type of results to retrieve.
-#'        Possible values are "formulaId", "structureDb", "compoundClass",
-#'        and "deNovo". Defaults to "formulaId". All the possible values will
-#'        return  formulaId results anyway.
-#'
-#'
+#' @return A data.frame or list of results, depending on `return.type`.
+#' @export
+#' @importFrom dplyr bind_rows bind_cols
 NULL
 
 #' @rdname results
+#' @description Get best match results for a Sirius project. Choose which type
+#'              of results to fetch with the *result.type* parameter.
+#'              "structure" and "deNovo" will both also give information on
+#'              the formula.
 #' @return a data.frame with the summary of the results.
 #'         Important column is the *ApproximateConfidence* column, which give a
 #'         score of how possible all the identifications for this feature are.
@@ -42,9 +39,17 @@ NULL
 #'         identification is.
 #' @export
 #' @importFrom dplyr bind_rows
-summary <- function(sirius, deNovo = FALSE) {
-    if (!deNovo) .fetch_aligned_features(sirius, opt_fields = c("topAnnotations"))
-    else  .fetch_aligned_features(sirius, opt_fields = c("topAnnotationsDeNovo"))
+summary <- function(sirius, result.type = c("formulaId", "structure", "deNovo",
+                                            "spectralDbMatch")) {
+    result.type <- match.arg(result.type)
+    res <- switch(result.type,
+                  formulaId = .fetch_aligned_features(sirius,
+                                                    opt_fields = c("topAnnotations")),
+                  structure = .fetch_aligned_features(sirius,
+                                                      opt_fields = c("topAnnotations")),
+                  deNovo = .fetch_aligned_features(sirius,
+                                                   opt_fields = c("topAnnotationsDeNovo")),
+                  spectralDbMatch = .fetch_spectral_db_best_match(sirius))
 }
 
 #Helper for summary
@@ -70,15 +75,28 @@ summary <- function(sirius, deNovo = FALSE) {
     return(flat)
 }
 
+.fetch_spectral_db_best_match <- function(sirius) {
+    df <- data.frame(alignedFeatureId = featuresId(sirius))
+    res <- lapply(featuresId(sirius), function(fts_id) {
+        sirius@api$features_api$GetSpectralLibraryMatchesSummary(sirius@projectId, fts_id)
+    })
+    flattened <- lapply(res, function(x) as.data.frame(.flatten_list(x$toSimpleType()),
+                                                       stringsAsFactors = FALSE))
+    res <-dplyr::bind_rows(flattened)
+    return(cbind(df, res))
+}
+
 #' @rdname results
 #' @export
 results <- function(sirius,
                     features = character(),
                     result.type = c("formulaId", "structureDb",
-                                    "compoundClass", "deNovo"),
+                                    "compoundClass", "deNovo",
+                                    "spectralDbMatch", "fragTree"),
                     return.type = c("list", "data.frame"),
                     topFormula = 5,
-                    topStructure = 5) {
+                    topStructure = 5,
+                    topSpectralMatches = 5) {
     result.type <- match.arg(result.type)
     return.type <- match.arg(return.type)
     process_function <- switch(result.type,
@@ -110,10 +128,22 @@ results <- function(sirius,
                                                             form_res,
                                                             topStructure)
                                },
+                               spectralDbMatch = function(feature_id) {
+                                   .spectral_match_for_one_feature(sirius,
+                                                                   feature_id,
+                                                              top = topSpectralMatches)
+                               },
+                               fragTree = function(feature_id) {
+                                   form_res <- .process_single_feature(sirius,
+                                                                       feature_id,
+                                                                       top = topFormula)
+                                   .fragTree_for_one_feature(sirius,
+                                                              feature_id,
+                                                              form_res)
+                               },
                                stop("Invalid result type specified."))
     .process_features(sirius, features, process_function, return.type)
 }
-
 
 
 # Shared low-level operations
@@ -127,8 +157,11 @@ results <- function(sirius,
     names(results) <- features
     if (return.type == "list") return(results)
     return(dplyr::bind_rows(lapply(names(results), function(x) {
-        results[[x]]$sirius_fts <- x
-        results[[x]]
+        if (nrow(results[[x]]) != 0) {
+            results[[x]]$sirius_fts <- x
+            results[[x]]
+        }
+
     })))
 }
 
@@ -173,6 +206,15 @@ results <- function(sirius,
     all_forms <- lapply(all_forms, .standardize_columns)
     merged <- merge(formula_res, dplyr::bind_rows(all_forms), by = "formulaId", all.x = TRUE)
     return(merged)
+}
+
+.spectral_match_for_one_feature <- function(sirius, feature_id, top) {
+    candidates <- sirius@api$features_api$GetSpectralLibraryMatches(sirius@projectId, feature_id)
+    if (length(candidates) > top) candidates <- candidates[1:top]
+    df <- lapply(candidates, function(c) as.data.frame(c$toSimpleType()))
+    results <- if (length(df)) dplyr::bind_rows(df) else return(data.frame())
+    results$xcms_fts <- .map_sirius_to_xcms(sirius, feature_id)
+    return(results)
 }
 
 # Shared Methods for Specific Data Types
@@ -245,6 +287,38 @@ results <- function(sirius,
     csiScore = "double"
 )
 
+.fragTree_for_one_feature <- function(sirius, fts_id, formula_res, top) {
+    all_forms <- lapply(formula_res$formulaId, function(fid) {
+        .fragTree_for_one_formula(sirius, fts_id, fid)
+    })
+    merged <- merge(formula_res,
+                    dplyr::bind_rows(all_forms),
+                    by = "formulaId", all.x = TRUE,
+                    suffixes = c("", "_fragment") )
+    return(merged)
+}
+
+.fragTree_for_one_formula <- function(sirius, fts_id, formula_id) {
+    frag_tree <- sirius@api$features_api$GetFragTree(
+        sirius@projectId, fts_id, formula_id
+    )
+
+    # Combine fragments and losses into a single data frame
+    combined <- lapply(c("fragments", "losses"), function(type) {
+        items <- frag_tree[[type]]
+        if (length(items) > 0) {
+            df <- dplyr::bind_rows(lapply(items, function(x) as.data.frame(x$toSimpleType())))
+            df$type <- type
+            return(df)
+        } else return(data.frame())
+    })
+
+    all <- dplyr::bind_rows(combined)
+    all <- all[, c("type", setdiff(names(all), c("type")))]
+    all$formulaId <- formula_id
+    return(all)
+}
+
 #' @importFrom methods as
 #' @noRd
 .standardize_columns <- function(df) {
@@ -263,3 +337,4 @@ results <- function(sirius,
     if (length(matching_xcms) == 0) warning("No matching XCMS ID found for the given Sirius ID: ", sirius_id)
     return(matching_xcms)
 }
+

@@ -233,7 +233,7 @@ jobs:
               ## NOTE: Change this back when everything ready
               # build_args = c("--no-manual", "--keep-empty-dirs", "--no-resave-data"),
               build_args = c("--no-manual", "--keep-empty-dirs", "--no-resave-data", "--no-build-vignettes"),
-              error_on = "warning",
+              error_on = "error",
               check_dir = "check"
           )
         shell: Rscript {0}

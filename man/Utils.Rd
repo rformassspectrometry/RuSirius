@@ -15,7 +15,6 @@
 \alias{featuresInfo}
 \alias{deleteFeatures}
 \alias{mapFeatures}
-\alias{listDatabases}
 \alias{saveConfig}
 \alias{jobInfo}
 \alias{deleteJob}
@@ -47,8 +46,6 @@ deleteFeatures(sirius, featureId = featuresId(sirius))
 
 mapFeatures(sirius)
 
-listDatabases(sirius)
-
 saveConfig(sirius, config, name)
 
 jobInfo(sirius, jobId = character())
@@ -74,8 +71,10 @@ can be an already existing project or a new one.}
 
 \item{path}{\code{character(1)} path where to find the existing project or where
 to create a new one.By default Sirius will open or create a project
-in the folder \code{"C:/Users/<username>/sirius_projects"} fro windows and
-\verb{"Sys.getenv("HOME")/sirius-projects"} in other OS.}
+in the folder \code{"C:/Users/<username>/sirius_projects"} for windows and
+\verb{"Sys.getenv("HOME")/sirius-projects"} in other OS. It will not be
+created automatically, if you want to use this default please create
+it beforehand.}
 
 \item{type}{\code{character} vector of length 1, specifying the type of features
 ID to list. Possible values are "sirius" and "xcms". Default
@@ -96,7 +95,4 @@ configuration to load.}
 \description{
 returns \code{TRUE} if the connection to the Sirius is valid,
 \code{FALSE} otherwise.
-
-List the databases that are searchable by Sirius for spectral matching.
-Can be inputted in??
 }

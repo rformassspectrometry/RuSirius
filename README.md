@@ -1,4 +1,4 @@
-#  RuSirius
+# RuSirius
 
 IMPORTANT: THIS IS ACTIVELY DEVELOPED.
 
@@ -14,13 +14,16 @@ language, which you can find
 
 ### Option 1: Install Sirius and R-api via Conda
 
-1.  You can install both the Sirius software and the R API using **conda** with the following command:
+1.  You can install both the Sirius software and the R API using **conda** with
+    the following command:
 
-```bash
+``` bash
 conda install conda-forge::r-sirius-ms
 ```
+
 2.  Then install RuSirius and it's dependencies :
-```r
+
+``` r
 library(remotes)
 BiocManager::install("RforMassSpectrometry/RuSirius")
 ```
@@ -32,17 +35,18 @@ Alternatively, you can manually install Sirius and then RuSirius:
 1.  Download the Sirius software from the [official releases
     page](https://github.com/sirius-ms/sirius/releases). RuSirius is dependent
     on Sirius 6.1, please ensure you have the right version downloaded.
-2.  Install RuSirius and it's dependencies (which includes the R-api) by running the following code in R:
+2.  Install RuSirius and it's dependencies (which includes the R-api) by running
+    the following code in R:
 
-```r
+``` r
 library(remotes)
 BiocManager::install("RforMassSpectrometry/RuSirius")
 ```
 
-Lastly, please install the devel version of xcms (this is temporary and will not 
+Lastly, please install the devel version of xcms (this is temporary and will not
 be needed after the next bioconductor release.)
 
-```r
+``` r
 BiocManager::install("sneumann/xcms", ref = "devel")
 ```
 
@@ -108,8 +112,12 @@ there’s ongoing development to enhance the implementation.
 
 ### Current Issues:
 
--   **Spectral library matching**: This feature is not working as expected. The
-    issue is being actively addressed.
+-   **GHA and R command checks**: They are failing/incomplete because the
+    vignettes cannot be run systematically for now. The logIn system is blocking
+    this at the moment. But working on it.
+
+-   **Docker image**: a DockerFile is available, however the vignettes cannot be
+    run on it yet. It's a work in progress, Sirius cannot be started properly.
 
 -   Importing features can be time-consuming. To speed up testing, import only a
     few features at first and limit the process to one MS1 spectrum per feature.

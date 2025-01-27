@@ -113,8 +113,10 @@ listOpenProjects <- function(sirius) {
 #'        can be an already existing project or a new one.
 #' @param path `character(1)` path where to find the existing project or where
 #'        to create a new one.By default Sirius will open or create a project
-#'        in the folder `"C:/Users/<username>/sirius_projects"` fro windows and
-#'        `"Sys.getenv("HOME")/sirius-projects"` in other OS.
+#'        in the folder `"C:/Users/<username>/sirius_projects"` for windows and
+#'        `"Sys.getenv("HOME")/sirius-projects"` in other OS. It will not be
+#'        created automatically, if you want to use this default please create
+#'        it beforehand.
 #' @export
 openProject <- function(sirius, projectId, path = character()) {
     if (!checkConnection(sirius))
@@ -199,19 +201,6 @@ mapFeatures <- function(sirius) {
     data.frame(
         fts_sirius = fts_sirius,
         fts_xcms = fts_xcms)
-}
-
-#' @rdname Utils
-#' @description
-#' List the databases that are searchable by Sirius for spectral matching.
-#' Can be inputted in??
-#'
-#' @param sirius a `Sirius` object
-#' @export
-listDatabases <- function(sirius) {
-    l <- sirius@api$searchable_databases_api$GetDatabases()
-    jsonlist <- lapply(l, function(x) x$toSimpleType())
-    data.frame(do.call(bind_rows, jsonlist)) # need to be fixed, pb with number of columns
 }
 
 #' @rdname Utils

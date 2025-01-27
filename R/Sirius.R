@@ -61,8 +61,12 @@ setClass("Sirius",
 #' @param username `character(1)`, the username to use for the connection
 #' @param password `character(1)`, the password to use for the connection
 #' @param projectId `character(1)`, the project id to use for the connection
-#' @param path `character(1)`, the path to the Sirius project you want to open
-#'        or create.
+#' @param path `character(1)` path where to find the existing project or where
+#'        to create a new one.By default Sirius will open or create a project
+#'        in the folder `"C:/Users/<username>/sirius_projects"` for windows and
+#'        `"Sys.getenv("HOME")/sirius-projects"` in other OS. It will not be
+#'        created automatically, if you want to use this default please create
+#'        it beforehand.
 #' @param verbose `logical(1)`, if `TRUE` the function will print all messages
 #'       to the console. Use if need debug, default is `FALSE`.
 #'
@@ -126,7 +130,9 @@ Sirius <- function(username = character(), password = character(),
 }
 
 #' @importFrom methods show
-#' @noRd
+#' @param object `Sirius`, the object to show,
+#' @export
+#' @rdname Sirius
 setMethod("show", signature(object = "Sirius"),
           definition = function(object) {
               cat("Sirius object\n")
@@ -146,7 +152,7 @@ setMethod("show", signature(object = "Sirius"),
                   if (!is.null(j)) {
                       ids <- as.numeric(sapply(j, `[[`, "id"))
                       cat("Job ids available: ", ids, "\n")
-                      cat("State of latest job: ", j[[max(ids)]]$progress$state, "\n")
+                      cat("State of latest job: ", j[[which.max(ids)]]$progress$state, "\n")
                   } else cat("No job was run/is running on this project. \n")
               } else cat("No project is currently loaded\n")
           }
