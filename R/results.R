@@ -251,7 +251,7 @@ results <- function(sirius,
 .compound_for_one_formula <- function(sirius, fts_id, formula_id) {
     tryCatch({
         compound <- sirius@api$features_api$GetBestMatchingCompoundClasses(
-            sirius@projectId, fts_id, formula_id
+              sirius@projectId, fts_id, formula_id
         )
         df <- .process_compound_classes(compound$toSimpleType())
         df$formulaId <- formula_id
