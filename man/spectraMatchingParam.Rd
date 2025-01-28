@@ -16,7 +16,7 @@ spectraMatchingParam(
 default is \code{c("BIO", "massbank")}. Other values can be found by
 running \code{listDatabases()}.}
 
-\item{peakDeviationPpm}{\code{numeric}     Maximum allowed mass deviation in ppm for
+\item{peakDeviationPpm}{\code{numeric} Maximum allowed mass deviation in ppm for
 matching peaks.}
 
 \item{precursorDeviationPpm}{\code{numeric} Maximum allowed mass deviation in ppm
@@ -26,6 +26,9 @@ the peaks is used.}
 \item{scoring}{\code{character} The scoring function to use. Possible values are
 \code{MODIFIED_COSINE}, \code{GAUSSIAN}, \code{INTENSITY}. The default is
 \code{MODIFIED_COSINE}.}
+}
+\value{
+An object of class \code{spectraMatchingParam}
 }
 \description{
 This function is to set up the parameter for matching to spectra
@@ -37,7 +40,8 @@ Note that spectral library matches are added as annotations to CSI:FingerID
 results and do not influence the ranking of structure candidates.
 }
 \note{
-For more information, see the Sirius \href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
+For more information, see the Sirius
+\href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
 }
 \examples{
 # Example of setting up the parameters for spectra matching

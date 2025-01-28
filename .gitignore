@@ -3,3 +3,6 @@ local_data
 *.o
 *.so
 *.mzML
+*.mgf
+*.txt
+*.siriusdb

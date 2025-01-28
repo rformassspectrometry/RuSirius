@@ -12,6 +12,9 @@ to be predicted by MsNovelist. Max Value \code{128}. Actual number of
 returned candidate might be lower du to duplicates being created.
 Default is \code{10}}
 }
+\value{
+An object of class \code{deNovoStructureParam}.
+}
 \description{
 This function to set up the parameter for de novo structure annotation using
 the \emph{MSNovelist} tool.
@@ -25,7 +28,8 @@ molecules from MS/MS data remains a challenging task, and identifying a
 structure without database candidates is even more difficult.
 }
 \note{
-For more information, see the Sirius \href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
+For more information, see the Sirius
+\href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
 }
 \examples{
 # Example of setting up the parameters for de novo structure annotation

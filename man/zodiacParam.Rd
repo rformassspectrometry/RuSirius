@@ -23,9 +23,9 @@ zodiacParam(
 number of candidate molecular formulas considered by ZODIAC for
 compounds below 300 m/z. Default is \code{10}.}
 
-\item{consideredCandidatesAt800Mz}{An \code{integer(1)} specifying the maximum number
-of candidate molecular formulas considered by ZODIAC for compounds
-above 800 m/z. Default is \code{50}.}
+\item{consideredCandidatesAt800Mz}{An \code{integer(1)} specifying the maximum
+number of candidate molecular formulas considered by ZODIAC for \
+compounds above 800 m/z. Default is \code{50}.}
 
 \item{runInTwoSteps}{\code{logical} specifying whether ZODIAC uses a
 2-step approach. First running 'good quality compounds' only, and
@@ -55,6 +55,9 @@ uses Gibbs sampler parameters. Default is \code{TRUE}.}
 \item{numberOfMarkovChains}{\code{numeric(1)} specifying the number of Markov
 chains. Default is \code{10}.}
 }
+\value{
+An object of class \code{zodiacParam}.
+}
 \description{
 This function configures the parameters for the re-ranking of the previously
 computed molecular formula annotation in Sirius. This step is quite
@@ -66,7 +69,8 @@ SIRIUS to build a similarity network, and uses Bayesian statistics to
 re-rank those candidates.
 }
 \note{
-For more information, see the Sirius \href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
+For more information, see the Sirius
+\href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
 }
 \examples{
 # Example of setting up the parameter for Zodiac re-ranking

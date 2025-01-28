@@ -15,9 +15,9 @@
 #' @param consideredCandidatesAt300Mz An `integer(1)` specifying the maximum
 #'        number of candidate molecular formulas considered by ZODIAC for
 #'        compounds below 300 m/z. Default is `10`.
-#' @param consideredCandidatesAt800Mz An `integer(1)` specifying the maximum number
-#'        of candidate molecular formulas considered by ZODIAC for compounds
-#'        above 800 m/z. Default is `50`.
+#' @param consideredCandidatesAt800Mz An `integer(1)` specifying the maximum
+#'        number of candidate molecular formulas considered by ZODIAC for \
+#'        compounds above 800 m/z. Default is `50`.
 #' @param runInTwoSteps `logical` specifying whether ZODIAC uses a
 #'        2-step approach. First running 'good quality compounds' only, and
 #'        afterwards including the remaining compounds. Default is `TRUE`.
@@ -42,9 +42,12 @@
 #' @importClassesFrom ProtGenerics Param
 #'
 #' @note
-#' For more information, see the Sirius [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#' For more information, see the Sirius
+#' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
 #' @references reference
+#'
+#' @return An object of class `zodiacParam`.
 #'
 #' @examples
 #' # Example of setting up the parameter for Zodiac re-ranking

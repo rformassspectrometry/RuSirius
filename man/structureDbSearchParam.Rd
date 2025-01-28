@@ -30,23 +30,29 @@ class.}
 confidence mode for expansive search. Possible values are
 \code{"APPROXIMATE"},\code{"EXACT"}, \code{"OFF"}. Defaults to \code{"APPROXIMATE"}.}
 }
+\value{
+An object of class \code{structureDbSearchParam}.
+}
 \description{
-This function creates an object of class \code{structureDbSearchParam} that can be
-used to configure the structure database search in Sirius. The object can be
-passed to the \code{runSirius} function to perform the structure database search.
+This function creates an object of class \code{structureDbSearchParam} that can
+be used to configure the structure database search in Sirius. The object can
+be passed to the \code{runSirius} function to perform the structure database
+search.
 
 By default, \emph{SIRIUS} searches for molecular structures in a biomolecule
 structure database. It can also search in the (extremely large) PubChem
 database or in custom “suspect databases” provided by the user.
 }
 \note{
-For more information, see the Sirius \href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
+For more information, see the Sirius
+\href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
 }
 \examples{
 # Example of setting up the parameters for structure database search
-param <- structureDbSearchParam(structureSearchDbs = c("BIO", "massbank"),
-                                tagStructuresWithLipidClass = TRUE,
-                                expansiveSearchConfidenceMode = "APPROXIMATE")
+param <- structureDbSearchParam(
+                 structureSearchDbs = c("BIO", "massbank"),
+                 tagStructuresWithLipidClass = TRUE,
+                 expansiveSearchConfidenceMode = "APPROXIMATE")
 
 
 }

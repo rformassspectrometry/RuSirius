@@ -15,7 +15,6 @@
 \alias{featuresInfo}
 \alias{deleteFeatures}
 \alias{mapFeatures}
-\alias{listDatabases}
 \alias{saveConfig}
 \alias{jobInfo}
 \alias{deleteJob}
@@ -47,8 +46,6 @@ deleteFeatures(sirius, featureId = featuresId(sirius))
 
 mapFeatures(sirius)
 
-listDatabases(sirius)
-
 saveConfig(sirius, config, name)
 
 jobInfo(sirius, jobId = character())
@@ -74,15 +71,17 @@ can be an already existing project or a new one.}
 
 \item{path}{\code{character(1)} path where to find the existing project or where
 to create a new one.By default Sirius will open or create a project
-in the folder \code{"C:/Users/<username>/sirius_projects"} fro windows and
-\verb{"Sys.getenv("HOME")/sirius-projects"} in other OS.}
+in the folder \code{"C:/Users/<username>/sirius_projects"} for windows and
+\verb{"Sys.getenv("HOME")/sirius-projects"} in other OS. It will not be
+created automatically, if you want to use this default please create
+it beforehand.}
 
 \item{type}{\code{character} vector of length 1, specifying the type of features
-ID to list. Possible values are "sirius" and "xcms". Default
+ID to list. Possible values are \code{"sirius"} and \code{"xcms"}. Default
 is \code{"sirius"}.}
 
-\item{featureId}{\code{character()} vector specifying the id of the feature to remove.
-By default remove all.}
+\item{featureId}{\code{character()} vector specifying the id of the feature to
+remove. By default remove all.}
 
 \item{config}{a \code{configSirius} object}
 
@@ -93,10 +92,40 @@ configuration to load.}
 
 \item{all}{\code{logical}, whether to delete all jobs. Default is \code{FALSE}.}
 }
+\value{
+A \code{message} whether the user is successfully logged in or not.
+
+\code{logical}, \code{TRUE} if the connection is valid, \code{FALSE} otherwise.
+
+\code{message} whether the project is closed or not.
+
+nothing, will open the web API in the default browser.
+
+\code{TRUE} if the GUI opens correctly.
+
+\code{TRUE} if the GUI closes correctly.
+
+a \code{list} with the information requested.
+
+a \code{character} vector with the open projects.
+
+a \code{Sirius} object with the project opened.
+
+a \code{character} vector with the features ID.
+
+a \code{data.frame} with the features information.
+
+A \code{Sirius} object with the features removed.
+
+a \code{data.frame} with the features mapping.
+
+nothing, will save the configuration locally.
+
+a \code{character} vector with the job information.
+
+nothing, will delete the job from Sirius.
+}
 \description{
 returns \code{TRUE} if the connection to the Sirius is valid,
 \code{FALSE} otherwise.
-
-List the databases that are searchable by Sirius for spectral matching.
-Can be inputted in??
 }

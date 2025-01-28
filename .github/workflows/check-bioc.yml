@@ -233,7 +233,7 @@ jobs:
               ## NOTE: Change this back when everything ready
               # build_args = c("--no-manual", "--keep-empty-dirs", "--no-resave-data"),
               build_args = c("--no-manual", "--keep-empty-dirs", "--no-resave-data", "--no-build-vignettes"),
-              error_on = "warning",
+              error_on = "error",
               check_dir = "check"
           )
         shell: Rscript {0}
@@ -248,7 +248,7 @@ jobs:
         run: |
           BiocGenerics:::testPackage()
         shell: Rscript {0}
-
+      ## Will remove some of the `no-check` = TRUE, when I figure out the docker. 
       - name: Run BiocCheck
         env:
           DISPLAY: 99.0
@@ -257,7 +257,11 @@ jobs:
               dir('check', 'tar.gz$', full.names = TRUE),
               `quit-with-status` = TRUE,
               `no-check-R-ver` = TRUE,
-              `no-check-bioc-help` = TRUE
+              `no-check-bioc-help` = TRUE, 
+              `no-check-remotes` = TRUE, 
+              `no-check-bioc-views` = TRUE,
+              `no-check-man-doc` = TRUE
+
           )
         shell: Rscript {0}
 

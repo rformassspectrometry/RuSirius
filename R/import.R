@@ -7,6 +7,13 @@
 #' @param ms2Spectra `Spectra`, the MS2 spectra to import
 #' @param sirius `Sirius`, the connection to the Sirius instance with a
 #'        loaded project
+#' @param adducts `character` vector of the adducts know to refer to the
+#'        features that are being. Needs to be of either length 1 or the same
+#'        length as the number of features being imported. If of length 1, and
+#'        less than the number of features being imported, the same adduct will
+#'        be used for all features.
+#' @param deleteExistingFeatures `logical(1)`, if `TRUE`, all existing features
+#'        will be deleted before importing the new ones.
 #'
 #' @importFrom methods setClass new
 #' @importClassesFrom ProtGenerics Param
@@ -14,19 +21,28 @@
 #' @importFrom Rsirius FeatureImport BasicSpectrum SimplePeak
 #' @importFrom Spectra spectraData peaksData
 #'
-#' @note
-#' Will remove the previously imported feature.
 #'
 NULL
 
 #' @rdname import
 #' @export
-import <- function(sirius, ms1Spectra, ms2Spectra) {
+import <- function(sirius, ms1Spectra, ms2Spectra,
+                   adducts = character(), deleteExistingFeatures = TRUE) {
     if ("feature_id" %in% colnames(spectraData(ms1Spectra)))
          id_field <- "feature_id"
     else id_field <- "chrom_peak_id"
-    srs <- deleteFeatures(srs)
-    fts <- .process_feature_import(srs, ms1Spectra, ms2Spectra, id_field)
+    if (!length(adducts)) adducts <- "[M+?]+" # or have it as the default.
+    if (length(adducts) != length(unique(ms1Spectra[[id_field]]))) {
+        if (length(adducts) == 1)
+            adducts <- rep(adducts,
+                           length(unique(ms1Spectra[[id_field]])))
+        else
+            stop("The number of adducts must be either 1 or the same as the ",
+                 "number of features being imported.")
+    }
+    if (deleteExistingFeatures) sirius <- deleteFeatures(sirius)
+    fts <- .process_feature_import(srs, ms1Spectra, ms2Spectra, id_field,
+                                   adducts = adducts)
     .upload_feature_import(srs, fts)
     srs@featureMap <- mapFeatures(srs)
     srs
@@ -42,28 +58,31 @@ import <- function(sirius, ms1Spectra, ms2Spectra) {
     )
 }
 
-.process_feature_import <- function(srs, ms1Spectra, ms2Spectra, id_field) {
-    unmatched_ids <- setdiff(unique(spectraData(ms1Spectra)[[id_field]]),
-                             unique(spectraData(ms2Spectra)[[id_field]]))
+.process_feature_import <- function(srs, ms1Spectra, ms2Spectra,
+                                    id_field, adducts) {
+    unmatched_ids <- setdiff(unique(ms1Spectra[[id_field]]),
+                             unique(ms2Spectra[[id_field]]))
     if (length(unmatched_ids) > 0) {
         stop("The following IDs are unmatched in ms1Spectra and ms2Spectra: ",
              paste(unmatched_ids, collapse = ", "))
     }
     allfts <- unique(ms1Spectra[[id_field]])
-    allFeatures <- lapply(allfts, function(fts) {
+    allFeatures <- Map(function(fts, adduct) {
         ms1_tmp <- ms1Spectra[ms1Spectra[[id_field]] == fts]
         ms2_tmp <- ms2Spectra[ms2Spectra[[id_field]] == fts]
         .createFeatureImport(feature_id = fts,
                              ms1_tmp = ms1_tmp,
                              ms2_tmp = ms2_tmp,
-                             id_field = id_field)
-    })
+                             id_field = id_field,
+                             adduct = adduct)
+    }, allfts, adducts)
     allFeatures
 }
 
 # Create a FeatureImport object
-.createFeatureImport <- function(feature_id, ms1_tmp, ms2_tmp, id_field) {
-    ms1_processed <- .processSpectra(ms1_tmp) # takes: 1 min
+.createFeatureImport <- function(feature_id, ms1_tmp, ms2_tmp, id_field,
+                                 adduct) {
+    ms1_processed <- .processSpectra(ms1_tmp) # slow
     ms2_processed <- .processSpectra(ms2_tmp) # super fast
     if (id_field == "feature_id")
         mtd <- spectraData(ms1_tmp)[1,
@@ -82,7 +101,7 @@ import <- function(sirius, ms1Spectra, ms2Spectra) {
         rtStartSeconds = mtd[[3]],
         rtEndSeconds = mtd[[4]],
         rtApexSeconds = mtd[[5]],
-        detectedAdducts = list("[M+?]+"), #have to hardcode this for now because bug when empty of sirius side
+        detectedAdducts = list(adduct),
         ms1Spectra = ms1_processed,
         ms2Spectra = ms2_processed
     )
@@ -110,7 +129,3 @@ import <- function(sirius, ms1Spectra, ms2Spectra) {
         peaks = peaks
     )
 }
-
-
-
-
