@@ -7,6 +7,7 @@
 #' @param ms2Spectra `Spectra`, the MS2 spectra to import
 #' @param sirius `Sirius`, the connection to the Sirius instance with a
 #'        loaded project
+#'
 #' @param adducts `character` vector of the adduct(s) known to refer to the
 #'        features that are being imported. Needs to be of either length 1 or
 #'        the same length as the number of features being imported. If of
