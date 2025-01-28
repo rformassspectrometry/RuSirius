@@ -7,6 +7,13 @@
 #' @param ms2Spectra `Spectra`, the MS2 spectra to import
 #' @param sirius `Sirius`, the connection to the Sirius instance with a
 #'        loaded project
+#' @param adducts `character` vector of the adduct(s) known to refer to the
+#'        features that are being imported. Needs to be of either length 1 or
+#'        the same length as the number of features being imported. If of
+#'        length 1, and less than the number of features being imported, the
+#'        same adduct will be used for all features.
+#' @param deleteExistingFeatures `logical(1)`, if `TRUE`, all existing features
+#'        will be deleted before importing the new ones.
 #'
 #' @importFrom methods setClass new
 #' @importClassesFrom ProtGenerics Param
