@@ -23,8 +23,11 @@
 #' @importFrom methods setClass new
 #' @importClassesFrom ProtGenerics Param
 #'
+#' @return An object of class `deNovoStructureParam`.
+#'
 #' @note
-#' For more information, see the Sirius [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#' For more information, see the Sirius
+#' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
 #' @references reference
 #'
@@ -36,19 +39,20 @@ NULL
 
 #' @noRd
 setClass("deNovoStructureParam",
-         slots = c(numberOfCandidateToPredict = "numeric"),
-         contains = "Param",
-         prototype = prototype(c(numberOfCandidateToPredict = 10)),
-         validity = function(object) {
-           if (object@numberOfCandidateToPredict < 1 || object@numberOfCandidateToPredict > 128)
-             stop("numberOfCandidateToPredict must be between 1 and 128.")
-           TRUE
+        slots = c(numberOfCandidateToPredict = "numeric"),
+        contains = "Param",
+        prototype = prototype(c(numberOfCandidateToPredict = 10)),
+        validity = function(object) {
+            if (object@numberOfCandidateToPredict < 1 ||
+                object@numberOfCandidateToPredict > 128)
+                stop("numberOfCandidateToPredict must be between 1 and 128.")
+            TRUE
          }
 )
 
 #' @rdname deNovoStructureParam
 #' @export
 deNovoStructureParam <- function(numberOfCandidateToPredict = 10) {
-  new("deNovoStructureParam",
-      numberOfCandidateToPredict = numberOfCandidateToPredict)
+    new("deNovoStructureParam",
+        numberOfCandidateToPredict = numberOfCandidateToPredict)
 }

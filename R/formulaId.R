@@ -42,7 +42,8 @@
 #' @section Advanced parameters:
 #'
 #' If you want to specify these parameters we advise you read the Sirius
-#' documentation to learn how to adapt them to your dataset and annotation needs.
+#' documentation to learn how to adapt them to your dataset and annotation
+#' needs.
 #'
 #' @param numberOfCandidates `integer(1)` The number of formula candidates to
 #'        keep in the result list. Default is `10`.
@@ -56,8 +57,8 @@
 #'
 #'        - `"FILTER"`: Excludes formulas if the theoretical isotope pattern
 #'          doesn't match.
-#'        - `"SCORE"`: Uses isotope patterns for scoring, useful for clear MS/MS
-#'          isotope patterns.
+#'        - `"SCORE"`: Uses isotope patterns for scoring, useful for clear
+#'          MS/MS isotope patterns.
 #'        - `"IGNORE"`: Ignores isotope patterns in MS/MS.
 #'
 #' @param filterByIsotopePattern `logical` When `TRUE`, filters molecular
@@ -95,8 +96,8 @@
 #' @param numberOfSecondsPerInstance `numeric`
 #'
 #' @param useHeuristic `logical` If `TRUE`, enables the use of heuristics in
-#'        molecular formula annotation. When enabled, additional thresholds like
-#'        `useHeuristicAboveMz` and `useOnlyHeuristicAboveMz` can be set.
+#'        molecular formula annotation. When enabled, additional thresholds
+#'        like `useHeuristicAboveMz` and `useOnlyHeuristicAboveMz` can be set.
 #'
 #' @param useHeuristicAboveMz `numeric` The m/z threshold above which heuristic
 #'        is used. Default is `300`.
@@ -124,7 +125,8 @@
 #' @importClassesFrom ProtGenerics Param
 #'
 #' @note
-#' For more information, see the Sirius [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#' For more information, see the Sirius
+#' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
 #' @references reference
 #'
@@ -175,7 +177,8 @@ setClass("formulaIdParam",
              enforceElGordoFormula = TRUE,
              performBottomUpSearch = TRUE,
              performDeNovoBelowMz = 400,
-             formulaSearchDBs = c("CHEBI", "HMDB", "LIPIDMAPS", "PUBCHEM", "KEGG"),
+             formulaSearchDBs = c("CHEBI", "HMDB", "LIPIDMAPS",
+                                  "PUBCHEM", "KEGG"),
              applyFormulaConstraintsToDBAndBottomUpSearch = FALSE,
              enforcedFormulaConstraints = c("H", "C", "N", "O", "P"),
              fallbackFormulaConstraints = c("B", "S", "Cl", "Se", "Br"),
@@ -233,8 +236,10 @@ formulaIdParam <- function(
     instrument <- match.arg(instrument)
     isotopeMs2Settings <- match.arg(isotopeMs2Settings)
 
-    enforcedFormulaConstraints <- paste(enforcedFormulaConstraints, collapse = "")
-    fallbackFormulaConstraints <- paste(fallbackFormulaConstraints, collapse = "")
+    enforcedFormulaConstraints <- paste(enforcedFormulaConstraints,
+                                        collapse = "")
+    fallbackFormulaConstraints <- paste(fallbackFormulaConstraints,
+                                        collapse = "")
 
     if (useHeuristic == TRUE) {
         useHeuristic <- list(

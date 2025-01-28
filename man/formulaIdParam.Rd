@@ -52,8 +52,8 @@ Options:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{   - `"FILTER"`: Excludes formulas if the theoretical isotope pattern
      doesn't match.
-   - `"SCORE"`: Uses isotope patterns for scoring, useful for clear MS/MS
-     isotope patterns.
+   - `"SCORE"`: Uses isotope patterns for scoring, useful for clear
+     MS/MS isotope patterns.
    - `"IGNORE"`: Ignores isotope patterns in MS/MS.
 }\if{html}{\out{</div>}}}
 
@@ -108,8 +108,8 @@ parameters such as \code{numberOfSecondsPerDecomposition} and
 \item{numberOfSecondsPerInstance}{\code{numeric}}
 
 \item{useHeuristic}{\code{logical} If \code{TRUE}, enables the use of heuristics in
-molecular formula annotation. When enabled, additional thresholds like
-\code{useHeuristicAboveMz} and \code{useOnlyHeuristicAboveMz} can be set.}
+molecular formula annotation. When enabled, additional thresholds
+like \code{useHeuristicAboveMz} and \code{useOnlyHeuristicAboveMz} can be set.}
 
 \item{useHeuristicAboveMz}{\code{numeric} The m/z threshold above which heuristic
 is used. Default is \code{300}.}
@@ -142,7 +142,8 @@ score of a molecular formula candidate is a combination of the isotope
 pattern score and the fragmentation tree score.
 }
 \note{
-For more information, see the Sirius \href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
+For more information, see the Sirius
+\href{https://v6.docs.sirius-ms.io/methods-background}{documentation}.
 }
 \section{General parameters}{
 
@@ -154,7 +155,8 @@ We advise to set up these following parameter to fit your specific study.
 
 
 If you want to specify these parameters we advise you read the Sirius
-documentation to learn how to adapt them to your dataset and annotation needs.
+documentation to learn how to adapt them to your dataset and annotation
+needs.
 }
 
 \examples{

@@ -49,8 +49,8 @@ config(
 
 \item{compoundsIds}{\code{character} vector, the ids of the compounds to process.}
 
-\item{alignedFeaturesIds}{\code{character} vector, the ids of the aligned features
-to process. By default, computes all.}
+\item{alignedFeaturesIds}{\code{character} vector, the ids of the aligned
+features to process. By default, computes all.}
 
 \item{fallbackAdducts}{\code{character} vector, fallback adducts are considered
 if the auto detection did not find any indication for an ion mode.}
@@ -62,8 +62,8 @@ always considered.}
 considered if there is an indication in the MS1 scan (e.g. correct
 mass delta).}
 
-\item{spectraSearchParams}{object of class \code{spectraMatchingParam}, containing
-the parameters for the spectra matching.}
+\item{spectraSearchParams}{object of class \code{spectraMatchingParam},
+containing the parameters for the spectra matching.}
 
 \item{formulaIdParams}{object of class \code{formulaIdParam}, containing the
 parameters for the molecular formula identification.}
@@ -71,14 +71,15 @@ parameters for the molecular formula identification.}
 \item{zodiacParams}{object of class \code{zodiacParam}, containing the parameters
 for the Zodiac re-ranking.}
 
-\item{predictParams}{object of class \code{predictParam}, containing the parameters for
-the molecular fingerprint prediction and compound classification.}
+\item{predictParams}{object of class \code{predictParam}, containing the
+parameters for the molecular fingerprint prediction and compound
+classification.}
 
-\item{structureDbSearchParams}{object of class \code{structureDbParam}, containing
-the parameters for the structure annotation.}
+\item{structureDbSearchParams}{object of class \code{structureDbParam},
+containing the parameters for the structure annotation.}
 
-\item{msNovelistParams}{object of class \code{deNovoStructureParam}, containing the
-parameters for the de novo structure generation.}
+\item{msNovelistParams}{object of class \code{deNovoStructureParam}, containing
+the parameters for the de novo structure generation.}
 
 \item{recompute}{\code{logical}, whether to recompute the job , only necessary if
 the configfile comes from a saved file. Default is FALSE.}
@@ -86,7 +87,8 @@ the configfile comes from a saved file. Default is FALSE.}
 \item{configFile}{\code{character}, the path to the configuration file to use for
 the job submission, optional.}
 
-\item{wait}{\code{logical}, whether to wait for the job to finish. Default is TRUE}
+\item{wait}{\code{logical}, whether to wait for the job to finish. Default is
+\code{TRUE}}
 }
 \value{
 The job ID of the submitted job, it can be inputted in the
@@ -102,8 +104,8 @@ Sirius, it can also be saved and reused later on through the
 Depending on what task you want to perform, you can specify the following
 parameters:
 \itemize{
-\item \code{\link{spectraMatchingParam}}: Allows to perform matching betweeen spectra input
-to spectral libraries.
+\item \code{\link{spectraMatchingParam}}: Allows to perform matching betweeen spectra
+input to spectral libraries.
 \item \code{\link{formulaIdParam}}: Allows to generate molecular formula candidates for
 each features.
 \item \code{\link{zodiacParam}}: Allows to perform re-ranking of formula candidates
@@ -113,8 +115,8 @@ annotation is run later.
 \emph{CSI:FingerID} and compound classification using \emph{CANOPUS}.
 \item \code{\link{structureDbSearchParam}}: Allows to perform structure annotation based
 on the fingerprint identifications.
-\item \code{\link{deNovoStructureParam}}: Allows to perform de novo structure generation using
-the \emph{MSNovelist} tool.
+\item \code{\link{deNovoStructureParam}}: Allows to perform de novo structure generation
+using the \emph{MSNovelist} tool.
 }
 }
 \section{Only formula identification}{
@@ -130,19 +132,20 @@ compare the results.
 
 
 To performe structure annotation, you need input the \code{formulaIdParam} object,
-as well as the \code{predictParam} object to perform molecular fingerprint prediction
-and compound classification. These results will then subsequently be used to
-perform structure annotation using the \code{structureDbSearchParam} object.
+as well as the \code{predictParam} object to perform molecular fingerprint
+prediction and compound classification. These results will then subsequently
+be used to perform structure annotation using the \code{structureDbSearchParam}
+object.
 }
 
 \section{De Novo structure annotation}{
 
 
-To perform de novo structure annotation, you need to input the \code{formulaIdParam}
-object, it is also advised in this case to perform re-ranking using the
-\code{zodiacParam} object. The molecular fingerprint prediction and compound
-classification can be performed using the \code{predictParam} object.
-The \code{deNovoStructureParam} object is then used to perform the de novo structure
-annotation.
+To perform de novo structure annotation, you need to input the
+\code{formulaIdParam} object, it is also advised in this case to perform
+re-ranking using the \code{zodiacParam} object. The molecular fingerprint
+prediction and compound classification can be performed using the
+\code{predictParam} object. The \code{deNovoStructureParam} object is then used to
+perform the de novo structure annotation.
 }
 

@@ -4,7 +4,13 @@
 \alias{import}
 \title{Import Data into Sirius}
 \usage{
-import(sirius, ms1Spectra, ms2Spectra)
+import(
+  sirius,
+  ms1Spectra,
+  ms2Spectra,
+  adducts = character(),
+  deleteExistingFeatures = TRUE
+)
 }
 \arguments{
 \item{sirius}{\code{Sirius}, the connection to the Sirius instance with a
@@ -13,10 +19,16 @@ loaded project}
 \item{ms1Spectra}{\code{Spectra}, the MS1 spectra to import}
 
 \item{ms2Spectra}{\code{Spectra}, the MS2 spectra to import}
+
+\item{adducts}{\code{character} vector of the adducts know to refer to the
+features that are being. Needs to be of either length 1 or the same
+length as the number of features being imported. If of length 1, and
+less than the number of features being imported, the same adduct will
+be used for all features.}
+
+\item{deleteExistingFeatures}{\code{logical(1)}, if \code{TRUE}, all existing features
+will be deleted before importing the new ones.}
 }
 \description{
 Import Data into Sirius
-}
-\note{
-Will remove the previously imported feature.
 }

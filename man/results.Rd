@@ -3,46 +3,49 @@
 \name{results}
 \alias{results}
 \alias{summary}
-\title{Get results from Sirius}
+\title{Fetch Results from Sirius}
 \usage{
-summary(sirius, deNovo = FALSE)
+summary(
+  sirius,
+  result.type = c("formulaId", "structure", "deNovo", "spectralDbMatch")
+)
 
 results(
   sirius,
   features = character(),
-  result.type = c("formulaId", "structureDb", "compoundClass", "deNovo"),
+  result.type = c("formulaId", "structureDb", "compoundClass", "deNovo",
+    "spectralDbMatch", "fragTree"),
   return.type = c("list", "data.frame"),
   topFormula = 5,
-  topStructure = 5
+  topStructure = 5,
+  topSpectralMatches = 5
 )
 }
 \arguments{
-\item{sirius}{a \code{Sirius} object}
+\item{sirius}{A \code{Sirius} object.}
 
-\item{deNovo}{\code{logical(1)} specifying if the summary results should be fetched
-for the de novo candidates. Defaults to \code{FALSE}.}
+\item{result.type}{\code{character(1)} specifying the type of results to fetch.
+Options are "formulaId", "structureDb", "compoundClass", "deNovo",
+"spectralDbMatch", and "fragTree". Defaults to "formulaId".}
 
-\item{features}{\code{character()} vector specifying the feature IDs to retrieve
-results for. If not provided, all available features will be used.}
+\item{features}{\code{character()} vector specifying feature IDs to retrieve
+results for. Defaults to all available features.}
 
-\item{result.type}{\code{character(1)} specifying the type of results to retrieve.
-Possible values are "formulaId", "structureDb", "compoundClass",
-and "deNovo". Defaults to "formulaId". All the possible values will
-return  formulaId results anyway.}
+\item{return.type}{\code{character(1)} specifying return format. Either
+"data.frame" (default) or "list".}
 
-\item{return.type}{\code{character(1)} specifying the return type. Either
-\code{"data.frame"}, which will return a single \code{data.frame} with all
-results. Or \code{"list"}, which will return a \code{list} of \code{data.frame}
-where each element corresponds to the results for a single feature.
-Defaults to \code{"data.frame"}.}
+\item{topFormula}{\code{numeric(1)} Maximum number of formula candidates to
+retrieve per feature. Defaults to 5.}
 
-\item{topFormula}{\code{numeric(1)} specifying the maximum number of formula
-candidates to retrieve for each feature.}
+\item{topStructure}{\code{numeric(1)} Maximum number of structure candidates per
+formula. Defaults to 5.}
 
-\item{topStructure}{\code{numeric(1)} specifying the maximum number of structure
-candidates to retrieve for each formula.}
+\item{topSpectralMatches}{\code{numeric(1)} Maximum number of spectral matches
+per feature. Defaults to 5.}
 }
 \value{
+A data.frame or list of results, depending on \code{return.type}.
+
 a data.frame with the summary of the results.
 Important column is the \emph{ApproximateConfidence} column, which give a
 score of how possible all the identifications for this feature are.
@@ -50,5 +53,11 @@ The \emph{exactConfidence} column is a score of how possible the top
 identification is.
 }
 \description{
-The function below are used to fetch results from the \emph{Sirius} project.
+Functions to retrieve results from the \emph{Sirius} project, allowing
+customization of the result type, feature selection, and return format.
+
+Get best match results for a Sirius project. Choose which type
+of results to fetch with the \emph{result.type} parameter.
+"structure" and "deNovo" will both also give information on
+the formula.
 }

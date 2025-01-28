@@ -41,12 +41,9 @@ similar workflow applies to features (grouped chromatographic peaks). The
 vignette for features is pending the availability of public data, but the steps
 for data preparation differ only slightly and can be adapted without issue.
 
-**IMPORTANT:** This is a work in progress. Feedback is highly valued, especially
-regarding enhancements or additions that could simplify your workflow. Your
-input as a user is essential.
-
--   **KNOWN ISSUE:** The spectral library matching currently does not work as
-    expected. This issue is under investigation.
+**IMPORTANT:** This is a work in progress. Feedback is highly valued, 
+especially regarding enhancements or additions that could simplify your 
+workflow. Your input as a user is essential.
 
 ## Preprocessing
 
@@ -80,15 +77,17 @@ parameter.
 # Extract MS1 and MS2 spectra linked to chromatographic peaks
 ms2 <- chromPeakSpectra(dda_data, 
                         chromPeakColumns = c("mz", "rt", "rtmin", "rtmax"),
+                        expandMz = 0.01, expandRt = 3,
                         msLevel = 2L)
 low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
 ms2 <- filterIntensity(ms2, intensity = low_int)
 ms2 <- ms2[lengths(ms2) > 1]
-cp <- unique(spectraData(ms2)$chrom_peak_id)[1:25]
+cp <- unique(spectraData(ms2)$chrom_peak_id)
 ms2 <- ms2[spectraData(ms2)$chrom_peak_id %in% cp]
 
 ms1 <- chromPeakSpectra(dda_data, 
                         chromPeakColumns = c("mz", "rt", "rtmin", "rtmax"), 
+                        expandMz = 0.01, expandRt = 3,
                         msLevel = 1L, peaks = cp, method = "closest_rt")
 ```
 
@@ -103,7 +102,9 @@ work.
 This `srs` variable is needed for any task that necessitate to communicate with
 the application. You can learn more about this object class by running `?Sirius`
 in the console. Below I do not precise the `path` parameter, by default Sirius
-will save your project in the `sirius_projects` folder in your user directory.
+will try save your project in the `sirius_projects` folder in your user 
+directory.
+Note that this folder will *not* be created automatically. 
 If you want to save it somewhere else you can specify the `path =` parameter.
 
 ```{r, start-sirius}
@@ -168,19 +169,28 @@ Sirius. This process can also be completed easily via the Sirius graphical user
 interface (GUI). If you prefer an interactive approach, you can use the
 `openGUI(srs)` command to open the Sirius app and manage your database directly.
 
-In this example, we downloaded a JSON file from MassBank, which needs to be
-loaded into Sirius to generate a `.sirius.db` file.
+In this example, we download the MassBank library from GNPS, which needs to be
+loaded into Sirius to generate a `.sirius.db` file. Below we will download in
+our current directory but you can precise where you want to save it using
+`location =` parameter.
 
-**Note:** The API endpoint for creating custom databases is currently not fully
-functional. Therefore, we recommend completing this step interactively either
-through the Sirius app or via R using the `openGUI()` command.
+```{r}
+## Download the MassBank EU library
+download.file("https://external.gnps2.org/gnpslibrary/MASSBANKEU.mgf",
+              destfile = "MASSBANKEU.mgf")
+createDB(srs, databaseId = "massbankeuCustom", files = "MASSBANKEU.mgf")
+```
 
+NOTE: THis takes quite a while, will change to a smaller database later. 
 Once the database is created and loaded, you can verify its successful import by
 running the following command:
 
 ```{r}
-listDatabases(srs)
+listDBs(srs)
 ```
+
+Find more on how to handle databases in Sirius by typing `?siriusDBs` in the 
+console.
 
 ## Submit job to Sirius - For structure DB search
 
@@ -198,14 +208,17 @@ the status using `jobInfo()`.
 ## Start computation
 job_id <- run(srs,
               fallbackAdducts = c("[M + H]+", "[M + Na]+", "[M + K]+"),
-              spectraSearchParams = spectraMatchingParam(spectraSearchDBs  = c("massbank2")),
+              spectraSearchParams = spectraMatchingParam(
+                  spectraSearchDBs = c("BIO", "massbankeuCustom")
+              ),
               formulaIdParams = formulaIdParam(numberOfCandidates = 5,
                                 numberOfCandidatesPerIonization = 2,
                                 isotopeMs2Settings = c("SCORE"),
-                                performDeNovoBelowMz = 600),
+                                performDeNovoBelowMz = 600, 
+                                minPeaksToInjectSpecLibMatch = 3),
               predictParams = predictParam(),
               structureDbSearchParams = structureDbSearchParam(
-                  structureSearchDbs = c("BIO ")
+                  structureSearchDbs = c("BIO", "massbankeuCustom")
               ),
               recompute = TRUE,
               wait = TRUE
@@ -232,7 +245,7 @@ An important aspect of the summary table is the confidence-related columns,
 which provide insight into the reliability of the predictions.
 
 ```{r}
-summarytb <- summary(sirius = srs)
+summarytb <- summary(sirius = srs, result.type = "structure")
 head(summarytb)
 ```
 
@@ -294,15 +307,53 @@ finalcomp <- results(srs,
 head(finalcomp)
 ```
 
+## Spectral library matching results
+
+The following code gives you a summary of the best matches: 
+
+```{r}
+summaryspectra <- summary(srs, result.type = "spectralDbMatch")
+head(summaryspectra)
+```
+
+For detailed results, use the following code:
+
+```{r}
+full_spectral <- results(srs, 
+                         return.type = "data.frame", 
+                         result.type = "spectralDbMatch",
+                         topSpectralMatches = 2)
+head(full_spectral)
+```
+
+## Fragmentation tree results
+
+Below we show how to get the fragmentation tree for the top2 formula of some
+feautres. This is quite inefficient at the moment so limit  it to a little number of 
+feature. I will improve it. 
+
+```{r}
+resulttree <- results(srs, 
+                      features = featuresId(srs)[1:5],
+                      return.type = "list", 
+                      result.type = "fragTree",
+                      topFormula = 4, 
+                     )
+
+head(resulttree)
+```
+
+
 ## Submit job to Sirius - For De Novo structure annotation.
 
-*De novo* structure annotation is computationally intensive and recommended only
-for specific features.
+*De novo* structure annotation is computationally intensive and recommended 
+only for specific features.
 
 ```{r}
 # Determine features that do not have/have poor structure prediction
-fts_denovo <-summarytb$alignedFeatureId[which(summarytb$confidenceApproxMatch < 0.3 |
-                                                  summarytb$confidenceApproxMatch %in% c("NA", "-Infinity"))]
+fts_denovo <-summarytb$alignedFeatureId[which(
+    summarytb$confidenceApproxMatch < 0.3 |
+        summarytb$confidenceApproxMatch %in% c("NA", "-Infinity"))]
 ```
 
 ```{r}
@@ -321,7 +372,7 @@ jobInfo(srs, job_id)
 ## Retrieve results
 
 ```{r}
-summraryDeNovo <- summary(srs, deNovo = TRUE)
+summraryDeNovo <- summary(srs, result.type = "deNovo")
 head(summraryDeNovo)
 ```
 
@@ -341,6 +392,14 @@ head(full_de_novo)
 ```{r}
 #delete results
 file.remove(projectInfo(srs)$location)
+removeDb(srs, databaseId = "massbankeuCustom")
 # Close the Sirius session
 shutdown(srs)
 ```
+
+## Session info 
+
+```{r}
+sessionInfo()
+```
+

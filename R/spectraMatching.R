@@ -14,7 +14,7 @@
 #' @param spectraSearchDBs `character` vector of the databases to search. The
 #'        default is `c("BIO", "massbank")`. Other values can be found by
 #'        running `listDatabases()`.
-#' @param peakDeviationPpm `numeric` 	Maximum allowed mass deviation in ppm for
+#' @param peakDeviationPpm `numeric` Maximum allowed mass deviation in ppm for
 #'        matching peaks.
 #' @param precursorDeviationPpm `numeric` Maximum allowed mass deviation in ppm
 #'        for matching the precursor. If not specified, the same value as for
@@ -28,7 +28,10 @@
 #' @importClassesFrom ProtGenerics Param
 #'
 #' @note
-#' For more information, see the Sirius [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#' For more information, see the Sirius
+#'  [documentation](https://v6.docs.sirius-ms.io/methods-background).
+#'
+#' @return An object of class `spectraMatchingParam`
 #'
 #' @examples
 #' # Example of setting up the parameters for spectra matching
@@ -61,7 +64,8 @@ spectraMatchingParam <- setClass("spectraMatchingParam",
       return("precursorDeviationPpm must be a positive number")
     }
     if (!object@scoring %in% c("MODIFIED_COSINE", "INTENSITY", "GAUSSIAN")) {
-      return("scoring must be one of 'MODIFIED_COSINE', 'INTENSITY', 'GAUSSIAN'")
+      return("scoring must be one of 'MODIFIED_COSINE', 'INTENSITY', ",
+             "'GAUSSIAN'")
     }
     return(TRUE)
   }
