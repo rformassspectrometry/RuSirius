@@ -138,8 +138,10 @@ Sirius <- function(username = character(), password = character(),
 setMethod("show", signature(object = "Sirius"),
           definition = function(object) {
               cat("Sirius object\n")
-              cat("Valid connection to Sirius: ", checkConnection(object),
+              valid <- checkConnection(object)
+              cat("Valid connection to Sirius: ", valid,
                   "\n")
+              if (!valid) return(cat("Try to restart Sirius"))
               cat("Logged In: ", object@api$login_and_account_api$IsLoggedIn(),
                   "\n")
               cat("Sirius version: ",
@@ -154,7 +156,8 @@ setMethod("show", signature(object = "Sirius"),
                                                    c("command", "progress",
                                                      "affectedIds"))
                   if (!is.null(j)) {
-                      ids <- as.numeric(vapply(j, `[[`, "id", character(1)))
+                      ids <- as.numeric(vapply(j, function(x)
+                          x[["id"]], character(1)))
                       cat("Job ids available: ", ids, "\n")
                       cat("State of latest job: ",
                           j[[which.max(ids)]]$progress$state, "\n")

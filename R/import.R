@@ -23,7 +23,6 @@
 #' @importFrom Rsirius FeatureImport BasicSpectrum SimplePeak
 #' @importFrom Spectra spectraData peaksData
 #'
-#'
 NULL
 
 #' @rdname import
@@ -43,24 +42,27 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
                  "number of features being imported.")
     }
     if (deleteExistingFeatures) sirius <- deleteFeatures(sirius)
-    fts <- .process_feature_import(srs, ms1Spectra, ms2Spectra, id_field,
+    fts <- .process_feature_import(sirius = sirius,
+                                   ms1Spectra = ms1Spectra,
+                                   ms2Spectra = ms2Spectra,
+                                   id_field = id_field,
                                    adducts = adducts)
-    .upload_feature_import(srs, fts)
-    srs@featureMap <- mapFeatures(srs)
-    srs
+    .upload_feature_import(sirius = sirius, allFeatures = fts)
+    sirius@featureMap <- mapFeatures(sirius = sirius)
+    sirius
 }
 
 #' @noRd
 #' @param id_field `character(1)`, either "feature_id" or "chrom_peak_id", will
 #'        be used to determine the metadata to be used for the feature import.
-.upload_feature_import <- function(srs, allFeatures) {
-    srs@api$features_api$AddAlignedFeatures(
-        project_id = srs@projectId,
+.upload_feature_import <- function(sirius, allFeatures) {
+    sirius@api$features_api$AddAlignedFeatures(
+        project_id = sirius@projectId,
         allFeatures
     )
 }
 
-.process_feature_import <- function(srs, ms1Spectra, ms2Spectra,
+.process_feature_import <- function(sirius, ms1Spectra, ms2Spectra,
                                     id_field, adducts) {
     unmatched_ids <- setdiff(unique(ms1Spectra[[id_field]]),
                              unique(ms2Spectra[[id_field]]))
@@ -96,6 +98,7 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
                                        c("chrom_peak_mz", "polarity",
                                          "chrom_peak_rtmin",
                                          "chrom_peak_rtmax", "chrom_peak_rt")]
+    if (mtd$polarity == 0) mtd$polarity <- -1
     FeatureImport$new(
         externalFeatureId = feature_id,
         ionMass = mtd[[1]],
@@ -128,6 +131,7 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
         msLevel = spectrum_metadata$msLevel,
         scanNumber = spectrum_metadata$scanIndex,
         precursorMz = if (spectrum_metadata$msLevel == 2) spectrum_metadata$precursorMz else NULL,
+        collisionEnergy = if (!is.na(spectrum_metadata$collisionEnergy) && spectrum_metadata$collisionEnergy != 0) spectrum_metadata$collisionEnergy else NULL,
         peaks = peaks
     )
 }

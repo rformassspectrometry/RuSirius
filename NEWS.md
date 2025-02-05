@@ -1,5 +1,14 @@
 # Version 0.1
 
+## Changes in 0.1.4
+
+- Now supports import for negative polarity. 
+  See [#24](https://github.com/rformassspectrometry/RuSirius/issues/24)
+- Addition of critical issue in the readme file (line 115). 
+  Related to issue [#19](https://github.com/rformassspectrometry/RuSirius/issues/24).
+- Fix issue on `show()` method. 
+
+
 ## Changes in 0.1.3
 
 - Now can choose or not to delete features already present when importing new

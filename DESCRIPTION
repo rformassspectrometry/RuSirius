@@ -1,6 +1,6 @@
 Package: RuSirius
 Title: R Implementation of the Sirius software
-Version: 0.1.3
+Version: 0.1.4
 Description: The RuSirius package allows the user to interact with the Sirius
              software from R. Sirius is a software for the analysis and
              annotation of mass spectrometry data. RuSirius makes use of the
@@ -10,12 +10,13 @@ Authors@R: c(person(given = "Philippine", family = "Louail",
 		    comment = c(ORCID = "0009-0007-5429-6846"),
 		    email = "philippine.louail@eurac.edu",
 		    role = c("aut", "cre")),
+		    person(given = "Adriano", family = "Rutz", role = c("ctb")),
 		   person(given = "Markus", family = "Fleischauer", role = c("ctb")),
 	       person(given = "Jonas", family = "Emmert", role = c("ctb")))
 Depends:
     ProtGenerics (>= 1.35.4),
     R (>= 4.4.2),
-    Rsirius (>= 3.0.1), 
+    Rsirius, 
     Spectra (>= 1.17.3),
     jsonlite 
 Imports:
@@ -39,7 +40,7 @@ URL: https://github.com/RforMassSpectrometry/RuSirius
 Remotes:
     RforMassSpectrometry/ProtGenerics,
     RforMassSpectrometry/Spectra,
-    sirius-ms/sirius-client-openAPI/client-api_r/generated
+    sirius-ms/sirius-client-openAPI@c35ebbb
 VignetteBuilder: knitr
 Collate: 
     'Sirius.R'
