@@ -131,7 +131,8 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
         msLevel = spectrum_metadata$msLevel,
         scanNumber = spectrum_metadata$scanIndex,
         precursorMz = if (spectrum_metadata$msLevel == 2) spectrum_metadata$precursorMz else NULL,
-        collisionEnergy = if (!is.na(spectrum_metadata$collisionEnergy) && spectrum_metadata$collisionEnergy != 0) spectrum_metadata$collisionEnergy else NULL,
+        collisionEnergy = if (!is.na(spectrum_metadata$collisionEnergy) && spectrum_metadata$collisionEnergy != 0)
+            as.character(spectrum_metadata$collisionEnergy) else NULL,
         peaks = peaks
     )
 }
