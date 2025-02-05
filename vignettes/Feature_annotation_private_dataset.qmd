@@ -132,7 +132,7 @@ low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
 ms2_spectra <- filterIntensity(ms2_spectra, intensity = low_int)
 ms2_spectra <- ms2_spectra[lengths(ms2_spectra) > 1]
 
-features <- unique(spectraData(ms2_spectra)$feature_id)[1:20] #reduce to make import faster.
+features <- unique(spectraData(ms2_spectra)$feature_id)[1:10] #reduce to make import faster.
 
 features
 
@@ -276,7 +276,7 @@ job_id <- run(srs,
                   spectraSearchDBs = c("massbankeuCustom")),
               formulaIdParams = formulaIdParam(numberOfCandidates = 5,
                                      numberOfCandidatesPerIonization = 2,
-                                     isotopeMs2Settings = c("SCORE"), 
+                                     isotopeMs2Settings = c("IGNORE"), 
                                      minPeaksToInjectSpecLibMatch = 4),
               predictParams = predictParam(),
               structureDbSearchParams = structureDbSearchParam(),

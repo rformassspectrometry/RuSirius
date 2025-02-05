@@ -112,12 +112,14 @@ there’s ongoing development to enhance the implementation.
 
 ### Current Issues:
 
+-   **Major issue with MS1 import**: The import of MS1 is inaccurate at the
+    moment. 
+
 -   **GHA and R command checks**: They are failing/incomplete because the
-    vignettes cannot be run systematically for now. The logIn system is blocking
-    this at the moment. But working on it.
+    vignettes cannot be run systematically for now. 
 
 -   **Docker image**: a DockerFile is available, however the vignettes cannot be
-    run on it yet. It's a work in progress, Sirius cannot be started properly.
+    run on it yet.
 
 -   Importing features can be time-consuming. To speed up testing, import only a
     few features at first and limit the process to one MS1 spectrum per feature.

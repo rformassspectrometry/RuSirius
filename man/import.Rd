@@ -20,11 +20,11 @@ loaded project}
 
 \item{ms2Spectra}{\code{Spectra}, the MS2 spectra to import}
 
-\item{adducts}{\code{character} vector of the adducts know to refer to the
-features that are being. Needs to be of either length 1 or the same
-length as the number of features being imported. If of length 1, and
-less than the number of features being imported, the same adduct will
-be used for all features.}
+\item{adducts}{\code{character} vector of the adduct(s) known to refer to the
+features that are being imported. Needs to be of either length 1 or
+the same length as the number of features being imported. If of
+length 1, and less than the number of features being imported, the
+same adduct will be used for all features.}
 
 \item{deleteExistingFeatures}{\code{logical(1)}, if \code{TRUE}, all existing features
 will be deleted before importing the new ones.}
