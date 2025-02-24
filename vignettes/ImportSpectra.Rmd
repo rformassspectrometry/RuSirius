@@ -1,0 +1,83 @@
+---
+title: "ImportSpectra"
+output: html_document
+---
+
+```{r}
+library(MsExperiment)
+library(xcms)
+library(Rsirius)
+library(MetaboAnnotation)
+library(RuSirius)
+library(dplyr)
+library(msdata)
+```
+
+
+
+```{r}
+dda_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
+                        package = "msdata")
+
+```
+
+```{r}
+# Extract spectra
+sps <- spectra(dda_data)
+
+# removing the first spectrum, it´s an MS2 scan with no corresponding MS1 scan
+sps <- sps[-1]
+
+sps <- filterEmptySpectra(sps)
+
+# Separate MS1 and MS2 scans
+ms1 <- sps[sps$msLevel == 1]
+ms2 <- sps[sps$msLevel == 2]
+
+ms1$spectra_id <- seq_along(ms1$scanIndex)
+ms2_idx <- findInterval(ms2$scanIndex, ms1$scanIndex)
+ms2$spectra_id <- ms1$spectra_id[ms2_idx] 
+
+# note that we will then have multiple ms2 for each ms1 scan
+# The user can filter as they want before/after extraction. 
+## keep only one ot one match not obligatory just easier here.
+idx <- which(!duplicated(ms2$spectra_id)) 
+ms2 <- ms2[idx]
+ms1 <- ms1[ms1$spectra_id %in% ms2$spectra_id]
+
+ms1$spectra_mzmed <- ms2$precursorMz[match(ms1$spectra_id, ms2$spectra_id)]
+
+```
+
+```{r}
+# Import one pair of scan
+ms1 <- sps[sps$msLevel == 1]
+ms2 <- sps[sps$msLevel == 2]
+scan <- 2601 # ms2 scan to be selected
+ms2 <- ms2[ms2$scanIndex == scan]
+# get the closest previous ms1 scan:
+scan_diff <- ms1$scanIndex - scan
+scan_diff <- scan_diff[scan_diff < 0]
+ms1 <- ms1[length(scan_diff)]
+
+# should test import with the ionMass set as the precursor m/z or the m/z of the most intense peak
+ms1$spectra_id <- 1
+ms2$spectra_id <- 1
+ms1$spectra_mzmed <- ms2$precursorMz
+
+# import to Sirius:
+srs <- Sirius(projectId = "test_spectra", path = getwd())
+srs <- import(sirius = srs, ms1Spectra = ms1, ms2Spectra = ms2, 
+              #adducts = myadd, 
+              deleteExistingFeatures = TRUE)
+
+
+# i need to look more into it but it does look much better the import here. 
+```
+
+```{r}
+# somehow force formula of a feature..
+
+```
+
+

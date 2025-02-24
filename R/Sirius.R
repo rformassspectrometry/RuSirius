@@ -62,11 +62,8 @@ setClass("Sirius",
 #' @param password `character(1)`, the password to use for the connection
 #' @param projectId `character(1)`, the project id to use for the connection
 #' @param path `character(1)` path where to find the existing project or where
-#'        to create a new one.By default Sirius will open or create a project
-#'        in the folder `"C:/Users/<username>/sirius_projects"` for windows and
-#'        `"Sys.getenv("HOME")/sirius-projects"` in other OS. It will not be
-#'        created automatically, if you want to use this default please create
-#'        it beforehand.
+#'        to create a new one.By default, the porject will be opened in the
+#'        current `"."` directory.
 #' @param verbose `logical(1)`, if `TRUE` the function will print all messages
 #'       to the console. Use if need debug, default is `FALSE`.
 #'

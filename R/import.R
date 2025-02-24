@@ -3,8 +3,8 @@
 #' @name import
 #' @export
 #'
-#' @param ms1Spectra `Spectra`, the MS1 spectra to import
-#' @param ms2Spectra `Spectra`, the MS2 spectra to import
+#' @param ms1Spectra `Spectra`, the MS1 spectra to import.
+#' @param ms2Spectra `Spectra`, the MS2 spectra to import.
 #' @param sirius `Sirius`, the connection to the Sirius instance with a
 #'        loaded project
 #'
@@ -16,6 +16,7 @@
 #'
 #' @param deleteExistingFeatures `logical(1)`, if `TRUE`, all existing features
 #'        will be deleted before importing the new ones.
+#'
 #'
 #' @importFrom methods setClass new
 #' @importClassesFrom ProtGenerics Param
@@ -29,9 +30,11 @@ NULL
 #' @export
 import <- function(sirius, ms1Spectra, ms2Spectra,
                    adducts = character(), deleteExistingFeatures = TRUE) {
-    if ("feature_id" %in% colnames(spectraData(ms1Spectra)))
-         id_field <- "feature_id"
-    else id_field <- "chrom_peak_id"
+    id_field <- if ("feature_id" %in% colnames(spectraData(ms1Spectra))) {
+        "feature_id"
+    } else if ("chrom_peak_id" %in% colnames(spectraData(ms1Spectra))) {
+        "chrom_peak_id"
+    } else "spectra_id"
     if (!length(adducts)) adducts <- "[M+?]+" # or have it as the default.
     if (length(adducts) != length(unique(ms1Spectra[[id_field]]))) {
         if (length(adducts) == 1)
@@ -72,6 +75,7 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
     }
     allfts <- unique(ms1Spectra[[id_field]])
     allFeatures <- Map(function(fts, adduct) {
+        print(fts)
         ms1_tmp <- ms1Spectra[ms1Spectra[[id_field]] == fts]
         ms2_tmp <- ms2Spectra[ms2Spectra[[id_field]] == fts]
         .createFeatureImport(feature_id = fts,
@@ -88,6 +92,20 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
                                  adduct) {
     ms1_processed <- .processSpectra(ms1_tmp) # slow
     ms2_processed <- .processSpectra(ms2_tmp) # super fast
+    if (id_field == "spectra_id") {
+        mtd <- spectraData(ms1_tmp)[1,
+                                       c("spectra_mzmed", "polarity")]
+
+        if (mtd$polarity == 0) mtd$polarity <- -1
+        return(FeatureImport$new(
+            externalFeatureId = as.character(feature_id),
+            ionMass = mtd[[1]],
+            charge = mtd[[2]],
+            detectedAdducts = list(adduct),
+            ms1Spectra = ms1_processed,
+            ms2Spectra = ms2_processed
+        ))
+    }
     if (id_field == "feature_id")
         mtd <- spectraData(ms1_tmp)[1,
                                        c("feature_mzmed", "polarity",
@@ -113,7 +131,7 @@ import <- function(sirius, ms1Spectra, ms2Spectra,
 }
 
 # Helper function to process spectra
-.processSpectra <- function(spectra) { #slow-ish but fine
+.processSpectra <- function(spectra) {
     lapply(seq_along(spectra), function(i) {
         .createBasicSpectrum(
             spectrum_data = peaksData(spectra)[[i]],

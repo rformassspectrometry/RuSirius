@@ -6,3 +6,4 @@ local_data
 *.mgf
 *.txt
 *.siriusdb
+*.sirius

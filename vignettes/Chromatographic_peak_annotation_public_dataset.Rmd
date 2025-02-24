@@ -133,7 +133,7 @@ If the user wants to open and perform computations on a different project they
 can use the utility function below:
 
 ```{r}
-srs <- openProject(srs, projectId = "test_lcmsms2") # `path =` also available here
+srs <- openProject(srs, projectId = "test_lcmsms2", path = getwd()) # `path =` also available here
 srs
 ```
 

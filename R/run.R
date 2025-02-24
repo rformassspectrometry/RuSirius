@@ -199,7 +199,7 @@ setClass(
     validity = function(object) {
         if (length(object@compoundsIds) == 0 &&
             length(object@alignedFeaturesIds) == 0) {
-            return("Either 'compoundsIds' or 'alignedFeaturesIds' must ",
+            stop("Either 'compoundsIds' or 'alignedFeaturesIds' must ",
                    "be provided.")
         }
         TRUE
