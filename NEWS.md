@@ -1,5 +1,13 @@
 # Version 0.1
 
+## Changes in 0.1.5
+
+- Refactor the default path for opening/saving projects. It will now save by 
+  default in the current directory if the `path =` parameter is not precised.
+- Can now import directly from a Spectra object, without having to process 
+  beforehand. Still needs to be improved, see issue [#27](https://github.com/rformassspectrometry/RuSirius/issues/27)
+
+
 ## Changes in 0.1.4
 
 - Now supports import for negative polarity. 

@@ -126,11 +126,8 @@ listOpenProjects <- function(sirius) {
 #' @param projectId `character(1)` specifying the id of the project to open.
 #'        can be an already existing project or a new one.
 #' @param path `character(1)` path where to find the existing project or where
-#'        to create a new one.By default Sirius will open or create a project
-#'        in the folder `"C:/Users/<username>/sirius_projects"` for windows and
-#'        `"Sys.getenv("HOME")/sirius-projects"` in other OS. It will not be
-#'        created automatically, if you want to use this default please create
-#'        it beforehand.
+#'        to create a new one.By default, the porject will be opened in the
+#'        current `"."` directory.
 #' @return a `Sirius` object with the project opened.
 #' @export
 openProject <- function(sirius, projectId, path = character()) {
@@ -145,20 +142,8 @@ openProject <- function(sirius, projectId, path = character()) {
     }
     if (length(path) > 0) {
         if (!file.exists(path))
-            stop("The 'path' provided does not exist.")
-    } else {
-        if (.Platform$OS.type == "windows") {
-            path <- file.path("C:/Users", Sys.getenv("USERNAME"),
-                              "sirius-projects")
-        } else {
-            path <- file.path(Sys.getenv("HOME"), "sirius-projects")
-        }
-        if (!file.exists(path)) {
-            stop("The default path that Sirius uses does not exist. ",
-                 "Either specify a valid path or create the default ",
-                 "directory at '", path, "'.")
-        }
-    }
+            stop("The provided 'path' does not exist.")
+    } else path <- getwd()
     f <- file.path(path, paste0(projectId, ".sirius"))
     if (file.exists(f))
        sirius@api$projects_api$OpenProject(project_id = projectId,

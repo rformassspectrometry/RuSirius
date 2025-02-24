@@ -23,11 +23,8 @@ Sirius(
 \item{projectId}{\code{character(1)}, the project id to use for the connection}
 
 \item{path}{\code{character(1)} path where to find the existing project or where
-to create a new one.By default Sirius will open or create a project
-in the folder \code{"C:/Users/<username>/sirius_projects"} for windows and
-\verb{"Sys.getenv("HOME")/sirius-projects"} in other OS. It will not be
-created automatically, if you want to use this default please create
-it beforehand.}
+to create a new one.By default, the porject will be opened in the
+current \code{"."} directory.}
 
 \item{verbose}{\code{logical(1)}, if \code{TRUE} the function will print all messages
 to the console. Use if need debug, default is \code{FALSE}.}

@@ -16,9 +16,9 @@ import(
 \item{sirius}{\code{Sirius}, the connection to the Sirius instance with a
 loaded project}
 
-\item{ms1Spectra}{\code{Spectra}, the MS1 spectra to import}
+\item{ms1Spectra}{\code{Spectra}, the MS1 spectra to import.}
 
-\item{ms2Spectra}{\code{Spectra}, the MS2 spectra to import}
+\item{ms2Spectra}{\code{Spectra}, the MS2 spectra to import.}
 
 \item{adducts}{\code{character} vector of the adduct(s) known to refer to the
 features that are being imported. Needs to be of either length 1 or
