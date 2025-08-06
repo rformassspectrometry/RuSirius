@@ -1,6 +1,11 @@
 #' @title Functions for Handling Sirius Databases
 #'
-#' @name siriusDBs
+#' @aliases listDbs infoDb removeDb createDb
+#'
+#' @name siriusDbs
+#'
+#' @param sirius A `Sirius` object representing the Sirius connection.
+#'
 #' @description
 #' This set of functions provides tools for managing databases in Sirius. These
 #' include listing available databases, retrieving database information,
@@ -8,15 +13,13 @@
 #'
 NULL
 
-#' @rdname siriusDBs
+#' @rdname siriusDbs
 #' @description
 #' List the databases that are searchable by Sirius for spectral matching.
 #'
-#' @param sirius A `Sirius` object representing the Sirius connection.
-#'
 #' @return A `data.frame` containing details of searchable databases.
 #' @export
-listDBs <- function(sirius) {
+listDbs <- function(sirius) {
     if (!checkConnection(sirius)) {
         stop("The connection to the Sirius instance is not valid.")
     }
@@ -25,11 +28,10 @@ listDBs <- function(sirius) {
     data.frame(do.call(bind_rows, json_list))
 }
 
-#' @rdname siriusDBs
+#' @rdname siriusDbs
 #' @description
 #' Retrieve detailed information about a specific database.
 #'
-#' @param sirius A `Sirius` object representing the Sirius connection.
 #' @param databaseId A `character(1)` string specifying the database ID.
 #'
 #' @return A `list` containing details of the specified database.
@@ -44,11 +46,9 @@ infoDb <- function(sirius, databaseId = character()) {
     sirius@api$searchable_databases_api$GetDatabase(databaseId)$toSimpleType()
 }
 
-#' @rdname siriusDBs
+#' @rdname siriusDbs
 #' @description
 #' Delete a database from Sirius.
-#'
-#' @param sirius A `Sirius` object representing the Sirius connection.
 #' @param databaseId A `character(1)` string specifying the database ID to
 #'        delete.
 #'
@@ -66,11 +66,9 @@ removeDb <- function(sirius, databaseId = character()) {
     TRUE
 }
 
-#' @rdname siriusDBs
+#' @rdname siriusDbs
 #' @description
 #' Create a new database in Sirius from specified files.
-#'
-#' @param sirius A `Sirius` object representing the Sirius connection.
 #' @param databaseId A `character(1)` string specifying the new database ID.
 #' @param files A `character` vector of file paths to add to the database.
 #' @param location A `character(1)` string specifying the location for the
@@ -79,7 +77,7 @@ removeDb <- function(sirius, databaseId = character()) {
 #' @return A `list` containing details of the created database.
 #'
 #' @export
-createDB <- function(sirius, databaseId = character(), files = character(),
+createDb <- function(sirius, databaseId = character(), files = character(),
                      location = getwd()) {
     if (!checkConnection(sirius))
         stop("The connection to the Sirius instance is not valid.")

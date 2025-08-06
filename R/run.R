@@ -1,4 +1,4 @@
-#'@include predictParam.R structureDbSearch.R deNovoStructure.R
+#'@include run-param.R
 
 #' @title Run job on Sirius.
 #'

@@ -1,9 +1,9 @@
 #' @title Utility function for RuSirius
-#' @name Utils
+#' @name utils
 #' @importFrom utils browseURL
 NULL
 
-#' @rdname Utils
+#' @rdname utils
 #' @param username `character(1)`, the username to use for the connection
 #' @param password `character(1)`, the password to use for the connection
 #' @param sirius a valid `Sirius` object
@@ -28,7 +28,7 @@ logIn <- function(sirius, username, password) {
     sirius
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @description returns `TRUE` if the connection to the Sirius is valid,
 #' `FALSE` otherwise.
 #' @param sirius a `Sirius` object
@@ -45,7 +45,8 @@ checkConnection <- function(sirius) {
     })
 }
 
-#' @rdname Utils
+
+#' @rdname utils
 #'
 #' @param sirius object of class `Sirius` with a valid connection
 #' to Sirius.
@@ -57,7 +58,7 @@ checkConnection <- function(sirius) {
 #' @export
 shutdown <- function(sirius, closeProject = TRUE) {
     if (is.null(sirius@sdk$process))
-        stop("There is no Sirius process running.")
+        sirus@sdk <- sirius@sdk$reset_sdk_process()
     if (closeProject) {
         l <- listOpenProjects(sirius)
         if (length(l) > 0) {
@@ -70,17 +71,7 @@ shutdown <- function(sirius, closeProject = TRUE) {
     sirius@sdk$shutdown_sirius()
 }
 
-#' @rdname Utils
-#' @param sirius a `Sirius` object
-#'
-#' @return nothing, will open the web API in the default browser.
-#'
-#' @export
-openWebApi <- function(sirius) {
-    browseURL(sirius@api$projects_api$api_client$base_path)
-}
-
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @return `TRUE` if the GUI opens correctly.
 #' @export
@@ -89,7 +80,7 @@ openGUI <- function(sirius) {
     sirius@api$gui_api$OpenGui(project_id = sirius@projectId)
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object.
 #' @return `TRUE` if the GUI closes correctly.
 #' @export
@@ -98,7 +89,7 @@ closeGUI <- function(sirius) {
     sirius@api$gui_api$CloseGui(project_id = sirius@projectId)
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param infoType `character` vector of length 1 or 2, specifying the type of
 #' information to retrieve. Possible values are `"compatibilityInfo"` and
@@ -112,7 +103,7 @@ projectInfo <- function(sirius,
     info$toSimpleType()
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @return a `character` vector with the open projects.
 #' @export
@@ -121,7 +112,7 @@ listOpenProjects <- function(sirius) {
     unlist(lapply(tst, function(x) x$projectId))
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param projectId `character(1)` specifying the id of the project to open.
 #'        can be an already existing project or a new one.
@@ -154,7 +145,7 @@ openProject <- function(sirius, projectId, path = character()) {
     sirius
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param type `character` vector of length 1, specifying the type of features
 #'        ID to list. Possible values are `"sirius"` and `"xcms"`. Default
@@ -165,12 +156,12 @@ featuresId <- function(sirius, type = c("sirius", "xcms")) {
     type <- match.arg(type)
     fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
     if (type == "sirius")
-        return(unlist(lapply(fts, function(x) x$alignedFeatureId)))
+        return(unlist(lapply(fts, function(x) x$alignedFeatureId)))  # maybe the unlist is breaking ?
     else
         return(unlist(lapply(fts, function(x) x$externalFeatureId)))
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @return a `data.frame` with the features information.
 #' @export
@@ -180,7 +171,7 @@ featuresInfo <- function(sirius) {
     do.call(rbind, l)
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param featureId `character()` vector specifying the id of the feature to
 #'        remove. By default remove all.
@@ -197,7 +188,7 @@ deleteFeatures <- function(sirius, featureId = featuresId(sirius)) {
     sirius
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @return a `data.frame` with the features mapping.
 #' @export
@@ -209,7 +200,7 @@ mapFeatures <- function(sirius) {
         fts_xcms = fts_xcms)
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param config a `configSirius` object
 #' @param name `character` vector of length 1, specifying the name of the
@@ -222,7 +213,7 @@ saveConfig <- function(sirius, config, name) {
     sirius@api@jobs_api$SaveJobConfig(name, config) # see where it saves it.
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param jobId `character(1)` specifying the id of the job to retrieve.
 #' @return a `character` vector with the job information.
@@ -235,7 +226,7 @@ jobInfo <- function(sirius, jobId = character()) {
     return(.clean_output(j))
 }
 
-#' @rdname Utils
+#' @rdname utils
 #' @param sirius a `Sirius` object
 #' @param jobId `character(1)` specifying the id of the job to delete.
 #' @param all `logical`, whether to delete all jobs. Default is `FALSE`.

@@ -6,27 +6,36 @@
 \usage{
 import(
   sirius,
-  ms1Spectra,
-  ms2Spectra,
+  spectra,
+  ms_column_name = character(),
   adducts = character(),
+  chunkSize = 500,
   deleteExistingFeatures = TRUE
 )
 }
 \arguments{
-\item{sirius}{\code{Sirius}, the connection to the Sirius instance with a
-loaded project}
+\item{sirius}{\code{Sirius}. The connection to the Sirius instance with a
+loaded project.}
 
-\item{ms1Spectra}{\code{Spectra}, the MS1 spectra to import.}
+\item{ms_column_name}{character(1). This is the name of a column expected
+in the \code{spectraData} of the input spectra object. MS1 and MS2 spectra with
+the same index in this column will be grouped into a single feature. This
+parameter must be provided if the object has multiple \code{msLevel}s.
+If no column name is provided and the object contains only one MS level,
+then each MS1 spectrum will be exported as a separate feature in Sirius.
+Lastly, we support multiple MS2 spectra per feature, but only one MS1
+spectrum per index. Please merge MS1 spectra beforehand if necessary.}
 
-\item{ms2Spectra}{\code{Spectra}, the MS2 spectra to import.}
+\item{adducts}{\code{character} vector of the adduct(s) associated with the
+features being imported. Must be either length 1 or the same length
+as the number of features. If of length 1 and fewer than the number
+of features, the same adduct will be used for all features.}
 
-\item{adducts}{\code{character} vector of the adduct(s) known to refer to the
-features that are being imported. Needs to be of either length 1 or
-the same length as the number of features being imported. If of
-length 1, and less than the number of features being imported, the
-same adduct will be used for all features.}
+\item{chunkSize}{numeric(). Number of features to process and import at
+once. Importing can be slow, so this is useful when working with a very
+large number of spectra.}
 
-\item{deleteExistingFeatures}{\code{logical(1)}, if \code{TRUE}, all existing features
+\item{deleteExistingFeatures}{\code{logical(1)}. If \code{TRUE}, all existing features
 will be deleted before importing the new ones.}
 }
 \description{

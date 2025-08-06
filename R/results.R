@@ -114,6 +114,7 @@ results <- function(sirius,
                    form_res <- .process_single_feature(sirius,
                                                        feature_id,
                                                        top = topFormula)
+                   if (!nrow(form_res)) return(data.frame())
                    .structure_for_one_feature(sirius, feature_id,
                                               form_res, topStructure)
                    },
@@ -121,6 +122,7 @@ results <- function(sirius,
                    form_res <- .process_single_feature(sirius,
                                                        feature_id,
                                                        top = topFormula)
+                   if (!nrow(form_res)) return(data.frame())
                    .compound_for_one_feature(sirius,
                                              feature_id,
                                              form_res)
@@ -129,6 +131,7 @@ results <- function(sirius,
                    form_res <- .process_single_feature(sirius,
                                                        feature_id,
                                                        top = topFormula)
+                   if (!nrow(form_res)) return(data.frame())
                    .de_novo_for_one_feature(sirius,
                                             feature_id,
                                             form_res,
@@ -143,6 +146,7 @@ results <- function(sirius,
                    form_res <- .process_single_feature(sirius,
                                                        feature_id,
                                                        top = topFormula)
+                   if (!nrow(form_res)) return(data.frame())
                    .fragTree_for_one_feature(sirius,
                                               feature_id,
                                               form_res)
@@ -174,13 +178,14 @@ results <- function(sirius,
 }
 
 .process_single_feature <- function(sirius, feature_id, top = integer()) {
+
     candidates <- sirius@api$features_api$GetFormulaCandidates(
         project_id = sirius@projectId,
         aligned_feature_id = feature_id
     )
     if (length(candidates) > top) candidates <- candidates[seq_len(top)]
     df <- lapply(candidates, function(c) as.data.frame(c$toSimpleType()))
-    results <- if (length(df)) dplyr::bind_rows(df) else data.frame()
+    results <- if (length(df)) dplyr::bind_rows(df) else return(data.frame())
     results$xcms_fts <- .map_sirius_to_xcms(sirius, feature_id)
     return(results)
 }

@@ -1,5 +1,11 @@
 # Version 0.1
 
+## Changes in 1.6.0
+
+- Updated the import. now takes a single `Spectra` object. See documentation 
+for more information. 
+- Also added a vignette for a basic example. 
+
 ## Changes in 0.1.5
 
 - Refactor the default path for opening/saving projects. It will now save by 

@@ -3,81 +3,167 @@ title: "ImportSpectra"
 output: html_document
 ---
 
-```{r}
-library(MsExperiment)
-library(xcms)
+```{r, message = FALSE}
 library(Rsirius)
-library(MetaboAnnotation)
 library(RuSirius)
-library(dplyr)
 library(msdata)
+## BiocManager::install("RforMassSpectrometry/Spectra", ref = "phili") ## for the groupMsFragments()
+library(Spectra)
 ```
 
+## Introduction
 
+This vignette demonstrates a basic workflow for importing MS data in a Spectra
+object object into *Sirius*. It then runs Sirius's main tools: formula
+identification, structure database search, compound class prediction, spectral
+library matching, *de novo* structure prediction, and finally retrieves the
+results.
+
+This is a foundational example and does not cover all the possible parameters
+for each Sirius tool. For detailed parameter information, consult the `run()`
+function documentation. More information can be found in the [Sirius
+documentation online](https://v6.docs.sirius-ms.io/).
+
+**IMPORTANT:** This is a work in progress. Feedback is highly valued, especially
+regarding enhancements or additions that could simplify your workflow. Your
+input as a user is essential.
+
+## Prepping Spectra object
+
+Below we load the data as a Spectra Object:
 
 ```{r}
 dda_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
                         package = "msdata")
-
+sp <- Spectra(dda_file)
+sp <- setBackend(sp, MsBackendMemory())
+sp <- filterEmptySpectra(sp)
 ```
 
+To import the `Spectra` data into *Sirius*, it must be preprocessed. If multiple
+MS levels are present, we need to group them appropriately.
+
+We use the `groupMsFragments()` function to assign an index to each spectrum.
+MS2 spectra that belong to the same MS1 spectrum will share the same index.
+
 ```{r}
-# Extract spectra
-sps <- spectra(dda_data)
+sp |>
+    msLevel() |>
+    table()
 
-# removing the first spectrum, it´s an MS2 scan with no corresponding MS1 scan
-sps <- sps[-1]
-
-sps <- filterEmptySpectra(sps)
-
-# Separate MS1 and MS2 scans
-ms1 <- sps[sps$msLevel == 1]
-ms2 <- sps[sps$msLevel == 2]
-
-ms1$spectra_id <- seq_along(ms1$scanIndex)
-ms2_idx <- findInterval(ms2$scanIndex, ms1$scanIndex)
-ms2$spectra_id <- ms1$spectra_id[ms2_idx] 
-
-# note that we will then have multiple ms2 for each ms1 scan
-# The user can filter as they want before/after extraction. 
-## keep only one ot one match not obligatory just easier here.
-idx <- which(!duplicated(ms2$spectra_id)) 
-ms2 <- ms2[idx]
-ms1 <- ms1[ms1$spectra_id %in% ms2$spectra_id]
-
-ms1$spectra_mzmed <- ms2$precursorMz[match(ms1$spectra_id, ms2$spectra_id)]
-
+idxs <- groupMsFragments(sp)
+sp$Msn_idx <- idxs
 ```
 
+## Open Sirius and project set up
+
+The Sirius application is initialized via the API, requiring only a project ID.
+If the project exists, it is opened; otherwise, a new project is created. The
+`srs` object acts as the connection to Sirius and holds project details.
+Properly shut down the connection with `shutdown(srs)` after completing your
+work.
+
+This `srs` variable is needed for any task that necessitate to communicate with
+the application. You can learn more about this object class by running `?Sirius`
+in the console. Below I do not precise the `path` parameter, by default Sirius
+will try save your project in the `sirius_projects` folder in your user
+directory. Note that this folder will *not* be created automatically. If you
+want to save it somewhere else you can specify the `path =` parameter.
+
 ```{r}
-# Import one pair of scan
-ms1 <- sps[sps$msLevel == 1]
-ms2 <- sps[sps$msLevel == 2]
-scan <- 2601 # ms2 scan to be selected
-ms2 <- ms2[ms2$scanIndex == scan]
-# get the closest previous ms1 scan:
-scan_diff <- ms1$scanIndex - scan
-scan_diff <- scan_diff[scan_diff < 0]
-ms1 <- ms1[length(scan_diff)]
-
-# should test import with the ionMass set as the precursor m/z or the m/z of the most intense peak
-ms1$spectra_id <- 1
-ms2$spectra_id <- 1
-ms1$spectra_mzmed <- ms2$precursorMz
-
-# import to Sirius:
 srs <- Sirius(projectId = "test_spectra", path = getwd())
-srs <- import(sirius = srs, ms1Spectra = ms1, ms2Spectra = ms2, 
-              #adducts = myadd, 
+```
+
+You could import the entire `Spectra` object, but for demonstration purposes, we
+will use selected examples.
+
+Here, we import two MS1-MS2 pairs and one MS1 spectrum on its own. It’s also
+possible to import only MS2 spectra.
+
+When importing, the `ms_column_name` parameter defines which column contains the
+index that groups the spectra.
+
+```{r}
+sp_subset <- sp[sp$Msn_idx %in% c(421, 707, 895)]
+
+srs <- import(sirius = srs, 
+              spectra = sp_subset, 
+              ms_column_name = "Msn_idx",
               deleteExistingFeatures = TRUE)
 
-
-# i need to look more into it but it does look much better the import here. 
+## See information about the features
+featuresInfo(srs)
 ```
+
+## Submit job to Sirius - For structure DB search
+
+Once data is imported, annotation and prediction can begin. The `run()` function
+accepts parameters for each Sirius tool, such as formula identification,
+structure database search, and compound class prediction.
 
 ```{r}
-# somehow force formula of a feature..
+## Start computation
+run(srs,
+    fallbackAdducts = c("[M + H]+", "[M + Na]+"),
+    formulaIdParams = formulaIdParam(numberOfCandidates = 10,
+                                       instrument = "QTOF",
+                        numberOfCandidatesPerIonization = 3,
+                        massAccuracyMS2ppm = 10,
+                        filterByIsotopePattern = FALSE,
+                        isotopeMs2Settings = c("SCORE"),
+                        performDeNovoBelowMz = 600, 
+                        minPeaksToInjectSpecLibMatch = 3),
+    predictParams = predictParam(),
+      
+    structureDbSearchParams = structureDbSearchParam(
+          structureSearchDbs = c("BIO")
+      ),
+    recompute = TRUE,
+    wait = TRUE
+    )
 
+## could test featureInfo vs featureId 
+info <- featuresInfo(srs)
 ```
 
+## Retrieve Results
 
+To get a summary of all results—including top formulas, structures, and compound
+class predictions—use the following:
+
+```{r}
+summarytb <- summary(sirius = srs, result.type = "structure")
+```
+
+This summary table offers a quick overview for checking whether the predictions
+meet expectations. However, we recommend not relying solely on it for in-depth
+analysis. Instead, use the more detailed functions provided later in this
+vignette.
+
+Key columns include confidence scores that help assess result reliability.
+
+## De novo structure description
+
+```{r}
+# Compute with zodiac and denovo
+run(srs,
+    msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
+    recompute = FALSE, 
+    wait = TRUE
+) 
+
+summraryDeNovo <- summary(srs, result.type = "deNovo")
+```
+
+Interestingly, for the first feature, the results remain consistent, while for
+the second—originally having lower confidence—the predictions now differ.
+
+For a visual exploration of results, you can open the Sirius GUI:
+
+```{r}
+# openGUI(srs)
+# closeGUI(srs)
+```
+
+You can look more into retrieving the other results in the `?results`
+documentation. or the other vignette.
