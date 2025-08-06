@@ -10,7 +10,7 @@ Authors@R: c(person(given = "Philippine", family = "Louail",
 		    comment = c(ORCID = "0009-0007-5429-6846"),
 		    email = "philippine.louail@eurac.edu",
 		    role = c("aut", "cre")),
-		    person(given = "Adriano", family = "Rutz", role = c("ctb")),
+		   person(given = "Adriano", family = "Rutz", role = c("ctb")),
 		   person(given = "Markus", family = "Fleischauer", role = c("ctb")),
 	       person(given = "Jonas", family = "Emmert", role = c("ctb")))
 Depends:
@@ -45,13 +45,9 @@ VignetteBuilder: knitr
 Collate: 
     'Sirius.R'
     'Utils.R'
-    'deNovoStructure.R'
-    'formulaId.R'
+    'helpers.R'
     'import.R'
-    'predictParam.R'
     'results.R'
-    'structureDbSearch.R'
+    'run-param.R'
     'run.R'
-    'siriusDBs.R'
-    'spectraMatching.R'
-    'zodiacParam.R'
+    'siriusDbs.R'

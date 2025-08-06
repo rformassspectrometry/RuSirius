@@ -53,6 +53,7 @@ Here, we apply pre-optimized parameters for processing the example dataset.
 dda_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
                         package = "msdata")
 dda_data <- readMsExperiment(dda_file)
+spectra(dda_data) <- setBackend(spectra(dda_data), MsBackendMemory())
 dda_data <- filterRt(dda_data, rt = c(230, 610))
 
 dda_data |>
@@ -69,44 +70,28 @@ dda_data <- findChromPeaks(dda_data, param = cwp, msLevel = 1L)
 ## MS1 and MS2 Extraction
 
 MS2 and MS1 spectra corresponding to the identified chromatographic peaks are
-extracted. Ensure all chromatographic peaks have both MS1 and MS2 spectra.
-Metadata for these peaks is also extracted using the `chromPeakColumns`
-parameter.
+extracted. Each feature imported in Sirius can only have one MS1 spectrum. 
+However MS2 can also be loaded by itself wiht no MS1 if wanted. 
 
 ```{r, extract-msdata, warning=FALSE}
 # Extract MS1 and MS2 spectra linked to chromatographic peaks
 ms2 <- chromPeakSpectra(dda_data, 
-                        chromPeakColumns = c("mz", "rt", "rtmin", "rtmax"),
                         expandMz = 0.01, expandRt = 3,
                         msLevel = 2L)
 low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
 ms2 <- filterIntensity(ms2, intensity = low_int)
 ms2 <- ms2[lengths(ms2) > 1]
-cp <- unique(spectraData(ms2)$chrom_peak_id)
-ms2 <- ms2[spectraData(ms2)$chrom_peak_id %in% cp]
+# cp <- unique(spectraData(ms2)$chrom_peak_id)
+# ms2 <- ms2[spectraData(ms2)$chrom_peak_id %in% cp]
 
-ms1 <- chromPeakSpectra(dda_data, 
-                        chromPeakColumns = c("mz", "rt", "rtmin", "rtmax"), 
+ms1 <- chromPeakSpectra(dda_data,  
                         expandMz = 0.01, expandRt = 3,
-                        msLevel = 1L, peaks = cp, method = "closest_rt")
+                        msLevel = 1L, method = "closest_rt")
+
+ms1 <- applyProcessing(ms1)
+ms2 <- applyProcessing(ms2)
+ms1_ms2 <- concatenateSpectra(ms1, ms2)
 ```
-
-
-## Look into the data 
-
-Below we show a small example on how to look at your data before import. This
-is not necessary but can be useful to check if the data is as expected.
-
-```{r}
-# Choose one chromatographic peak
-cp2 <- cp[2]
-plotSpectra(ms1[ms1[["chrom_peak_id"]] == cp2])
-
-ms2_2 <- ms2[ms2[["chrom_peak_id"]] == cp2]
-plotSpectra(ms2_2)
-spectraData(ms2_2)$precursorMz
-```
-
 
 ## Open Sirius and project set up
 
@@ -137,7 +122,7 @@ srs <- openProject(srs, projectId = "test_lcmsms2", path = getwd()) # `path =` a
 srs
 ```
 
-You can find all the utility functions of this package by running `?Utils` in
+You can find all the utility functions of this package by running `?utils` in
 the console.
 
 **NOTE** if you have any idea of utility functions that could be implemented do
@@ -155,8 +140,8 @@ srs <- openProject(srs, "test_lcmsms")
 
 ## Import data into Sirius
 srs <- import(sirius = srs,
-              ms1Spectra = ms1, 
-              ms2Spectra = ms2, 
+              spectra = ms1_ms2, 
+              ms_column_name = "chrom_peak_id",
               deleteExistingFeatures = TRUE)
 
 ## See information about the features
@@ -181,6 +166,8 @@ fts_id <- featuresId(srs, type = "sirius")
 
 ## Searchable database
 
+!!! Note: The database code does not work at the moment, please load tehm through the GUI until it's fixed. !!!
+
 Whether it is for structure prediction or spectral library matching, users can
 upload their custom databases into Sirius. In this vignette, we demonstrate how
 to test spectral library matching by creating and loading a custom database into
@@ -193,7 +180,7 @@ loaded into Sirius to generate a `.sirius.db` file. Below we will download in
 our current directory but you can precise where you want to save it using
 `location =` parameter.
 
-```{r}
+```{r, eval=FALSE}
 ## Download the MassBank EU library
 download.file("https://external.gnps2.org/gnpslibrary/MASSBANKEU.mgf",
               destfile = "MASSBANKEU.mgf")
@@ -204,7 +191,7 @@ NOTE: THis takes quite a while, will change to a smaller database later. Once
 the database is created and loaded, you can verify its successful import by
 running the following command:
 
-```{r}
+```{r, eval=FALSE}
 listDBs(srs)
 ```
 
@@ -228,7 +215,7 @@ the status using `jobInfo()`.
 job_id <- run(srs,
               fallbackAdducts = c("[M + H]+", "[M + Na]+", "[M + K]+"),
               spectraSearchParams = spectraMatchingParam(
-                  spectraSearchDBs = c("BIO", "massbankeuCustom")
+                  spectraSearchDBs = c("BIO", "test")
               ),
               formulaIdParams = formulaIdParam(numberOfCandidates = 5,
                                                instrument = "QTOF",
@@ -240,7 +227,7 @@ job_id <- run(srs,
                                 minPeaksToInjectSpecLibMatch = 3),
               predictParams = predictParam(),
               structureDbSearchParams = structureDbSearchParam(
-                  structureSearchDbs = c("BIO", "massbankeuCustom")
+                  structureSearchDbs = c("BIO", "test")
               ),
               recompute = TRUE,
               wait = TRUE
