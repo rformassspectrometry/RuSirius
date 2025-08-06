@@ -7,7 +7,7 @@ output: html_document
 library(Rsirius)
 library(RuSirius)
 library(msdata)
-## form BiocManager::install("RforMassSpectrometry/Spectra", ref = "phili") ## for the groupMsFragments()
+## BiocManager::install("RforMassSpectrometry/Spectra", ref = "phili") ## for the groupMsFragments()
 library(Spectra)
 ```
 
@@ -103,24 +103,24 @@ structure database search, and compound class prediction.
 
 ```{r}
 ## Start computation
-srs <- run(srs,
-              fallbackAdducts = c("[M + H]+", "[M + Na]+"),
-              formulaIdParams = formulaIdParam(numberOfCandidates = 10,
-                                               instrument = "QTOF",
-                                numberOfCandidatesPerIonization = 3,
-                                massAccuracyMS2ppm = 10,
-                                filterByIsotopePattern = FALSE,
-                                isotopeMs2Settings = c("SCORE"),
-                                performDeNovoBelowMz = 600, 
-                                minPeaksToInjectSpecLibMatch = 3),
-              predictParams = predictParam(),
-              
-               structureDbSearchParams = structureDbSearchParam(
-                  structureSearchDbs = c("BIO")
-              ),
-              recompute = TRUE,
-              wait = TRUE
-)
+run(srs,
+    fallbackAdducts = c("[M + H]+", "[M + Na]+"),
+    formulaIdParams = formulaIdParam(numberOfCandidates = 10,
+                                       instrument = "QTOF",
+                        numberOfCandidatesPerIonization = 3,
+                        massAccuracyMS2ppm = 10,
+                        filterByIsotopePattern = FALSE,
+                        isotopeMs2Settings = c("SCORE"),
+                        performDeNovoBelowMz = 600, 
+                        minPeaksToInjectSpecLibMatch = 3),
+    predictParams = predictParam(),
+      
+    structureDbSearchParams = structureDbSearchParam(
+          structureSearchDbs = c("BIO")
+      ),
+    recompute = TRUE,
+    wait = TRUE
+    )
 
 ## could test featureInfo vs featureId 
 info <- featuresInfo(srs)
@@ -146,7 +146,7 @@ Key columns include confidence scores that help assess result reliability.
 
 ```{r}
 # Compute with zodiac and denovo
-srs <- run(srs,
+run(srs,
     msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
     recompute = FALSE, 
     wait = TRUE
