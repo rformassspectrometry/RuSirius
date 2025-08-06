@@ -56,20 +56,16 @@ BiocManager::install("sneumann/xcms", ref = "devel")
 
 RuSirius comes with two vignettes to help you get started:
 
-1.  **Importing Chromatographic Peaks from xcms**\
+1.  **From Spectra object to Sirius** 
+    This 
+    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/ImportSpectra.Rmd)
+    shows a basic example for importing spectra data intro Sirius. 
+
+2.  **Importing Chromatographic Peaks from xcms**\
     This
     [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/Chromatographic_peak_annotation_public_dataset.Rmd)
     demonstrates how to import chromatographic peaks from **xcms** and use them
     in Sirius.
-
-2.  **Importing Features from xcms**\
-    This
-    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/Feature_annotation_private_dataset.qmd)
-    shows how to import features (i.e., corresponding chromatographic peaks)
-    from **xcms** and use them in Sirius.\
-    *Note:* The second vignette is not fully reproducible yet, as the dataset
-    used is not publicly available. However, the code can serve as a template
-    for your use case. A public dataset will be added soon.
 
 --------------------------------------------------------------------------------
 
