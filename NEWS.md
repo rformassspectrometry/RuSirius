@@ -1,10 +1,20 @@
-# Version 0.1
+# Version 0.2
 
-## Changes in 1.6.0
+## Changes in 0.2.0
 
-- Updated the import. now takes a single `Spectra` object. See documentation 
-for more information. 
-- Also added a vignette for a basic example. 
+- **BREAKING**: Updated RSirius dependency from commit `c35ebbb` to `e4acd1b` 
+  (API version 3.1, Sirius 6.3.3 support).
+- **BREAKING**: Package dependency renamed from `Rsirius` to `RSirius` 
+  (capital S) to match upstream rename.
+- Updated Sirius version requirement from 6.1 to 6.3.
+- Updated the import to take a single `Spectra` object. See documentation 
+  for more information. 
+- Added a vignette for a basic example.
+- Updated to use `Spectra::fragmentGroupIndex()` for grouping MS1/MS2 spectra.
+- Added comprehensive test suite with testthat for parameter classes, 
+  helper functions, and integration tests.
+
+# Version 0.1 
 
 ## Changes in 0.1.5
 

@@ -87,7 +87,7 @@
 NULL
 
 #' @rdname run
-#' @importFrom Rsirius JobSubmission
+#' @importFrom RSirius JobSubmission
 #' @importFrom jsonlite toJSON
 #'
 #' @param sirius `Sirius` object, the connection to the Sirius server.
