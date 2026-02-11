@@ -1,17 +1,34 @@
 ---
-title: "ImportSpectra"
-output: html_document
+title: "Importing Spectra into Sirius"
+output:
+    BiocStyle::html_document:
+        toc_float: true
+vignette: >
+    %\VignetteIndexEntry{Importing Spectra into Sirius}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+    %\VignettePackage{RuSirius}
+    %\VignetteDepends{Spectra, RSirius, RuSirius, msdata}
 ---
 
-```{r, message = FALSE}
-library(Rsirius)
+```{r setup, include=FALSE}
+# Set eval=FALSE globally - code is shown but not executed
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+```{r load-packages, message = FALSE}
+library(RSirius)
 library(RuSirius)
 library(msdata)
-## BiocManager::install("RforMassSpectrometry/Spectra", ref = "phili") ## for the groupMsFragments()
 library(Spectra)
 ```
 
 ## Introduction
+
+**Note:** This vignette code is not evaluated during package checks as it 
+requires a running Sirius instance. To run it interactively, set 
+`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and 
+running.
 
 This vignette demonstrates a basic workflow for importing MS data in a Spectra
 object object into *Sirius*. It then runs Sirius's main tools: formula
@@ -43,7 +60,7 @@ sp <- filterEmptySpectra(sp)
 To import the `Spectra` data into *Sirius*, it must be preprocessed. If multiple
 MS levels are present, we need to group them appropriately.
 
-We use the `groupMsFragments()` function to assign an index to each spectrum.
+We use the `fragmentGroupIndex()` function to assign an index to each spectrum.
 MS2 spectra that belong to the same MS1 spectrum will share the same index.
 
 ```{r}
@@ -51,7 +68,7 @@ sp |>
     msLevel() |>
     table()
 
-idxs <- groupMsFragments(sp)
+idxs <- fragmentGroupIndex(sp)
 sp$Msn_idx <- idxs
 ```
 
@@ -161,6 +178,8 @@ the second—originally having lower confidence—the predictions now differ.
 For a visual exploration of results, you can open the Sirius GUI:
 
 ```{r}
+shutdown(srs)
+
 # openGUI(srs)
 # closeGUI(srs)
 ```

@@ -27,7 +27,7 @@ shutdown(sirius, closeProject = TRUE)
 
 openGUI(sirius)
 
-closeGUI(sirius)
+closeGUI(sirius, closeProject = FALSE)
 
 projectInfo(sirius, infoType = c("compatibilityInfo", "sizeInformation"))
 
@@ -56,8 +56,8 @@ deleteJob(sirius, jobId = character(), all = FALSE)
 
 \item{password}{\code{character(1)}, the password to use for the connection}
 
-\item{closeProject}{\code{logical}, whether to close the project before
-shutting down Sirius. Default is \code{TRUE}.}
+\item{closeProject}{\code{logical}, whether to also close the project when
+closing the GUI. Default is \code{FALSE}.}
 
 \item{infoType}{\code{character} vector of length 1 or 2, specifying the type of
 information to retrieve. Possible values are \code{"compatibilityInfo"} and
@@ -91,11 +91,11 @@ A \code{message} whether the user is successfully logged in or not.
 
 \code{logical}, \code{TRUE} if the connection is valid, \code{FALSE} otherwise.
 
-\code{message} whether the project is closed or not.
+Invisible \code{NULL}. Messages indicate shutdown status.
 
-\code{TRUE} if the GUI opens correctly.
+Invisible \code{TRUE} if successful.
 
-\code{TRUE} if the GUI closes correctly.
+Invisible \code{TRUE} if successful.
 
 a \code{list} with the information requested.
 
@@ -103,7 +103,7 @@ a \code{character} vector with the open projects.
 
 a \code{Sirius} object with the project opened.
 
-a \code{character} vector with the features ID.
+a \code{character} vector with the features ID (empty if no features).
 
 a \code{data.frame} with the features information.
 

@@ -17,23 +17,30 @@ import(
 \item{sirius}{\code{Sirius}. The connection to the Sirius instance with a
 loaded project.}
 
-\item{ms_column_name}{character(1). This is the name of a column expected
-in the \code{spectraData} of the input spectra object. MS1 and MS2 spectra with
-the same index in this column will be grouped into a single feature. This
-parameter must be provided if the object has multiple \code{msLevel}s.
-If no column name is provided and the object contains only one MS level,
-then each MS1 spectrum will be exported as a separate feature in Sirius.
-Lastly, we support multiple MS2 spectra per feature, but only one MS1
-spectrum per index. Please merge MS1 spectra beforehand if necessary.}
+\item{spectra}{\code{Spectra} object containing MS data to import. Can contain
+MS1 and/or MS2 spectra. If multiple MS levels are present, the
+\code{ms_column_name} parameter must be provided to group spectra into
+features. See the \code{fragmentGroupIndex()} function from the Spectra
+package for generating appropriate grouping indices.}
+
+\item{ms_column_name}{\code{character(1)}. This is the name of a column expected
+in the \code{spectraData} of the input spectra object. MS1 and MS2 spectra
+with the same index in this column will be grouped into a single
+feature. This parameter must be provided if the object has multiple
+\code{msLevel}s. If no column name is provided and the object contains
+only one MS level, then each MS1 spectrum will be exported as a
+separate feature in Sirius. Lastly, we support multiple MS2 spectra
+per feature, but only one MS1 spectrum per index. Please merge MS1
+spectra beforehand if necessary.}
 
 \item{adducts}{\code{character} vector of the adduct(s) associated with the
 features being imported. Must be either length 1 or the same length
 as the number of features. If of length 1 and fewer than the number
 of features, the same adduct will be used for all features.}
 
-\item{chunkSize}{numeric(). Number of features to process and import at
-once. Importing can be slow, so this is useful when working with a very
-large number of spectra.}
+\item{chunkSize}{\code{numeric(1)}. Number of features to process and import at
+once. Importing can be slow, so this is useful when working with a
+very large number of spectra.}
 
 \item{deleteExistingFeatures}{\code{logical(1)}. If \code{TRUE}, all existing features
 will be deleted before importing the new ones.}

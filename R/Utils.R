@@ -3,6 +3,25 @@
 #' @importFrom utils browseURL
 NULL
 
+# Internal helper for GUI API calls
+.callGuiApi <- function(sirius, method, query_params = list()) {
+    url <- paste0(sirius@api$api_client$base_path, 
+                  "/api/projects/", sirius@projectId, "/gui")
+    sirius@api$api_client$CallApi(
+        url = url,
+        method = method,
+        query_params = query_params,
+        header_params = c(),
+        form_params = list(),
+        file_params = list(),
+        accepts = list("application/json"),
+        content_types = list(),
+        body = NULL,
+        is_oauth = FALSE,
+        oauth_scopes = NULL
+    )
+}
+
 #' @rdname utils
 #' @param username `character(1)`, the username to use for the connection
 #' @param password `character(1)`, the password to use for the connection
@@ -53,40 +72,60 @@ checkConnection <- function(sirius) {
 #' @param closeProject `logical`, whether to close the project before
 #' shutting down Sirius. Default is `TRUE`.
 #'
-#' @return `message` whether the project is closed or not.
+#' @return Invisible `NULL`. Messages indicate shutdown status.
 #'
 #' @export
 shutdown <- function(sirius, closeProject = TRUE) {
-    if (is.null(sirius@sdk$process))
-        sirus@sdk <- sirius@sdk$reset_sdk_process()
     if (closeProject) {
-        l <- listOpenProjects(sirius)
-        if (length(l) > 0) {
-            for (i in l) {
-                sirius@api$projects_api$CloseProject(project_id = i)
-                message("Closed project ", i)
-            }
+        projects <- tryCatch(listOpenProjects(sirius), error = function(e) NULL)
+        for (p in projects) {
+            tryCatch(
+                sirius@api$projects_api$CloseProject(project_id = p),
+                error = function(e) NULL
+            )
         }
     }
-    sirius@sdk$shutdown_sirius()
+    tryCatch(
+        sirius@sdk$shutdown_sirius(),
+        error = function(e) 
+            message("Could not shutdown Sirius. You may need to close it manually.")
+    )
+    invisible(NULL)
 }
 
 #' @rdname utils
 #' @param sirius a `Sirius` object
-#' @return `TRUE` if the GUI opens correctly.
+#' @return Invisible `TRUE` if successful.
 #' @export
 openGUI <- function(sirius) {
-    #check that the project is open (open it if necessary)
-    sirius@api$gui_api$OpenGui(project_id = sirius@projectId)
+    if (!length(sirius@projectId))
+        stop("No project is currently open. Use openProject() first.")
+    resp <- .callGuiApi(sirius, method = "POST")
+    if (resp$status_code >= 200 && resp$status_code <= 299) {
+        message("GUI opened for project: ", sirius@projectId)
+        invisible(TRUE)
+    } else {
+        stop("Failed to open GUI. Status code: ", resp$status_code)
+    }
 }
 
 #' @rdname utils
 #' @param sirius a `Sirius` object.
-#' @return `TRUE` if the GUI closes correctly.
+#' @param closeProject `logical`, whether to also close the project when
+#'        closing the GUI. Default is `FALSE`.
+#' @return Invisible `TRUE` if successful.
 #' @export
-closeGUI <- function(sirius) {
-    #check that the GUI is open
-    sirius@api$gui_api$CloseGui(project_id = sirius@projectId)
+closeGUI <- function(sirius, closeProject = FALSE) {
+    if (!length(sirius@projectId))
+        stop("No project is currently open.")
+    query <- if (closeProject) list(closeProject = "true") else list()
+    resp <- .callGuiApi(sirius, method = "DELETE", query_params = query)
+    if (resp$status_code >= 200 && resp$status_code <= 299) {
+        message("GUI closed for project: ", sirius@projectId)
+        invisible(TRUE)
+    } else {
+        stop("Failed to close GUI. Status code: ", resp$status_code)
+    }
 }
 
 #' @rdname utils
@@ -108,7 +147,14 @@ projectInfo <- function(sirius,
 #' @return a `character` vector with the open projects.
 #' @export
 listOpenProjects <- function(sirius) {
-    tst <- sirius@api$projects_api$GetProjects()
+    tst <- tryCatch(
+        sirius@api$projects_api$GetProjects(),
+        error = function(e) {
+            warning("Could not retrieve open projects: ", conditionMessage(e))
+            return(list())
+        }
+    )
+    if (length(tst) == 0) return(character(0))
     unlist(lapply(tst, function(x) x$projectId))
 }
 
@@ -150,15 +196,14 @@ openProject <- function(sirius, projectId, path = character()) {
 #' @param type `character` vector of length 1, specifying the type of features
 #'        ID to list. Possible values are `"sirius"` and `"xcms"`. Default
 #'        is `"sirius"`.
-#' @return a `character` vector with the features ID.
+#' @return a `character` vector with the features ID (empty if no features).
 #' @export
 featuresId <- function(sirius, type = c("sirius", "xcms")) {
     type <- match.arg(type)
     fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
-    if (type == "sirius")
-        return(unlist(lapply(fts, function(x) x$alignedFeatureId)))  # maybe the unlist is breaking ?
-    else
-        return(unlist(lapply(fts, function(x) x$externalFeatureId)))
+    if (length(fts) == 0) return(character(0))
+    field <- if (type == "sirius") "alignedFeatureId" else "externalFeatureId"
+    as.character(vapply(fts, function(x) x[[field]], character(1)))
 }
 
 #' @rdname utils
@@ -242,40 +287,3 @@ deleteJob <- function(sirius, jobId = character(), all = FALSE) {
         sirius@api$jobs_api$DeleteJob(sirius@projectId)
     }
 }
-
-## Helper functions for job output formatting
-
-# Function to format and clean settings
-.format_command <- function(command) {
-    l <- unlist(strsplit(command, " "))
-    l <- l[l != "config"]
-    return(paste(l, collapse = "\n"))
-}
-
-# Function to clean and format job output
-.clean_output <- function(output) {
-    paste(
-        sprintf("Job ID: %s", output$id),
-        "",
-        sprintf("Command: \n%s", .format_command(output$command)),
-        "",
-        "Progress:",
-        sprintf("   State: %s", output$progress$state),
-        sprintf("   Current Progress: %d", output$progress$currentProgress),
-        sprintf("   Max Progress: %d", output$progress$maxProgress),
-        "",
-        "Affected Compound IDs:",
-        sprintf("   %s", paste(output$affectedCompoundIds, collapse = ", ")),
-        "",
-        "Affected Aligned Feature IDs:",
-        paste(
-            vapply(output$affectedAlignedFeatureIds, function(x) {
-                paste(x, collapse = ", ")
-            }, character(1)),
-            collapse = "\n"
-        ),
-        "",
-        sep = "\n"
-    )
-}
-

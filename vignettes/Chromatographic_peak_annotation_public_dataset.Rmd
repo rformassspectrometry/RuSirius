@@ -8,15 +8,19 @@ vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
     %\VignettePackage{RuSirius}
-    %\VignetteDepends{Spectra, MsExperiment, xcms, Rsirius, MetaboAnnotation, RuSirius, dplyr}
+    %\VignetteDepends{Spectra, MsExperiment, xcms, RSirius, MetaboAnnotation, RuSirius, dplyr}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Set eval=FALSE globally - code is shown but not executed
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+```{r load-packages, message = FALSE}
 library(Spectra)
 library(MsExperiment)
 library(xcms)
-library(Rsirius)
+library(RSirius)
 library(MetaboAnnotation)
 library(RuSirius)
 library(dplyr)
@@ -24,6 +28,11 @@ library(msdata)
 ```
 
 ## Introduction
+ 
+**Note:** This vignette code is not evaluated during package checks as it 
+requires a running Sirius instance. To run it interactively, set 
+`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and 
+running.
 
 This vignette demonstrates a basic workflow for importing detected
 *chromatographic peaks* from an `XcmsExperiment` object into *Sirius*. It then

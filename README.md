@@ -4,7 +4,7 @@ IMPORTANT: THIS IS ACTIVELY DEVELOPED.
 
 **RuSirius** is an R package that provides an interface to the Sirius software,
 enabling seamless integration of **xcms** preprocessing results with Sirius.\
-It is built upon **Rsirius**, the REST API library for the R programming
+It is built upon **RSirius**, the REST API library for the R programming
 language, which you can find
 [here](https://github.com/sirius-ms/sirius-client-openAPI/tree/master/client-api_r).
 
@@ -34,20 +34,13 @@ Alternatively, you can manually install Sirius and then RuSirius:
 
 1.  Download the Sirius software from the [official releases
     page](https://github.com/sirius-ms/sirius/releases). RuSirius is dependent
-    on Sirius 6.1, please ensure you have the right version downloaded.
+    on Sirius 6.3, please ensure you have the right version downloaded.
 2.  Install RuSirius and it's dependencies (which includes the R-api) by running
     the following code in R:
 
 ``` r
 library(remotes)
 BiocManager::install("RforMassSpectrometry/RuSirius")
-```
-
-Lastly, please install the devel version of xcms (this is temporary and will not
-be needed after the next bioconductor release.)
-
-``` r
-BiocManager::install("sneumann/xcms", ref = "devel")
 ```
 
 --------------------------------------------------------------------------------
@@ -107,9 +100,6 @@ This is the early stage of integrating Sirius with **RforMassSpectrometry**, and
 there’s ongoing development to enhance the implementation.
 
 ### Current Issues:
-
--   **Major issue with MS1 import**: The import of MS1 is inaccurate at the
-    moment. 
 
 -   **GHA and R command checks**: They are failing/incomplete because the
     vignettes cannot be run systematically for now. 

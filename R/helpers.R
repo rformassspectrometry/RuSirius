@@ -9,9 +9,9 @@
 #' @noRd
 .createpeaks <- function(matrices){
     if (nrow(matrices) == 1)
-        return(list(Rsirius::SimplePeak$new(mz = matrices[1], intensity = matrices[2])))
+        return(list(RSirius::SimplePeak$new(mz = matrices[1], intensity = matrices[2])))
     res <- apply(matrices, 1,  function(x) {
-        Rsirius::SimplePeak$new(mz = x[1],
+        RSirius::SimplePeak$new(mz = x[1],
                                 intensity = x[2])
     })
     return(res)
@@ -19,7 +19,7 @@
 
 .createspectraMS1 <- function(data = character()) {
     if (!length(data))  return(NULL)
-    Rsirius::BasicSpectrum$new(
+    RSirius::BasicSpectrum$new(
         msLevel = 1L,
         scanNumber = data$scanIndex,
         peaks = .createpeaks(matrices = peaksData(data)[[1]])
@@ -29,7 +29,7 @@
 .createspectraMSn <- function(data = character()) {
     if (!length(data)) return(NULL)
     if (length(data) == 1) {
-        return(list(Rsirius::BasicSpectrum$new(
+        return(list(RSirius::BasicSpectrum$new(
             msLevel = data$msLevel,
             scanNumber = data$scanIndex,
             precursorMz = data$precursorMz,
@@ -38,7 +38,7 @@
     pdata <- lapply(peaksData(data), .createpeaks)
     basic_spectra <- vector("list", length(pdata))
     for (i in seq_along(pdata)) {
-        basic_spectra[[i]] <- Rsirius::BasicSpectrum$new(
+        basic_spectra[[i]] <- RSirius::BasicSpectrum$new(
             msLevel = data$msLevel[i],
             scanNumber = data$scanIndex[i],
             precursorMz = data$precursorMz[i],
@@ -52,7 +52,7 @@
 
 .createfeatures <- function(data, idx, adduct) {
     pol <- data$polarity[1]
-    Rsirius::FeatureImport$new(
+    RSirius::FeatureImport$new(
         externalFeatureId = as.character(idx), ## don't need it ?
         ionMass = 0,
         charge = if (pol == 0) -1 else pol,

@@ -48,7 +48,7 @@ setClass("Sirius",
 )
 
 #' @rdname Sirius
-#' @importFrom Rsirius SiriusSDK
+#' @importFrom RSirius SiriusSDK
 #'
 #' @description
 #'  Creates a `Sirius` object and checks that the connection to the
@@ -69,7 +69,7 @@ setClass("Sirius",
 #'
 #' @return `Sirius` object with the Sirius api connected.
 #'
-#' @importFrom Rsirius AccountCredentials
+#' @importFrom RSirius AccountCredentials
 #' @importFrom jsonlite fromJSON
 #'
 #' @export
