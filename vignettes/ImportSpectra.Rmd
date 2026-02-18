@@ -8,7 +8,7 @@ vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
     %\VignettePackage{RuSirius}
-    %\VignetteDepends{Spectra, RSirius, RuSirius, msdata}
+    %\VignetteDepends{Spectra, RSirius, RuSirius, MsDataHub}
 ---
 
 ```{r setup, include=FALSE}
@@ -19,15 +19,15 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```{r load-packages, message = FALSE}
 library(RSirius)
 library(RuSirius)
-library(msdata)
+library(MsDataHub)
 library(Spectra)
 ```
 
 ## Introduction
 
-**Note:** This vignette code is not evaluated during package checks as it 
-requires a running Sirius instance. To run it interactively, set 
-`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and 
+**Note:** This vignette code is not evaluated during package checks as it
+requires a running Sirius instance. To run it interactively, set
+`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and
 running.
 
 This vignette demonstrates a basic workflow for importing MS data in a Spectra
@@ -50,8 +50,7 @@ input as a user is essential.
 Below we load the data as a Spectra Object:
 
 ```{r}
-dda_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
-                        package = "msdata")
+dda_file <- MsDataHub::PestMix1_DDA.mzML()
 sp <- Spectra(dda_file)
 sp <- setBackend(sp, MsBackendMemory())
 sp <- filterEmptySpectra(sp)
@@ -103,14 +102,46 @@ index that groups the spectra.
 ```{r}
 sp_subset <- sp[sp$Msn_idx %in% c(421, 707, 895)]
 
-srs <- import(sirius = srs, 
-              spectra = sp_subset, 
+srs <- import(sirius = srs,
+              spectra = sp_subset,
               ms_column_name = "Msn_idx",
               deleteExistingFeatures = TRUE)
 
 ## See information about the features
 featuresInfo(srs)
 ```
+
+## Importing MS2-only or MSn-only data
+
+In some workflows, only MS2 (or MS2 and MS3) spectra are available — for
+example, when working with spectral libraries, MGF files, or data that was
+acquired without recording MS1 scans.
+
+The SIRIUS API fully supports importing features without MS1 data. When no MS1
+spectra are present and no `ms_column_name` is provided, `import()` automatically
+groups MSn spectra by acquisition order: within each file (`dataOrigin`), a new
+group starts whenever a new MS2 `precursorMz` is encountered, and any subsequent
+higher-level scans (MS3+) are assigned to the same group as their preceding MS2.
+
+```{r}
+## Example: importing MS2-only spectra
+## Assume sp_ms2 is a Spectra object containing only MS2 (and optionally MS3)
+## spectra, with no MS1 data.
+
+## No need for ms_column_name — the function auto-groups by acquisition order.
+srs <- import(sirius = srs,
+              spectra = sp_ms2,
+              deleteExistingFeatures = TRUE)
+
+featuresInfo(srs)
+```
+
+If your MSn spectra already have a grouping column (e.g., from a feature
+detection tool), you can still pass it via `ms_column_name` as usual.
+
+Note that MS3+ spectra are passed to SIRIUS under the `ms2Spectra` field, which
+is the expected behavior — SIRIUS bundles all MSn (level ≥ 2) data together
+within a feature.
 
 ## Submit job to Sirius - For structure DB search
 
@@ -128,10 +159,10 @@ run(srs,
                         massAccuracyMS2ppm = 10,
                         filterByIsotopePattern = FALSE,
                         isotopeMs2Settings = c("SCORE"),
-                        performDeNovoBelowMz = 600, 
+                        performDeNovoBelowMz = 600,
                         minPeaksToInjectSpecLibMatch = 3),
     predictParams = predictParam(),
-      
+
     structureDbSearchParams = structureDbSearchParam(
           structureSearchDbs = c("BIO")
       ),
@@ -139,7 +170,7 @@ run(srs,
     wait = TRUE
     )
 
-## could test featureInfo vs featureId 
+## could test featureInfo vs featureId
 info <- featuresInfo(srs)
 ```
 
@@ -165,9 +196,9 @@ Key columns include confidence scores that help assess result reliability.
 # Compute with zodiac and denovo
 run(srs,
     msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
-    recompute = FALSE, 
+    recompute = FALSE,
     wait = TRUE
-) 
+)
 
 summraryDeNovo <- summary(srs, result.type = "deNovo")
 ```

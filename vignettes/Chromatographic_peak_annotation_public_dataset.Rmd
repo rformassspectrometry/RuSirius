@@ -24,7 +24,7 @@ library(RSirius)
 library(MetaboAnnotation)
 library(RuSirius)
 library(dplyr)
-library(msdata)
+library(MsDataHub)
 ```
 
 ## Introduction
@@ -59,8 +59,7 @@ input as a user is essential.
 Here, we apply pre-optimized parameters for processing the example dataset.
 
 ```{r, load-data, warning=FALSE}
-dda_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
-                        package = "msdata")
+dda_file <- MsDataHub::PestMix1_DDA.mzML()
 dda_data <- readMsExperiment(dda_file)
 spectra(dda_data) <- setBackend(spectra(dda_data), MsBackendMemory())
 dda_data <- filterRt(dda_data, rt = c(230, 610))

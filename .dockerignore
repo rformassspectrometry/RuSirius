@@ -1,0 +1,23 @@
+# Git
+.git
+.github
+.gitignore
+
+# Sirius project and database files (large, regenerated at runtime)
+*.sirius
+*.siriusdb
+
+# Test data not needed in container
+vignettes/standards_dilution.txt
+
+# Build artifacts
+docs
+local_data
+
+# IDE/Editor
+.editorconfig
+.vscode
+*.Rproj.user
+
+# Empty folders
+test/
