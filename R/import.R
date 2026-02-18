@@ -52,21 +52,37 @@ import <- function(sirius, spectra, ms_column_name = character(),
                    adducts = character(),
                    chunkSize = 500, deleteExistingFeatures = TRUE) {
 
+    has_ms1 <- 1L %in% unique(spectra$msLevel)
     if (length(unique(spectra$msLevel)) > 1) { ## need to improve these checks
         if (!length(ms_column_name)) {
-            stop("If spectra have more than one MS level, a column to group ",
-                 "the spectra must be provided in 'ms_column_name'.")
+            if (!has_ms1) {
+                ## Group MSn-only spectra by acquisition order, inspired
+                ## by fragmentGroupIndex(). Within each dataOrigin, a new
+                ## group starts whenever a new MS2 precursorMz is
+                ## encountered. Subsequent higher-level scans (MS3+) are
+                ## assigned to the same group as their preceding MS2.
+                message("No MS1 data found. Auto-grouping MSn spectra by ",
+                        "acquisition order and precursorMz.")
+                spectra$ms_column_name <- .groupMSnIndex(spectra)
+                ms_column_name <- "ms_column_name"
+            } else {
+                stop("If spectra have more than one MS level, a column to ",
+                     "group the spectra must be provided in ",
+                     "'ms_column_name'.")
+            }
         }
 
         if (anyNA(spectra[[ms_column_name]])) {
-            stop("The column used to group the spectra cannot contain NA values.")
+            stop("The column used to group the spectra cannot contain ",
+                 "NA values.")
         }
     } else {
         if (!length(ms_column_name)) {
-            spectra[[ms_column_name]] <- lapply(split(spectra, spectra$dataOrigin),
-                                                function(x) seq_len(length(x))) |>
-                unlist(use.names = FALSE)
             ms_column_name <- "ms_column_name"
+            spectra[[ms_column_name]] <- lapply(
+                split(spectra, spectra$dataOrigin),
+                function(x) seq_len(length(x))) |>
+                unlist(use.names = FALSE)
         }
 
     }

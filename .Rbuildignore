@@ -9,3 +9,16 @@ Makefile
 local_data
 NEWS.md
 README.Rmd
+
+# Docker
+^Dockerfile$
+
+# Sirius project and database files (can be large)
+.*\.sirius$
+.*\.siriusdb$
+
+# Test data files not needed for package
+^vignettes/standards_dilution\.txt$
+
+# Empty test folder
+^test$

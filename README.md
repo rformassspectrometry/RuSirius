@@ -47,14 +47,29 @@ BiocManager::install("RforMassSpectrometry/RuSirius")
 
 ## Usage
 
-RuSirius comes with two vignettes to help you get started:
+RuSirius comes with five vignettes to help you get started:
 
-1.  **From Spectra object to Sirius** 
-    This 
+1.  **Getting Started with RuSirius**
+    This
+    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/GettingStarted.Rmd)
+    covers the basics of connecting to Sirius and managing projects.
+
+2.  **Importing Spectra into Sirius**
+    This
     [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/ImportSpectra.Rmd)
-    shows a basic example for importing spectra data intro Sirius. 
+    shows a basic example for importing spectra data into Sirius.
 
-2.  **Importing Chromatographic Peaks from xcms**\
+3.  **Retrieving Results from Sirius**
+    This
+    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/RetrievingResults.Rmd)
+    explains how to retrieve and interpret different result types.
+
+4.  **Using Custom Databases**
+    This
+    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/CustomDatabases.Rmd)
+    demonstrates how to create and use custom databases for structure search.
+
+5.  **Importing Chromatographic Peaks from xcms**
     This
     [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/Chromatographic_peak_annotation_public_dataset.Rmd)
     demonstrates how to import chromatographic peaks from **xcms** and use them
@@ -70,19 +85,19 @@ the package meets user expectations and operates smoothly.
 
 ### Key Areas for Testing:
 
-1.  **Ease of Installation**\
+1.  **Ease of Installation**
     Start by testing the installation process. Let us know if you encounter any
     issues, especially with package dependencies.
 
-2.  **Exploring Basic Functionalities**\
-    Run the first vignette suggested above to familiarize yourself with the
-    package’s core features. This will give you a solid foundation for
-    understanding how it works.
+2.  **Exploring Basic Functionalities**
+    Run the first two vignettes to familiarize yourself with connecting to Sirius
+    and importing spectra data. This will give you a solid foundation for
+    understanding how the package works.
 
-3.  **Adapting to Your Dataset**\
-    If you’re working with custom datasets or want to import features instead of
-    chromatographic peaks, try the second vignette. It provides the necessary
-    code and steps for more advanced use cases.
+3.  **Adapting to Your Dataset**
+    If you're working with custom datasets or want to import chromatographic peaks
+    from xcms, try the third vignette. It provides the necessary code and steps
+    for more advanced use cases.
 
 ### Why Your Feedback Matters
 
@@ -97,21 +112,60 @@ insights will directly shape future updates.
 ## Known Issues
 
 This is the early stage of integrating Sirius with **RforMassSpectrometry**, and
-there’s ongoing development to enhance the implementation.
+there's ongoing development to enhance the implementation.
 
 ### Current Issues:
 
 -   **GHA and R command checks**: They are failing/incomplete because the
-    vignettes cannot be run systematically for now. 
+    vignettes cannot be run systematically (requires Sirius login).
 
--   **Docker image**: a DockerFile is available, however the vignettes cannot be
-    run on it yet.
+-   **Docker image**: A Dockerfile is available to set up the environment, but
+    vignettes cannot be run automatically as they require Sirius authentication.
+    See the [Docker](#docker) section below for usage instructions.
 
 -   Importing features can be time-consuming. To speed up testing, import only a
     few features at first and limit the process to one MS1 spectrum per feature.
     Further details are provided in the vignettes.
 
 If you encounter other issues, please let us know so we can improve the package!
+
+--------------------------------------------------------------------------------
+
+## Docker
+
+A Docker image is provided based on `bioconductor/bioconductor_docker:RELEASE_3_22`.
+It includes RuSirius, all dependencies, and the Sirius 6.3 software (installed
+via conda).
+
+### Building the image
+
+``` bash
+docker build -t rformassspectrometry/rusirius .
+```
+
+### Running the container
+
+``` bash
+docker run -e PASSWORD=yourpassword -p 8787:8787 rformassspectrometry/rusirius
+```
+
+Then open RStudio Server at <http://localhost:8787> (user: `rstudio`, password:
+as set above).
+
+### Sirius login
+
+Vignettes require an active Sirius session. After starting the container, log
+in from the R console:
+
+``` r
+library(RuSirius)
+srs <- Sirius(projectId = "my_project",
+              username = "your_email",
+              password = "your_password")
+```
+
+Note that Sirius requires a valid account — you can register for free at
+<https://bright-giant.com>.
 
 --------------------------------------------------------------------------------
 

@@ -3,6 +3,42 @@
 #' used.
 
 ### data import
+
+#' @description
+#' Group MSn-only spectra by acquisition order, inspired by
+#' `fragmentGroupIndex()`. Within each `dataOrigin`, a new group starts
+#' whenever a new MS2 `precursorMz` is encountered. Subsequent
+#' higher-level scans (MS3+) belong to the same group as the preceding
+#' MS2 scan. Used in `import()` when no MS1 data is present.
+#'
+#' @param spectra A `Spectra` object containing only MSn (level >= 2) data.
+#'
+#' @return An integer vector of group indices, same length as `spectra`.
+#'
+#' @noRd
+.groupMSnIndex <- function(spectra) {
+    origins <- spectra$dataOrigin
+    ms_levels <- spectra$msLevel
+    precursor_mz <- spectra$precursorMz
+    n <- length(spectra)
+    idx <- integer(n)
+    group_counter <- 0L
+    for (origin in unique(origins)) {
+        sel <- which(origins == origin)
+        current_ms2_mz <- NA_real_
+        for (j in sel) {
+            if (ms_levels[j] == 2L) {
+                if (!isTRUE(all.equal(precursor_mz[j], current_ms2_mz))) {
+                    group_counter <- group_counter + 1L
+                    current_ms2_mz <- precursor_mz[j]
+                }
+            }
+            idx[j] <- group_counter
+        }
+    }
+    idx
+}
+
 #' @description
 #' Used in import
 #'
@@ -58,7 +94,7 @@
         charge = if (pol == 0) -1 else pol,
         detectedAdducts = list(adduct),
         mergedMs1 = .createspectraMS1(data[data$msLevel == 1L]),
-        ms2Spectra = .createspectraMSn(data[data$msLevel == 2L])
+        ms2Spectra = .createspectraMSn(data[data$msLevel >= 2L])
     )
 }
 
