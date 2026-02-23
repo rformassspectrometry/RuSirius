@@ -8,6 +8,8 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
+  workflow_dispatch:
 
 jobs:
   build-docker-and-push:
@@ -34,6 +36,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
           push: true
           tags: |
             rformassspectrometry/rusirius:latest
