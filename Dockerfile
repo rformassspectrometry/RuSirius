@@ -35,7 +35,8 @@ RUN SIRIUS_PATH=$(find /opt/conda/pkgs -maxdepth 1 -type d -name "sirius-ms-*" |
     echo "export PATH=${SIRIUS_PATH}/bin:\${PATH}" >> /home/rstudio/.bashrc
 
 
-# Install the current package (vignettes not built - require Sirius login)
+# Install CI tools and the current package (vignettes not built - require Sirius login)
+RUN Rscript -e "install.packages(c('rcmdcheck', 'BiocCheck', 'sessioninfo'), repos = BiocManager::repositories())"
 RUN Rscript -e "devtools::install('.', dependencies = TRUE, type = 'source', build_vignettes = FALSE, repos = BiocManager::repositories())"
 
 # Note: To run vignettes interactively, start the container and log in to Sirius:

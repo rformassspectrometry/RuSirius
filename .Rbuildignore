@@ -12,6 +12,7 @@ README.Rmd
 
 # Docker
 ^Dockerfile$
+^\.dockerignore$
 
 # Sirius project and database files (can be large)
 .*\.sirius$

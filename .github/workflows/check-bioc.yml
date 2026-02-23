@@ -1,5 +1,5 @@
 ## R-CMD-check using the project's Dockerfile, which includes
-## Sirius, RSirius, and all Bioconductor dependencies.
+## Sirius, RSirius, rcmdcheck, BiocCheck and all Bioconductor dependencies.
 ## The image is built from scratch each run so it works even before
 ## the image is published to Docker Hub.
 
@@ -26,59 +26,45 @@ jobs:
       - name: Build Docker image
         run: docker build -t rusirius-check .
 
-      - name: Install package dependencies
+      - name: R-CMD-check and BiocCheck
         run: |
           docker run --rm -v ${{ github.workspace }}:/pkg -w /pkg \
             -e GITHUB_PAT=${{ secrets.GITHUB_TOKEN }} \
-            rusirius-check \
-            Rscript -e "
-              install.packages(c('rcmdcheck', 'BiocCheck'), repos = BiocManager::repositories())
-              remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(),
-                                     build_vignettes = FALSE, upgrade = TRUE, force = TRUE)
-            "
-
-      - name: Session info
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/pkg -w /pkg \
-            rusirius-check \
-            Rscript -e "
-              options(width = 100)
-              pkgs <- installed.packages()[, 'Package']
-              sessioninfo::session_info(pkgs, include_base = TRUE)
-            "
-
-      - name: Run CMD check
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/pkg -w /pkg \
             -e NOT_CRAN=true \
             -e _R_CHECK_CRAN_INCOMING_=false \
             rusirius-check \
-            Rscript -e "
-              options(crayon.enabled = TRUE)
-              rcmdcheck::rcmdcheck(
-                  args = c('--no-manual', '--no-vignettes', '--timings'),
-                  build_args = c('--no-manual', '--keep-empty-dirs',
-                                 '--no-resave-data', '--no-build-vignettes'),
-                  error_on = 'error',
-                  check_dir = 'check'
-              )
-            "
+            bash -c '
+              Rscript -e "
+                ## Re-install from checked-out source
+                remotes::install_local(dependencies = TRUE,
+                  repos = BiocManager::repositories(),
+                  build_vignettes = FALSE, upgrade = TRUE, force = TRUE)
 
-      - name: Run BiocCheck
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/pkg -w /pkg \
-            rusirius-check \
-            Rscript -e "
-              BiocCheck::BiocCheck(
-                  dir('check', 'tar.gz\$', full.names = TRUE),
-                  \`quit-with-status\` = TRUE,
-                  \`no-check-R-ver\` = TRUE,
-                  \`no-check-bioc-help\` = TRUE,
-                  \`no-check-remotes\` = TRUE,
-                  \`no-check-bioc-views\` = TRUE,
-                  \`no-check-man-doc\` = TRUE
-              )
-            "
+                ## Session info
+                options(width = 100)
+                pkgs <- installed.packages()[, \"Package\"]
+                sessioninfo::session_info(pkgs, include_base = TRUE)
+
+                ## R CMD check
+                options(crayon.enabled = TRUE)
+                rcmdcheck::rcmdcheck(
+                    args = c(\"--no-manual\", \"--no-vignettes\", \"--timings\"),
+                    build_args = c(\"--no-manual\", \"--keep-empty-dirs\",
+                                   \"--no-resave-data\", \"--no-build-vignettes\"),
+                    error_on = \"error\",
+                    check_dir = \"check\")
+
+                ## BiocCheck
+                BiocCheck::BiocCheck(
+                    dir(\"check\", \"tar.gz$\", full.names = TRUE),
+                    \`quit-with-status\` = TRUE,
+                    \`no-check-R-ver\` = TRUE,
+                    \`no-check-bioc-help\` = TRUE,
+                    \`no-check-remotes\` = TRUE,
+                    \`no-check-bioc-views\` = TRUE,
+                    \`no-check-man-doc\` = TRUE)
+              "
+            '
 
       - name: Upload check results
         if: failure()
