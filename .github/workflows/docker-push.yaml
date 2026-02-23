@@ -39,9 +39,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: |
-            rformassspectrometry/rusirius:latest
-            rformassspectrometry/rusirius:${{ github.sha }}
+          tags: rformassspectrometry/rusirius:latest
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
