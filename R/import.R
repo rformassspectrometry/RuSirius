@@ -79,12 +79,19 @@ import <- function(sirius, spectra, ms_column_name = character(),
     } else {
         if (!length(ms_column_name)) {
             ms_column_name <- "ms_column_name"
-            spectra[[ms_column_name]] <- lapply(
-                split(spectra, spectra$dataOrigin),
-                function(x) seq_len(length(x))) |>
-                unlist(use.names = FALSE)
+            if (!has_ms1) {
+                ## Single-level MSn (e.g. only MS2): group by
+                ## precursorMz within each dataOrigin so that each
+                ## unique precursor becomes a separate feature.
+                spectra$ms_column_name <- .groupMSnIndex(spectra)
+            } else {
+                ## MS1-only: each spectrum is its own feature.
+                spectra[[ms_column_name]] <- lapply(
+                    split(spectra, spectra$dataOrigin),
+                    function(x) seq_len(length(x))) |>
+                    unlist(use.names = FALSE)
+            }
         }
-
     }
     ## import data
     idxs <- spectra[[ms_column_name]]

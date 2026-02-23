@@ -101,6 +101,71 @@ test_that(".createfeatures includes MS2 spectra when no MS1 present", {
     expect_length(feat$ms2Spectra, 2)
     expect_equal(feat$ms2Spectra[[1]]$msLevel, 2L)
     expect_equal(feat$ms2Spectra[[2]]$msLevel, 2L)
+    ## ionMass must be derived from precursorMz when no MS1 is present
+    expect_equal(feat$ionMass, 300.0)
+})
+
+test_that(".createfeatures sets ionMass to precursorMz without MS1", {
+    skip_if_not_installed("RSirius")
+    skip_if_not_installed("Spectra")
+    library(Spectra)
+
+    sp <- Spectra(DataFrame(
+        msLevel = 2L,
+        polarity = 1L,
+        precursorMz = 456.123,
+        scanIndex = 1L,
+        dataOrigin = "file1",
+        mz = I(list(c(100, 200))),
+        intensity = I(list(c(999, 500)))
+    ))
+
+    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    expect_equal(feat$ionMass, 456.123)
+    expect_true(is.null(feat$mergedMs1))
+})
+
+test_that(".createfeatures sets ionMass from precursorMz with MS1+MS2", {
+    skip_if_not_installed("RSirius")
+    skip_if_not_installed("Spectra")
+    library(Spectra)
+
+    sp <- Spectra(DataFrame(
+        msLevel = c(1L, 2L),
+        polarity = c(1L, 1L),
+        precursorMz = c(NA_real_, 300.0),
+        scanIndex = c(1L, 2L),
+        dataOrigin = c("file1", "file1"),
+        mz = I(list(c(300), c(100, 150))),
+        intensity = I(list(c(9999), c(999, 500)))
+    ))
+
+    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    ## ionMass should always come from precursorMz when MSn data exists
+    expect_equal(feat$ionMass, 300.0)
+    expect_false(is.null(feat$mergedMs1))
+})
+
+test_that(".createfeatures sets ionMass to 0 for MS1-only data", {
+    skip_if_not_installed("RSirius")
+    skip_if_not_installed("Spectra")
+    library(Spectra)
+
+    sp <- Spectra(DataFrame(
+        msLevel = 1L,
+        polarity = 1L,
+        precursorMz = NA_real_,
+        scanIndex = 1L,
+        dataOrigin = "file1",
+        mz = I(list(c(300, 301))),
+        intensity = I(list(c(9999, 500)))
+    ))
+
+    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    ## No MSn data: ionMass = 0, Sirius derives it from the MS1 spectrum
+    expect_equal(feat$ionMass, 0)
+    expect_false(is.null(feat$mergedMs1))
+    expect_null(feat$ms2Spectra)
 })
 
 test_that(".createfeatures includes MS3 spectra alongside MS2", {
@@ -161,6 +226,8 @@ test_that("import auto-groups MSn-only spectra by precursorMz", {
     # All features should have hasMs1 = FALSE
     expect_true(all(info[, "hasMs1"] == FALSE))
     expect_true(all(info[, "hasMsMs"] == TRUE))
+    ## ionMass must match precursorMz of the MS2 spectrum
+    expect_equal(as.numeric(info[1, "ionMass"]), 300.0)
 })
 
 test_that("import works with MS2-only spectra (single MS level)", {
@@ -190,6 +257,40 @@ test_that("import works with MS2-only spectra (single MS level)", {
     expect_equal(nrow(info), 2)
     expect_true(all(info[, "hasMs1"] == FALSE))
     expect_true(all(info[, "hasMsMs"] == TRUE))
+    ## ionMass must match the precursorMz of each feature
+    ion_masses <- sort(as.numeric(info[, "ionMass"]))
+    expect_equal(ion_masses, c(300.0, 400.0))
+})
+
+test_that("import single MS2 spectrum sets correct ionMass", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_not_logged_in(srs)
+
+    library(Spectra)
+
+    ## Minimal repro of the reported bug: a single MS2 spectrum, no MS1
+    sp <- Spectra(DataFrame(
+        msLevel     = 2L,
+        polarity    = 1L,
+        precursorMz = 207.24,
+        scanIndex   = 45L,
+        rtime       = 59.71,
+        dataOrigin  = "user_file",
+        mz          = I(list(c(51.81, 52.73, 200.51, 207.24))),
+        intensity   = I(list(c(3991, 3641, 7690, 6591)))
+    ))
+
+    srs <- import(srs, sp, adducts = "[M+H]+", deleteExistingFeatures = TRUE)
+
+    info <- featuresInfo(srs)
+    expect_true(is.matrix(info) || is.data.frame(info))
+    expect_equal(nrow(info), 1)
+    expect_true(info[1, "hasMsMs"] == TRUE)
+    expect_true(info[1, "hasMs1"] == FALSE)
+    expect_equal(as.numeric(info[1, "ionMass"]), 207.24)
 })
 
 test_that("import still requires ms_column_name with MS1+MS2 data", {

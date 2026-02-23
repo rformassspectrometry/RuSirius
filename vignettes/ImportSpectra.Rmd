@@ -123,11 +123,12 @@ groups MSn spectra by acquisition order: within each file (`dataOrigin`), a new
 group starts whenever a new MS2 `precursorMz` is encountered, and any subsequent
 higher-level scans (MS3+) are assigned to the same group as their preceding MS2.
 
-```{r}
+```{r, eval = FALSE}
 ## Example: importing MS2-only spectra
 ## Assume sp_ms2 is a Spectra object containing only MS2 (and optionally MS3)
 ## spectra, with no MS1 data.
-
+sp_ms2 <- filterMsLevel(sp, msLevel = 2L)
+sp_ms2 <- sp_ms2[1:10]  # Just an example subset of MS2 spectra
 ## No need for ms_column_name — the function auto-groups by acquisition order.
 srs <- import(sirius = srs,
               spectra = sp_ms2,
@@ -139,9 +140,6 @@ featuresInfo(srs)
 If your MSn spectra already have a grouping column (e.g., from a feature
 detection tool), you can still pass it via `ms_column_name` as usual.
 
-Note that MS3+ spectra are passed to SIRIUS under the `ms2Spectra` field, which
-is the expected behavior — SIRIUS bundles all MSn (level ≥ 2) data together
-within a feature.
 
 ## Submit job to Sirius - For structure DB search
 
