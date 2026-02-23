@@ -88,13 +88,23 @@
 
 .createfeatures <- function(data, idx, adduct) {
     pol <- data$polarity[1]
+    ms1 <- data[data$msLevel == 1L]
+    msn <- data[data$msLevel >= 2L]
+    ## Use precursorMz from the first MSn spectrum as ionMass whenever
+    ## MSn data is available.  For MS1-only features, let Sirius
+    ## derive the ionMass from the MS1 spectrum (ionMass = 0).
+    if (length(msn) > 0) {
+        ion_mass <- msn$precursorMz[1]
+    } else {
+        ion_mass <- 0
+    }
     RSirius::FeatureImport$new(
-        externalFeatureId = as.character(idx), ## don't need it ?
-        ionMass = 0,
+        externalFeatureId = as.character(idx),
+        ionMass = ion_mass,
         charge = if (pol == 0) -1 else pol,
         detectedAdducts = list(adduct),
-        mergedMs1 = .createspectraMS1(data[data$msLevel == 1L]),
-        ms2Spectra = .createspectraMSn(data[data$msLevel >= 2L])
+        mergedMs1 = .createspectraMS1(ms1),
+        ms2Spectra = .createspectraMSn(msn)
     )
 }
 

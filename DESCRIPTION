@@ -1,6 +1,6 @@
 Package: RuSirius
 Title: R Implementation of the Sirius software
-Version: 0.2.2
+Version: 0.2.3
 Description: The RuSirius package allows the user to interact with the Sirius
              software from R. Sirius is a software for the analysis and
              annotation of mass spectrometry data. RuSirius makes use of the
@@ -38,7 +38,7 @@ RoxygenNote: 7.3.3
 BugReports: https://github.com/RforMassSpectrometry/RuSirius/issues
 URL: https://github.com/RforMassSpectrometry/RuSirius
 Remotes:
-    sirius-ms/sirius-client-openAPI/client-api_r/generated@e4acd1b
+    sirius-ms/sirius-client-openAPI/client-api_r/generated@2c983e6
 VignetteBuilder: knitr
 Collate:
     'Sirius.R'

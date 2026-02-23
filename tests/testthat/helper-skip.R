@@ -1,56 +1,59 @@
-#' Helper functions for skipping tests when Sirius API is unavailable
-#'
-#' @noRd
+# Shared Sirius connection -------------------------------------------------
+# A single Sirius instance is lazily created and reused across all tests.
+# Shutdown is handled in teardown.R.
 
-#' Skip test if Sirius API is not available
-#'
-#' Use this at the start of any test that requires a running Sirius instance.
+.shared_sirius_env <- new.env(parent = emptyenv())
+.shared_sirius_env$srs <- NULL
+.shared_sirius_env$available <- NA
+
+#' Return (or lazily create) the shared Sirius connection.
+#' @noRd
+get_shared_sirius <- function(projectId = "test_ruSirius") {
+    if (isFALSE(.shared_sirius_env$available)) return(NULL)
+    if (!is.null(.shared_sirius_env$srs) &&
+        checkConnection(.shared_sirius_env$srs)) {
+        srs <- .shared_sirius_env$srs
+        if (!identical(srs@projectId, projectId)) {
+            srs <- tryCatch(
+                suppressMessages(openProject(srs, projectId, path = tempdir())),
+                error = function(e) srs
+            )
+            .shared_sirius_env$srs <- srs
+        }
+        return(srs)
+    }
+    srs <- tryCatch(
+        suppressMessages(Sirius(projectId = projectId, path = tempdir())),
+        error = function(e) NULL
+    )
+    if (is.null(srs) || !checkConnection(srs)) {
+        .shared_sirius_env$available <- FALSE
+        return(NULL)
+    }
+    .shared_sirius_env$available <- TRUE
+    .shared_sirius_env$srs <- srs
+    srs
+}
+
 #' @noRd
 skip_if_no_sirius <- function() {
-    tryCatch({
-        sdk <- RSirius::SiriusSDK$new()
-        suppressMessages(api <- sdk$attach_or_start_sirius())
-        api$info_api$GetInfo()
-    }, error = function(e) {
-        testthat::skip("Sirius API not available")
-    })
+    srs <- get_shared_sirius()
+    if (is.null(srs)) testthat::skip("Sirius API not available")
 }
 
-#' Skip test if not logged in to Sirius
-#'
-#' Use this for tests that require authentication.
 #' @noRd
 skip_if_not_logged_in <- function(sirius) {
-    if (!sirius@api$login_and_account_api$IsLoggedIn()) {
+    if (!sirius@api$login_and_account_api$IsLoggedIn())
         testthat::skip("Not logged in to Sirius")
-    }
 }
 
-#' Create a temporary Sirius connection for testing
-#'
-#' Returns NULL if Sirius is not available, allowing tests to skip gracefully.
+#' Returns the shared connection. Used by individual tests.
 #' @noRd
 test_sirius_connection <- function(projectId = "test_ruSirius") {
-    tryCatch({
-        suppressMessages(
-            srs <- Sirius(projectId = projectId, path = tempdir())
-        )
-        srs
-    }, error = function(e) {
-        NULL
-    })
+    get_shared_sirius(projectId)
 }
 
-#' Safely shutdown a Sirius connection
-#'
-#' Ensures proper cleanup even if errors occur.
+#' No-op — shutdown is handled in teardown.R.
+#' Kept so existing on.exit(safe_shutdown(srs)) calls don't error.
 #' @noRd
-safe_shutdown <- function(srs) {
-    if (is.null(srs)) return(invisible(NULL))
-    tryCatch({
-        if (checkConnection(srs)) {
-            shutdown(srs, closeProject = TRUE)
-        }
-    }, error = function(e) NULL)
-    invisible(NULL)
-}
+safe_shutdown <- function(srs) invisible(NULL)

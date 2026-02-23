@@ -3,25 +3,6 @@
 #' @importFrom utils browseURL
 NULL
 
-# Internal helper for GUI API calls
-.callGuiApi <- function(sirius, method, query_params = list()) {
-    url <- paste0(sirius@api$api_client$base_path, 
-                  "/api/projects/", sirius@projectId, "/gui")
-    sirius@api$api_client$CallApi(
-        url = url,
-        method = method,
-        query_params = query_params,
-        header_params = c(),
-        form_params = list(),
-        file_params = list(),
-        accepts = list("application/json"),
-        content_types = list(),
-        body = NULL,
-        is_oauth = FALSE,
-        oauth_scopes = NULL
-    )
-}
-
 #' @rdname utils
 #' @param username `character(1)`, the username to use for the connection
 #' @param password `character(1)`, the password to use for the connection
@@ -87,7 +68,7 @@ shutdown <- function(sirius, closeProject = TRUE) {
     }
     tryCatch(
         sirius@sdk$shutdown_sirius(),
-        error = function(e) 
+        error = function(e)
             message("Could not shutdown Sirius. You may need to close it manually.")
     )
     invisible(NULL)
@@ -100,13 +81,9 @@ shutdown <- function(sirius, closeProject = TRUE) {
 openGUI <- function(sirius) {
     if (!length(sirius@projectId))
         stop("No project is currently open. Use openProject() first.")
-    resp <- .callGuiApi(sirius, method = "POST")
-    if (resp$status_code >= 200 && resp$status_code <= 299) {
-        message("GUI opened for project: ", sirius@projectId)
-        invisible(TRUE)
-    } else {
-        stop("Failed to open GUI. Status code: ", resp$status_code)
-    }
+    sirius@api$gui_api$OpenGui(sirius@projectId)
+    message("GUI opened for project: ", sirius@projectId)
+    invisible(TRUE)
 }
 
 #' @rdname utils
@@ -118,14 +95,10 @@ openGUI <- function(sirius) {
 closeGUI <- function(sirius, closeProject = FALSE) {
     if (!length(sirius@projectId))
         stop("No project is currently open.")
-    query <- if (closeProject) list(closeProject = "true") else list()
-    resp <- .callGuiApi(sirius, method = "DELETE", query_params = query)
-    if (resp$status_code >= 200 && resp$status_code <= 299) {
-        message("GUI closed for project: ", sirius@projectId)
-        invisible(TRUE)
-    } else {
-        stop("Failed to close GUI. Status code: ", resp$status_code)
-    }
+    close_arg <- if (closeProject) "true" else NULL
+    sirius@api$gui_api$CloseGui(sirius@projectId, close_project = close_arg)
+    message("GUI closed for project: ", sirius@projectId)
+    invisible(TRUE)
 }
 
 #' @rdname utils

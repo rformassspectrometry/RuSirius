@@ -1,5 +1,27 @@
 # Version 0.2
 
+## Changes in 0.2.3
+
+- Fixed a bug where importing a single MS2 spectrum (no MS1) resulted in
+  0 features in the project, causing `run()` to fail with
+  "Either 'compoundsIds' or 'alignedFeaturesIds' must be provided."
+- `import()` now correctly handles single-level MS2-only data by grouping
+  spectra via `.groupMSnIndex()` (previously only triggered for multi-level
+  MSn data).
+- `.createfeatures()` now always sets `ionMass` from `precursorMz` when MSn
+  data is available. Previously `ionMass` was hardcoded to `0`, which caused
+  the Sirius API to silently discard features without MS1 data. For MS1-only
+  features, `ionMass` remains `0` so Sirius can derive it from the MS1
+  spectrum.
+- Updated RSirius dependency to latest release (`3.1+sirius6.3.3`, commit
+  `2c983e6`). The new version exposes `gui_api` with proper `OpenGui`,
+  `CloseGui`, and `GetGuis` endpoints.
+- Simplified `openGUI()` and `closeGUI()` to use the official `gui_api`
+  endpoints instead of manually constructing HTTP requests via `.callGuiApi()`.
+- Removed the internal `.callGuiApi()` helper (no longer needed).
+- Added `docker-push.yaml` GitHub Actions workflow for automated Docker image
+  builds on push to `main`.
+
 ## Changes in 0.2.2
 
 - Added support for importing MSn-only data (MS2, MS2+MS3, etc.) without
