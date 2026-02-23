@@ -51,27 +51,27 @@ RuSirius comes with five vignettes to help you get started:
 
 1.  **Getting Started with RuSirius**
     This
-    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/GettingStarted.Rmd)
+    [vignette](https://rformassspectrometry.github.io/RuSirius/articles/GettingStarted.html)
     covers the basics of connecting to Sirius and managing projects.
 
 2.  **Importing Spectra into Sirius**
     This
-    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/ImportSpectra.Rmd)
+    [vignette](https://rformassspectrometry.github.io/RuSirius/articles/ImportSpectra.html)
     shows a basic example for importing spectra data into Sirius.
 
 3.  **Retrieving Results from Sirius**
     This
-    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/RetrievingResults.Rmd)
+    [vignette](https://rformassspectrometry.github.io/RuSirius/articles/RetrievingResults.html)
     explains how to retrieve and interpret different result types.
 
 4.  **Using Custom Databases**
     This
-    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/CustomDatabases.Rmd)
+    [vignette](https://rformassspectrometry.github.io/RuSirius/articles/CustomDatabases.html)
     demonstrates how to create and use custom databases for structure search.
 
 5.  **Importing Chromatographic Peaks from xcms**
     This
-    [vignette](https://github.com/rformassspectrometry/RuSirius/blob/main/vignettes/Chromatographic_peak_annotation_public_dataset.Rmd)
+    [vignette](https://rformassspectrometry.github.io/RuSirius/articles/Chromatographic_peak_annotation_public_dataset.html)
     demonstrates how to import chromatographic peaks from **xcms** and use them
     in Sirius.
 
@@ -116,12 +116,9 @@ there's ongoing development to enhance the implementation.
 
 ### Current Issues:
 
--   **GHA and R command checks**: They are failing/incomplete because the
-    vignettes cannot be run systematically (requires Sirius login).
-
--   **Docker image**: A Dockerfile is available to set up the environment, but
-    vignettes cannot be run automatically as they require Sirius authentication.
-    See the [Docker](#docker) section below for usage instructions.
+-   **Vignettes require Sirius login**: Vignettes cannot be built automatically
+    in CI as they require Sirius authentication. Pre-rendered vignettes are
+    available on the [pkgdown site](https://rformassspectrometry.github.io/RuSirius/).
 
 -   Importing features can be time-consuming. To speed up testing, import only a
     few features at first and limit the process to one MS1 spectrum per feature.
@@ -133,29 +130,37 @@ If you encounter other issues, please let us know so we can improve the package!
 
 ## Docker
 
-A Docker image is provided based on `bioconductor/bioconductor_docker:RELEASE_3_22`.
-It includes RuSirius, all dependencies, and the Sirius 6.3 software (installed
-via conda).
+A pre-built Docker image is available on Docker Hub, based on
+`bioconductor/bioconductor_docker:RELEASE_3_22`. It includes RuSirius, all
+dependencies, and the Sirius 6.3 software (installed via conda).
 
-### Building the image
+### Pulling the image
 
 ``` bash
-docker build -t rformassspectrometry/rusirius .
+docker pull rformassspectrometry/rusirius:latest
 ```
 
 ### Running the container
 
+Start an RStudio Server session:
+
 ``` bash
-docker run -e PASSWORD=yourpassword -p 8787:8787 rformassspectrometry/rusirius
+docker run -e PASSWORD=yourpassword -p 8787:8787 rformassspectrometry/rusirius:latest
 ```
 
 Then open RStudio Server at <http://localhost:8787> (user: `rstudio`, password:
 as set above).
 
+Or start an interactive R session directly:
+
+``` bash
+docker run -it rformassspectrometry/rusirius:latest R
+```
+
 ### Sirius login
 
-Vignettes require an active Sirius session. After starting the container, log
-in from the R console:
+Vignettes and most package functions require an active Sirius session. After
+starting the container, log in from the R console:
 
 ``` r
 library(RuSirius)
@@ -166,6 +171,17 @@ srs <- Sirius(projectId = "my_project",
 
 Note that Sirius requires a valid account — you can register for free at
 <https://bright-giant.com>.
+
+### Building the image locally (advanced)
+
+If you prefer to build the image from source instead of pulling from Docker Hub:
+
+``` bash
+docker build -t rformassspectrometry/rusirius .
+```
+
+This builds the image using the `Dockerfile` in the repository root. The build
+takes several minutes as it installs Miniconda, Sirius, and all R dependencies.
 
 --------------------------------------------------------------------------------
 
