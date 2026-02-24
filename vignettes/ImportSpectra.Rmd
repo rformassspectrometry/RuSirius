@@ -17,7 +17,6 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 ```{r load-packages, message = FALSE}
-library(RSirius)
 library(RuSirius)
 library(MsDataHub)
 library(Spectra)
@@ -47,7 +46,8 @@ input as a user is essential.
 
 ## Prepping Spectra object
 
-Below we load the data as a Spectra Object:
+Below we load the example mass spectrometry (MS) data, provided by the
+*MsDataHub*, as a `Spectra` object:
 
 ```{r}
 dda_file <- MsDataHub::PestMix1_DDA.mzML()
@@ -56,11 +56,12 @@ sp <- setBackend(sp, MsBackendMemory())
 sp <- filterEmptySpectra(sp)
 ```
 
-To import the `Spectra` data into *Sirius*, it must be preprocessed. If multiple
-MS levels are present, we need to group them appropriately.
+To import the `Spectra` data into *Sirius*, it must be preprocessed. If spectra
+from multiple MS levels are present, we need to group them appropriately.
 
 We use the `fragmentGroupIndex()` function to assign an index to each spectrum.
-MS2 spectra that belong to the same MS1 spectrum will share the same index.
+MS2 spectra that belong to the same MS1 spectrum will share the same index. See
+`?fragmentGroupIndex` for details on how these spectra groups are defined.
 
 ```{r}
 sp |>
@@ -97,7 +98,8 @@ Here, we import two MS1-MS2 pairs and one MS1 spectrum on its own. It’s also
 possible to import only MS2 spectra.
 
 When importing, the `ms_column_name` parameter defines which column contains the
-index that groups the spectra.
+index that groups the spectra. Each such group is considered one *feature* in
+Sirius terminology.
 
 ```{r}
 sp_subset <- sp[sp$Msn_idx %in% c(421, 707, 895)]
@@ -111,36 +113,6 @@ srs <- import(sirius = srs,
 featuresInfo(srs)
 ```
 
-## Importing MS2-only or MSn-only data
-
-In some workflows, only MS2 (or MS2 and MS3) spectra are available — for
-example, when working with spectral libraries, MGF files, or data that was
-acquired without recording MS1 scans.
-
-The SIRIUS API fully supports importing features without MS1 data. When no MS1
-spectra are present and no `ms_column_name` is provided, `import()` automatically
-groups MSn spectra by acquisition order: within each file (`dataOrigin`), a new
-group starts whenever a new MS2 `precursorMz` is encountered, and any subsequent
-higher-level scans (MS3+) are assigned to the same group as their preceding MS2.
-
-```{r, eval = FALSE}
-## Example: importing MS2-only spectra
-## Assume sp_ms2 is a Spectra object containing only MS2 (and optionally MS3)
-## spectra, with no MS1 data.
-sp_ms2 <- filterMsLevel(sp, msLevel = 2L)
-sp_ms2 <- sp_ms2[1:10]  # Just an example subset of MS2 spectra
-## No need for ms_column_name — the function auto-groups by acquisition order.
-srs <- import(sirius = srs,
-              spectra = sp_ms2,
-              deleteExistingFeatures = TRUE)
-
-featuresInfo(srs)
-```
-
-If your MSn spectra already have a grouping column (e.g., from a feature
-detection tool), you can still pass it via `ms_column_name` as usual.
-
-
 ## Submit job to Sirius - For structure DB search
 
 Once data is imported, annotation and prediction can begin. The `run()` function
@@ -150,7 +122,7 @@ structure database search, and compound class prediction.
 ```{r}
 ## Start computation
 run(srs,
-    fallbackAdducts = c("[M + H]+", "[M + Na]+"),
+    fallbackAdducts = c("[M + H]+", "[M + Na]+"), # would be nice to support [M+H]+ too
     formulaIdParams = formulaIdParam(numberOfCandidates = 10,
                                        instrument = "QTOF",
                         numberOfCandidatesPerIonization = 3,
@@ -198,7 +170,7 @@ run(srs,
     wait = TRUE
 )
 
-summraryDeNovo <- summary(srs, result.type = "deNovo")
+summaryDeNovo <- summary(srs, result.type = "deNovo")
 ```
 
 Interestingly, for the first feature, the results remain consistent, while for
@@ -215,3 +187,36 @@ shutdown(srs)
 
 You can look more into retrieving the other results in the `?results`
 documentation. or the other vignette.
+
+## Importing MS2-only or MSn-only data
+
+In some workflows, only MS2 (or MS2 and MS3) spectra are available — for
+example, when working with spectral libraries, MGF files, or data that was
+acquired without recording MS1 scans.
+
+The SIRIUS API fully supports importing features without MS1 data. When no MS1
+spectra are present and no `ms_column_name` is provided, `import()`
+automatically groups MSn spectra by acquisition order: within each file
+(`dataOrigin`), a new group starts whenever a new MS2 `precursorMz` is
+encountered, and any subsequent higher-level scans (MS3+) are assigned to the
+same group as their preceding MS2. With `deleteExistingFeatures = TRUE` any
+eventually present previously imported spectra (*features*) and their results
+are removed.
+
+```{r, eval = FALSE}
+## Example: importing MS2-only spectra
+## Assume sp_ms2 is a Spectra object containing only MS2 (and optionally MS3)
+## spectra, with no MS1 data.
+sp_ms2 <- filterMsLevel(sp, msLevel = 2L)
+sp_ms2 <- sp_ms2[1:10]  # Just an example subset of MS2 spectra
+## No need for ms_column_name — the function auto-groups by acquisition order.
+srs <- import(sirius = srs,
+              spectra = sp_ms2,
+              deleteExistingFeatures = TRUE)
+
+featuresInfo(srs)
+```
+
+If your MSn spectra already have a grouping column (e.g., from a feature
+detection tool), you can still pass it via `ms_column_name` as usual.
+
