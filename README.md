@@ -2,7 +2,7 @@
 
 IMPORTANT: THIS IS ACTIVELY DEVELOPED.
 
-**RuSirius** is an R package that provides an interface to the Sirius software,
+**RuSirius** (spelled R-U-Sirius (*are you serious*)) is an R package that provides an interface to the Sirius software,
 enabling seamless integration of **xcms** preprocessing results with Sirius.\
 It is built upon **RSirius**, the REST API library for the R programming
 language, which you can find
