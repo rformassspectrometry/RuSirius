@@ -1,11 +1,16 @@
 # RuSirius
 
+[![Project Status: WIP – Initial development is in progress, but there has not
+yet been a stable, usable release suitable for the
+public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+
 IMPORTANT: THIS IS ACTIVELY DEVELOPED.
 
-**RuSirius** (spelled R-U-Sirius (*are you serious*)) is an R package that provides an interface to the Sirius software,
-enabling seamless integration of **xcms** preprocessing results with Sirius.\
-It is built upon **RSirius**, the REST API library for the R programming
-language, which you can find
+**RuSirius** (spelled R-U-Sirius (*are you serious*)) is an R package that
+provides an interface to the Sirius software, enabling seamless integration of
+**xcms** preprocessing results with Sirius.\ 
+It is built upon **RSirius**, the
+REST API library for the R programming language, which you can find
 [here](https://github.com/sirius-ms/sirius-client-openAPI/tree/master/client-api_r).
 
 --------------------------------------------------------------------------------
@@ -17,15 +22,16 @@ language, which you can find
 1.  You can install both the Sirius software and the R API using **conda** with
     the following command:
 
-``` bash
-conda install conda-forge::r-sirius-ms
+```bash
+conda create -n sirius conda-forge::r-sirius-ms
+conda activate sirius
 ```
 
-2.  Then install RuSirius and it's dependencies :
+2.  Then, in an R session, install *RuSirius* and it's dependencies :
 
-``` r
+```r
 library(remotes)
-BiocManager::install("RforMassSpectrometry/RuSirius")
+install_github("RforMassSpectrometry/RuSirius")
 ```
 
 ### Option 2: Manual Installation (Recommended for now)
@@ -33,14 +39,14 @@ BiocManager::install("RforMassSpectrometry/RuSirius")
 Alternatively, you can manually install Sirius and then RuSirius:
 
 1.  Download the Sirius software from the [official releases
-    page](https://github.com/sirius-ms/sirius/releases). RuSirius is dependent
+    page](https://github.com/sirius-ms/sirius/releases). *RuSirius* is dependent
     on Sirius 6.3, please ensure you have the right version downloaded.
-2.  Install RuSirius and it's dependencies (which includes the R-api) by running
-    the following code in R:
+2.  Install *RuSirius* and it's dependencies (which includes the R-api) by
+    running the following code in R:
 
 ``` r
 library(remotes)
-BiocManager::install("RforMassSpectrometry/RuSirius")
+install_github("RforMassSpectrometry/RuSirius")
 ```
 
 --------------------------------------------------------------------------------
@@ -130,9 +136,10 @@ If you encounter other issues, please let us know so we can improve the package!
 
 ## Docker
 
-A pre-built Docker image is available on Docker Hub, based on
-`bioconductor/bioconductor_docker:RELEASE_3_22`. It includes RuSirius, all
-dependencies, and the Sirius 6.3 software (installed via conda).
+A pre-built Docker image is available on Docker Hub, based on the official
+Bioconductor docker image `bioconductor/bioconductor_docker:RELEASE_3_22`. It
+includes *RuSirius*, all dependencies, and the Sirius 6.3 software (installed
+via conda).
 
 ### Pulling the image
 
