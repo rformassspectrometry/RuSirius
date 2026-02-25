@@ -66,3 +66,63 @@ test_that(".convert_to_dataframe adds section column", {
     expect_true("section" %in% colnames(result))
     expect_true(all(result$section == "my_section"))
 })
+
+# Tests for .normalize_adducts
+
+test_that(".normalize_adducts adds spaces around operators", {
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M+H]+"),
+        "[M + H]+"
+    )
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M-H]-"),
+        "[M - H]-"
+    )
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M+Na]+"),
+        "[M + Na]+"
+    )
+})
+
+test_that(".normalize_adducts leaves already-spaced adducts unchanged", {
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M + H]+"),
+        "[M + H]+"
+    )
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M - H]-"),
+        "[M - H]-"
+    )
+})
+
+test_that(".normalize_adducts handles complex adducts", {
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M+H3N+H]+"),
+        "[M + H3N + H]+"
+    )
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M-H2O+H]+"),
+        "[M - H2O + H]+"
+    )
+    expect_equal(
+        RuSirius:::.normalize_adducts("[2M+K]+"),
+        "[2M + K]+"
+    )
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M+C2H4O2-H]-"),
+        "[M + C2H4O2 - H]-"
+    )
+})
+
+test_that(".normalize_adducts works on vectors", {
+    input <- c("[M+H]+", "[M-H]-", "[M + Na]+")
+    expected <- c("[M + H]+", "[M - H]-", "[M + Na]+")
+    expect_equal(RuSirius:::.normalize_adducts(input), expected)
+})
+
+test_that(".normalize_adducts handles unknown adduct placeholder", {
+    expect_equal(
+        RuSirius:::.normalize_adducts("[M+?]+"),
+        "[M + ?]+"
+    )
+})

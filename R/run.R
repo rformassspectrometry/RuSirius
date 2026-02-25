@@ -31,6 +31,14 @@
 #' `spectraMatchingParam` object to perform spectral matching and subsequently
 #' compare the results.
 #'
+#' @section Known molecular formula:
+#'
+#' If you already know the molecular formula for a compound, you can restrict
+#' SIRIUS to only consider that formula using the `candidateFormulas` parameter
+#' of [`formulaIdParam`]. This skips the de novo formula generation and instead
+#' computes the fragmentation tree for the specified formula(s) directly. Use
+#' the `enforceAdducts` parameter of `run()` to also fix the adduct type.
+#'
 #' @section Structure annotation:
 #'
 #' To performe structure annotation, you need input the `formulaIdParam` object,
@@ -123,6 +131,10 @@ run <- function(sirius,
                 recompute = FALSE,
                 configFile = character(),
                 wait = TRUE) {
+    fallbackAdducts <- .normalize_adducts(fallbackAdducts)
+    if (length(enforceAdducts))
+        enforceAdducts <- .normalize_adducts(enforceAdducts)
+    detectableAdducts <- .normalize_adducts(detectableAdducts)
     if (length(configFile)) {
         configfile <- sirius@api$jobs_api$GetJobConfig(configFile)
         job <- sirius@api$jobs_api$StartJobFromConfig(sirius@projectId,
@@ -143,10 +155,27 @@ run <- function(sirius,
             msNovelistParams = msNovelistParams,
             recompute = recompute
         )
+        ## Extract candidateFormulas before serialising: they go into
+        ## JobSubmission$configMap, not into formulaIdParams.
+        candidate_formulas <- character(0)
+        if (is(formulaIdParams, "formulaIdParam") &&
+            length(formulaIdParams@candidateFormulas) > 0) {
+            candidate_formulas <- formulaIdParams@candidateFormulas
+        }
         l_config <- as.list(config)
+        ## Remove candidateFormulas from the formulaIdParams list – Sirius
+        ## does not recognise it as a Sirius (formulaIdParams) field.
+        l_config$formulaIdParams$candidateFormulas <- NULL
         configjson <- toJSON(l_config, auto_unbox = TRUE)
         js <- JobSubmission$new()
         js$fromJSON(configjson)
+        ## Pass candidate formulas via the generic configMap
+        if (length(candidate_formulas) > 0) {
+            js$configMap <- list(
+                CandidateFormulas = paste(candidate_formulas,
+                                          collapse = ",")
+            )
+        }
         job <- sirius@api$jobs_api$StartJob(sirius@projectId, js)
     }
     # Monitor job status
@@ -230,6 +259,10 @@ config <- function(compoundsIds = character(),
                      msNovelistParams = NA,
                      spectraSearchParams = NA,
                      recompute = FALSE) {
+    fallbackAdducts <- .normalize_adducts(fallbackAdducts)
+    if (length(enforceAdducts))
+        enforceAdducts <- .normalize_adducts(enforceAdducts)
+    detectableAdducts <- .normalize_adducts(detectableAdducts)
     if (is(spectraSearchParams, "spectraMatchingParam")) {
         spectraSearchParams <- as.list(spectraSearchParams)
         spectraSearchParams$enabled <- TRUE

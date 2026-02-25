@@ -9,6 +9,7 @@ test_that("formulaIdParam creates valid object with defaults", {
     expect_equal(param@massAccuracyMS2ppm, 10)
     expect_true(param@filterByIsotopePattern)
     expect_true(param@enforceElGordoFormula)
+    expect_equal(param@candidateFormulas, character(0))
 })
 
 test_that("formulaIdParam accepts custom values", {
@@ -33,6 +34,24 @@ test_that("formulaIdParam validates isotopeMs2Settings argument", {
     expect_no_error(formulaIdParam(isotopeMs2Settings = "FILTER"))
     expect_no_error(formulaIdParam(isotopeMs2Settings = "SCORE"))
     expect_error(formulaIdParam(isotopeMs2Settings = "INVALID"))
+})
+
+test_that("formulaIdParam accepts candidateFormulas", {
+    param <- formulaIdParam(candidateFormulas = "C10H12N2O")
+    expect_equal(param@candidateFormulas, "C10H12N2O")
+
+    param2 <- formulaIdParam(
+        candidateFormulas = c("C6H12O6", "C10H12N2O")
+    )
+    expect_equal(param2@candidateFormulas, c("C6H12O6", "C10H12N2O"))
+})
+
+test_that("candidateFormulas is excluded from as.list serialisation", {
+    param <- formulaIdParam(candidateFormulas = "C10H12N2O")
+    l <- as.list(param)
+    ## candidateFormulas is present in the list (slot extraction)
+    expect_true("candidateFormulas" %in% names(l))
+    ## but run()/config() will strip it before sending to the API
 })
 
 test_that("predictParam creates valid object with defaults", {

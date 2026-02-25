@@ -27,7 +27,8 @@ formulaIdParam(
   useOnlyHeuristicAboveMz = 650,
   injectSpecLibMatchFormulas = TRUE,
   minScoreToInjectSpecLibMatch = 0.7,
-  minPeaksToInjectSpecLibMatch = 6
+  minPeaksToInjectSpecLibMatch = 6,
+  candidateFormulas = character(0)
 )
 }
 \arguments{
@@ -129,6 +130,15 @@ this threshold, the formula will be preserved. Default is \code{0.7}.}
 \item{minPeaksToInjectSpecLibMatch}{\code{integer} The minimum number of matching
 peaks required to inject spectral library match formulas into further
 analysis.}
+
+\item{candidateFormulas}{\code{character} Optional vector of molecular formulas
+to use as candidates. When provided, SIRIUS will only consider these
+formulas instead of performing de novo formula generation. This is
+useful when the molecular formula of a compound is already known.
+Formulas should be given as neutral molecular formulas (e.g.,
+\code{"C10H12N2O"}, \code{"C6H12O6"}). You can provide one or more formulas.
+Default is \code{character(0)} (no restriction, all formulas are
+considered).}
 }
 \value{
 An object of class \code{formulaIdParam} with the specified parameters.
@@ -164,6 +174,9 @@ needs.
 param <- formulaIdParam(instrument = "QTOF",
                         numberOfCandidates = 5,
                         enforceElGordoFormula = TRUE)
+
+# Restrict formula identification to a known molecular formula
+param_known <- formulaIdParam(candidateFormulas = "C10H12N2O")
 }
 \references{
 reference

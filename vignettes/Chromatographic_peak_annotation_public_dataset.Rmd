@@ -28,10 +28,10 @@ library(MsDataHub)
 ```
 
 ## Introduction
- 
-**Note:** This vignette code is not evaluated during package checks as it 
-requires a running Sirius instance. To run it interactively, set 
-`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and 
+
+**Note:** This vignette code is not evaluated during package checks as it
+requires a running Sirius instance. To run it interactively, set
+`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and
 running.
 
 This vignette demonstrates a basic workflow for importing detected
@@ -78,12 +78,12 @@ dda_data <- findChromPeaks(dda_data, param = cwp, msLevel = 1L)
 ## MS1 and MS2 Extraction
 
 MS2 and MS1 spectra corresponding to the identified chromatographic peaks are
-extracted. Each feature imported in Sirius can only have one MS1 spectrum. 
-However MS2 can also be loaded by itself wiht no MS1 if wanted. 
+extracted. Each feature imported in Sirius can only have one MS1 spectrum.
+However MS2 can also be loaded by itself wiht no MS1 if wanted.
 
 ```{r, extract-msdata, warning=FALSE}
 # Extract MS1 and MS2 spectra linked to chromatographic peaks
-ms2 <- chromPeakSpectra(dda_data, 
+ms2 <- chromPeakSpectra(dda_data,
                         expandMz = 0.01, expandRt = 3,
                         msLevel = 2L)
 low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
@@ -92,7 +92,7 @@ ms2 <- ms2[lengths(ms2) > 1]
 # cp <- unique(spectraData(ms2)$chrom_peak_id)
 # ms2 <- ms2[spectraData(ms2)$chrom_peak_id %in% cp]
 
-ms1 <- chromPeakSpectra(dda_data,  
+ms1 <- chromPeakSpectra(dda_data,
                         expandMz = 0.01, expandRt = 3,
                         msLevel = 1L, method = "closest_rt")
 
@@ -118,7 +118,7 @@ want to save it somewhere else you can specify the `path =` parameter.
 
 ```{r, start-sirius}
 # Initialize Sirius connection
-srs <- Sirius(projectId = "test_lcmsms") #add `path = "your/directory"` if needed. 
+srs <- Sirius(projectId = "test_lcmsms") #add `path = "your/directory"` if needed.
 srs
 ```
 
@@ -148,7 +148,7 @@ srs <- openProject(srs, "test_lcmsms")
 
 ## Import data into Sirius
 srs <- import(sirius = srs,
-              spectra = ms1_ms2, 
+              spectra = ms1_ms2,
               ms_column_name = "chrom_peak_id",
               deleteExistingFeatures = TRUE)
 
@@ -169,12 +169,12 @@ Below is an example of how to extract features ID, the utility function
 `featuresId()` quickly extract all available ID either `sirius` or `xcms`.
 
 ```{r}
-fts_id <- featuresId(srs, type = "sirius") 
+fts_id <- featuresId(srs, type = "sirius")
 ```
 
 ## Searchable database
 
-!!! Note: The database code does not work at the moment, please load tehm through the GUI until it's fixed. !!!
+!!! Note: The database code does not work at the moment, please load them through the GUI until it's fixed. !!!
 
 Whether it is for structure prediction or spectral library matching, users can
 upload their custom databases into Sirius. In this vignette, we demonstrate how
@@ -192,7 +192,7 @@ our current directory but you can precise where you want to save it using
 ## Download the MassBank EU library
 download.file("https://external.gnps2.org/gnpslibrary/MASSBANKEU.mgf",
               destfile = "MASSBANKEU.mgf")
-createDB(srs, databaseId = "massbankeuCustom", files = "MASSBANKEU.mgf")
+createDb(srs, databaseId = "massbankeuCustom", files = "MASSBANKEU.mgf")
 ```
 
 NOTE: THis takes quite a while, will change to a smaller database later. Once
@@ -200,7 +200,7 @@ the database is created and loaded, you can verify its successful import by
 running the following command:
 
 ```{r, eval=FALSE}
-listDBs(srs)
+listDbs(srs)
 ```
 
 Find more on how to handle databases in Sirius by typing `?siriusDBs` in the
@@ -231,7 +231,7 @@ job_id <- run(srs,
                                 massAccuracyMS2ppm = 10,
                                 filterByIsotopePattern = FALSE,
                                 isotopeMs2Settings = c("SCORE"),
-                                performDeNovoBelowMz = 600, 
+                                performDeNovoBelowMz = 600,
                                 minPeaksToInjectSpecLibMatch = 3),
               predictParams = predictParam(),
               structureDbSearchParams = structureDbSearchParam(
@@ -280,8 +280,8 @@ Note: Suggestions for renaming the `results()` function or feedback on this
 implementation are welcome. We aim to adapt based on user needs.
 
 ```{r get-res}
-results(srs, 
-       return.type = "data.frame", 
+results(srs,
+       return.type = "data.frame",
        result.type = "formulaId",
        topFormula = 5)
 ```
@@ -293,8 +293,8 @@ formulas of each feature. This can provide an insightful view into the
 structural predictions.
 
 ```{r}
-finalstructredb <- results(srs, 
-                           return.type = "data.frame", 
+finalstructredb <- results(srs,
+                           return.type = "data.frame",
                            result.type = "structureDb",
                            topFormula = 5,
                            topStructure = 2)
@@ -317,8 +317,8 @@ example showing all compound annotations with confidence scores above 50% for
 the top two formulas of each feature.
 
 ```{r}
-finalcomp <- results(srs, 
-                     return.type = "data.frame", 
+finalcomp <- results(srs,
+                     return.type = "data.frame",
                      result.type = "compoundClass",
                      topFormula = 2)
 head(finalcomp)
@@ -336,8 +336,8 @@ head(summaryspectra)
 For detailed results, use the following code:
 
 ```{r}
-full_spectral <- results(srs, 
-                         return.type = "data.frame", 
+full_spectral <- results(srs,
+                         return.type = "data.frame",
                          result.type = "spectralDbMatch",
                          topSpectralMatches = 2)
 head(full_spectral)
@@ -350,11 +350,11 @@ feautres. This is quite inefficient at the moment so limit it to a little number
 of feature. I will improve it.
 
 ```{r}
-resulttree <- results(srs, 
+resulttree <- results(srs,
                       features = featuresId(srs)[1:5],
-                      return.type = "list", 
+                      return.type = "list",
                       result.type = "fragTree",
-                      topFormula = 4, 
+                      topFormula = 4,
                      )
 
 head(resulttree)
@@ -377,9 +377,9 @@ fts_denovo <-summarytb$alignedFeatureId[which(
 job_id <- run(srs,
     msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
     alignedFeaturesIds = fts_denovo,
-    recompute = FALSE, 
+    recompute = FALSE,
     wait = TRUE
-) 
+)
 
 ## Get info for the job
 jobInfo(srs, job_id) |> cat()
@@ -395,12 +395,70 @@ head(summraryDeNovo)
 Below is the full results.
 
 ```{r}
-full_de_novo <- results(srs, 
-                        return.type = "data.frame", 
+full_de_novo <- results(srs,
+                        return.type = "data.frame",
                         result.type = "deNovo",
                         topFormula = 5)
 
 head(full_de_novo)
+```
+
+## Setting a Known Molecular Formula
+
+When you already know (or suspect) the molecular formula and adduct for a
+feature, you can restrict Sirius formula identification to that candidate. This
+is useful for targeted analyses where you want to compute the fragmentation tree
+for a known compound rather than performing an open search.
+
+Use the `candidateFormulas` parameter of `formulaIdParam()` together with
+`enforceAdducts` to lock in both the formula and adduct:
+
+```{r}
+# Select a feature with MS2 data (e.g. Carbaryl, [M+H]+ at m/z ~220.10)
+fi <- featuresInfo(srs)
+target_ft <- fi[fi[, "hasMsMs"] == TRUE, "alignedFeatureId"][[1]]
+
+# Run formula identification restricted to a single known formula
+job_id <- run(srs,
+              alignedFeaturesIds = target_ft,
+              enforceAdducts = "[M+H]+",
+              formulaIdParams = formulaIdParam(
+                  candidateFormulas = "C12H13NO3"
+              ),
+              recompute = TRUE,
+              wait = TRUE)
+```
+
+You can also supply multiple candidate formulas if you want to compare a small
+set of possibilities:
+
+```{r}
+job_id <- run(srs,
+              alignedFeaturesIds = target_ft,
+              enforceAdducts = "[M+H]+",
+              formulaIdParams = formulaIdParam(
+                  candidateFormulas = c("C12H13NO3", "C10H12N2O")
+              ),
+              recompute = TRUE,
+              wait = TRUE)
+```
+
+After the job completes, retrieve the formula results and fragmentation tree as
+usual:
+
+```{r}
+# Formula results - should only contain the specified candidate(s)
+results(srs,
+        features = target_ft,
+        result.type = "formulaId",
+        return.type = "data.frame")
+
+# Fragmentation tree for the known formula
+results(srs,
+        features = target_ft,
+        result.type = "fragTree",
+        topFormula = 1,
+        return.type = "list")
 ```
 
 ## CleanUp
