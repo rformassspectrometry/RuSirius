@@ -1,5 +1,16 @@
 # Version 0.2
 
+## Changes in 0.2.4
+
+- Adduct strings are now automatically normalized to the canonical SIRIUS
+  format with spaces around operators (e.g. `"[M+H]+"` → `"[M + H]+"`).
+  Both compact and spaced formats are now accepted in `import()`, `run()`,
+  and `config()`.
+- Added `candidateFormulas` parameter to `formulaIdParam()`. This allows
+  restricting SIRIUS to specific molecular formulas instead of de novo
+  generation. The formulas are passed via `JobSubmission$configMap` since
+  SIRIUS does not accept them as a standard `formulaIdParams` field.
+
 ## Changes in 0.2.3
 
 - Fixed a bug where importing a single MS2 spectrum (no MS1) resulted in

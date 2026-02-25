@@ -104,6 +104,7 @@ import <- function(sirius, spectra, ms_column_name = character(),
             stop("The number of adducts must be either 1 or the same as the ",
                  "number of spectra being imported.")
     }
+    adducts <- .normalize_adducts(adducts)
     chunks <- split(unique(idxs), ceiling(seq_along(unique(idxs))/chunkSize))
     if (deleteExistingFeatures) sirius <- deleteFeatures(sirius)
     lapply(chunks, .importSpectraChunk, sirius = sirius, data = spectra,

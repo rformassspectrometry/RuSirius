@@ -118,6 +118,14 @@
 #'        peaks required to inject spectral library match formulas into further
 #'        analysis.
 #'
+#' @param candidateFormulas `character` Optional vector of molecular formulas
+#'        to use as candidates. When provided, SIRIUS will only consider these
+#'        formulas instead of performing de novo formula generation. This is
+#'        useful when the molecular formula of a compound is already known.
+#'        Formulas should be given as neutral molecular formulas (e.g.,
+#'        `"C10H12N2O"`, `"C6H12O6"`). You can provide one or more formulas.
+#'        Default is `character(0)` (no restriction, all formulas are
+#'        considered).
 #'
 #' @return An object of class `formulaIdParam` with the specified parameters.
 #'
@@ -135,6 +143,9 @@
 #' param <- formulaIdParam(instrument = "QTOF",
 #'                         numberOfCandidates = 5,
 #'                         enforceElGordoFormula = TRUE)
+#'
+#' # Restrict formula identification to a known molecular formula
+#' param_known <- formulaIdParam(candidateFormulas = "C10H12N2O")
 NULL
 
 setClassUnion("listOrLogical", c("list", "logical"))
@@ -164,7 +175,8 @@ setClass("formulaIdParam",
              useOnlyHeuristicAboveMz = "numeric",
              injectSpecLibMatchFormulas = "logical",
              minScoreToInjectSpecLibMatch = "numeric",
-             minPeaksToInjectSpecLibMatch = "numeric"
+             minPeaksToInjectSpecLibMatch = "numeric",
+             candidateFormulas = "character"
          ),
          contains = "Param",
          prototype = prototype(
@@ -191,7 +203,8 @@ setClass("formulaIdParam",
              useOnlyHeuristicAboveMz = 650,
              injectSpecLibMatchFormulas = TRUE,
              minScoreToInjectSpecLibMatch = 0.7,
-             minPeaksToInjectSpecLibMatch = 6),
+             minPeaksToInjectSpecLibMatch = 6,
+             candidateFormulas = character(0)),
          validity = function(object) {
              if (!is.character(object@enforcedFormulaConstraints)) {
                  return("enforcedFormulaConstraints must be a single string.")
@@ -229,7 +242,8 @@ formulaIdParam <- function(
         useOnlyHeuristicAboveMz = 650,
         injectSpecLibMatchFormulas = TRUE,
         minScoreToInjectSpecLibMatch = 0.7,
-        minPeaksToInjectSpecLibMatch = 6
+        minPeaksToInjectSpecLibMatch = 6,
+        candidateFormulas = character(0)
 ) {
 
     # Match argument values
@@ -279,7 +293,8 @@ formulaIdParam <- function(
                  useHeuristic = useHeuristic,
                  injectSpecLibMatchFormulas = injectSpecLibMatchFormulas,
                  minScoreToInjectSpecLibMatch = minScoreToInjectSpecLibMatch,
-                 minPeaksToInjectSpecLibMatch = minPeaksToInjectSpecLibMatch)
+                 minPeaksToInjectSpecLibMatch = minPeaksToInjectSpecLibMatch,
+                 candidateFormulas = candidateFormulas)
     param
 }
 

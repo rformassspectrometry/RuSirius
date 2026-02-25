@@ -2,6 +2,38 @@
 #' Please add a description of the function and the methods in which it is
 #' used.
 
+### adduct normalization
+
+#' @description
+#' Normalize adduct strings to the canonical SIRIUS format with spaces
+#' around `+` and `-` inside brackets, e.g. `"[M+H]+"` becomes
+#' `"[M + H]+"`.  Strings already in the spaced format are returned
+#' unchanged.
+#'
+#' @param x `character` vector of adduct strings.
+#'
+#' @return `character` vector with normalized adduct strings.
+#'
+#' @noRd
+.normalize_adducts <- function(x) {
+    ## Only modify the part *inside* the brackets.
+    ## 1. Extract the bracket content and the trailing charge sign.
+    ## 2. Add spaces around every `+` or `-` inside the brackets.
+    ## 3. Collapse multiple spaces and trim.
+    vapply(x, function(a) {
+        m <- regmatches(a, regexec("^(\\[)(.+)(\\])(.*)$", a))[[1L]]
+        if (length(m) < 5L) return(a)          # not a recognized adduct
+        inner <- m[3L]
+        suffix <- m[5L]
+        ## Add spaces around + and - (but not the leading sign of a number)
+        inner <- gsub("(?<=[A-Za-z0-9?\\]])([+-])(?=[A-Za-z0-9?\\[])",
+                       " \\1 ", inner, perl = TRUE)
+        ## Collapse any multiple spaces
+        inner <- gsub("\\s+", " ", trimws(inner))
+        paste0("[", inner, "]", suffix)
+    }, character(1L), USE.NAMES = FALSE)
+}
+
 ### data import
 
 #' @description

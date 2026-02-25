@@ -128,6 +128,16 @@ the \code{formulaIdParam} object. In combination, you can also input the
 compare the results.
 }
 
+\section{Known molecular formula}{
+
+
+If you already know the molecular formula for a compound, you can restrict
+SIRIUS to only consider that formula using the \code{candidateFormulas} parameter
+of \code{\link{formulaIdParam}}. This skips the de novo formula generation and instead
+computes the fragmentation tree for the specified formula(s) directly. Use
+the \code{enforceAdducts} parameter of \code{run()} to also fix the adduct type.
+}
+
 \section{Structure annotation}{
 
 
