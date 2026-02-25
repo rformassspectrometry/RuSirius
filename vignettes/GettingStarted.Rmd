@@ -17,15 +17,15 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 ```{r load-packages, message = FALSE}
-library(RSirius)
 library(RuSirius)
 ```
 
 ## Introduction
 
-**RuSirius** provides an R interface to the [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) 
-mass spectrometry software for metabolite identification. This vignette covers 
-the basics of connecting to Sirius and managing projects.
+**RuSirius** provides an R interface to the
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) mass spectrometry
+software for metabolite identification. This vignette covers the basics of
+connecting to Sirius and managing projects.
 
 **Note:** This vignette code is not evaluated during package checks. To run it 
 interactively, ensure Sirius 6.3 is installed and running.
@@ -36,7 +36,8 @@ Before using RuSirius, you need:
 
 1. **Sirius 6.3** installed on your system. Download from the 
    [official releases page](https://github.com/sirius-ms/sirius/releases).
-2. A **Sirius account** (free registration at [bright-giant.com](https://bright-giant.com/))
+2. A **Sirius account** (free registration at
+   [bright-giant.com](https://bright-giant.com/))
 
 ## Connecting to Sirius
 
@@ -60,7 +61,7 @@ srs <- Sirius(
 
 ## Checking Connection Status
 
-You can verify your connection is valid:
+You can verify your connection is valid with `checkConnection(srs)`:
  
 ```{r check-connection}
 # Check if connected
@@ -72,8 +73,11 @@ srs
 
 ## Managing Projects
 
-Sirius organizes data into projects. You can create new projects or open 
-existing ones.
+Sirius organizes data and results into projects. You can create new projects or
+open existing ones during connection, or later using the `openProject()`
+function. Parameters `projectId` and `path` allow to set the name (ID) of the
+project and the path to the directory where the project file should be stored
+in.
 
 ### Creating/Opening a Project
 
@@ -121,7 +125,8 @@ srs@featureMap
 If you didn't provide credentials at connection time:
 
 ```{r login}
-srs <- logIn(srs, username = "your_email@example.com", password = "your_password")
+srs <- logIn(srs, username = "your_email@example.com",
+             password = "your_password")
 ```
 
 ## Using the GUI
@@ -150,7 +155,7 @@ shutdown(srs, closeProject = TRUE)
 
 ## Utility Functions
 
-RuSirius provides several utility functions. See `?utils` for the full list:
+*RuSirius* provides several utility functions. See `?utils` for the full list:
 
 - `checkConnection()` - Verify connection status
 - `logIn()` - Log in to Sirius
@@ -165,7 +170,8 @@ RuSirius provides several utility functions. See `?utils` for the full list:
 ## Next Steps
 
 - See the **"Importing Spectra into Sirius"** vignette for importing MS data
-- See `?run` for running Sirius computations (formula ID, structure search, etc.)
+- See `?run` for running Sirius computations (formula ID, structure search,
+  etc.)
 - See `?results` for retrieving annotation results
 
 ## Session Info
