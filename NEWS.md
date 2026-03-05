@@ -10,6 +10,7 @@
   restricting SIRIUS to specific molecular formulas instead of de novo
   generation. The formulas are passed via `JobSubmission$configMap` since
   SIRIUS does not accept them as a standard `formulaIdParams` field.
+- Add parameter `host` to `Sirius()`.
 
 ## Changes in 0.2.3
 

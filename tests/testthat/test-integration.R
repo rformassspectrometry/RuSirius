@@ -17,6 +17,18 @@ test_that("Sirius connection can be established", {
     expect_true(checkConnection(srs))
 })
 
+test_that("Sirius can connect to a running instance with manual port", {
+    skip_if_no_sirius()
+
+    tmp <- SiriusSDK$new()
+    tmp$port <- 9997
+    s_manual <- tmp$start_sirius(port = 9997, headless = TRUE)
+    s <- Sirius(port = 9997)
+    expect_true(checkConnection(s))
+    expect_equal(s@sdk$port, 9997)
+    shutdown(s, closeProject = TRUE)
+})
+
 test_that("checkConnection returns FALSE for invalid object", {
     invalid_srs <- new("Sirius")
     expect_false(checkConnection(invalid_srs))
