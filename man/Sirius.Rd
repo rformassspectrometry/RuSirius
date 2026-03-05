@@ -10,6 +10,7 @@ Sirius(
   password = character(),
   projectId = character(),
   path = character(),
+  port = integer(),
   verbose = FALSE
 )
 
@@ -25,6 +26,10 @@ Sirius(
 \item{path}{\code{character(1)} path where to find the existing project or where
 to create a new one.By default, the porject will be opened in the
 current \code{"."} directory.}
+
+\item{port}{\code{integer(1)} defining the port for Sirius. Allows to manually
+define the port to connect to. If not specified (the default) the
+port information will be read from a Sirius-config file.}
 
 \item{verbose}{\code{logical(1)}, if \code{TRUE} the function will print all messages
 to the console. Use if need debug, default is \code{FALSE}.}

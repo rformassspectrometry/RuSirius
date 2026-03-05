@@ -59,11 +59,19 @@ setClass("Sirius",
 #'  will stop with an error message.
 #'
 #' @param username `character(1)`, the username to use for the connection
+#' 
 #' @param password `character(1)`, the password to use for the connection
+#'
 #' @param projectId `character(1)`, the project id to use for the connection
+#'
 #' @param path `character(1)` path where to find the existing project or where
 #'        to create a new one.By default, the porject will be opened in the
 #'        current `"."` directory.
+#'
+#' @param port `integer(1)` defining the port for Sirius. Allows to manually
+#'        define the port to connect to. If not specified (the default) the
+#'        port information will be read from a Sirius-config file.
+#'
 #' @param verbose `logical(1)`, if `TRUE` the function will print all messages
 #'       to the console. Use if need debug, default is `FALSE`.
 #'
@@ -75,10 +83,12 @@ setClass("Sirius",
 #' @export
 Sirius <- function(username = character(), password = character(),
                    projectId = character(), path = character(),
-                   verbose = FALSE) {
+                   port = integer(), verbose = FALSE) {
     srs <- new("Sirius")
     srs@sdk <- SiriusSDK$new()
-
+    if (length(port))
+        srs@sdk$port <- port
+    
     if (verbose) srs@api <- srs@sdk$attach_or_start_sirius()
     else
         suppressMessages(srs@api <- srs@sdk$attach_or_start_sirius())
