@@ -144,3 +144,54 @@ test_that("zodiacParam gibbsSamplerParameters creates list when TRUE", {
     expect_equal(param@gibbsSamplerParameters$burnInPeriod, 1000)
     expect_equal(param@gibbsSamplerParameters$numberOfMarkovChains, 5)
 })
+
+# -- Tests for auto-enabling prerequisite parameters in config() -----------
+
+test_that("config auto-enables formulaIdParams and predictParams for msNovelistParams", {
+    cfg <- config(
+        alignedFeaturesIds = "feat1",
+        msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5)
+    )
+    ## formulaIdParams should be auto-enabled (a list with enabled = TRUE)
+    expect_type(cfg@formulaIdParams, "list")
+    expect_true(cfg@formulaIdParams$enabled)
+    ## predictParams → fingerprintPredictionParams should be auto-enabled
+    expect_type(cfg@fingerprintPredictionParams, "list")
+    expect_true(cfg@fingerprintPredictionParams$enabled)
+    ## msNovelistParams should also be enabled
+    expect_type(cfg@msNovelistParams, "list")
+    expect_true(cfg@msNovelistParams$enabled)
+})
+
+test_that("config auto-enables formulaIdParams and predictParams for structureDbSearchParams", {
+    cfg <- config(
+        alignedFeaturesIds = "feat1",
+        structureDbSearchParams = structureDbSearchParam()
+    )
+    expect_type(cfg@formulaIdParams, "list")
+    expect_true(cfg@formulaIdParams$enabled)
+    expect_type(cfg@fingerprintPredictionParams, "list")
+    expect_true(cfg@fingerprintPredictionParams$enabled)
+})
+
+test_that("config auto-enables formulaIdParams for predictParams", {
+    cfg <- config(
+        alignedFeaturesIds = "feat1",
+        predictParams = predictParam()
+    )
+    expect_type(cfg@formulaIdParams, "list")
+    expect_true(cfg@formulaIdParams$enabled)
+})
+
+test_that("config does not override explicit formulaIdParams", {
+    custom <- formulaIdParam(instrument = "ORBITRAP", numberOfCandidates = 3)
+    cfg <- config(
+        alignedFeaturesIds = "feat1",
+        formulaIdParams = custom,
+        msNovelistParams = deNovoStructureParam()
+    )
+    expect_type(cfg@formulaIdParams, "list")
+    expect_true(cfg@formulaIdParams$enabled)
+    expect_equal(cfg@formulaIdParams$instrument, "ORBITRAP")
+    expect_equal(cfg@formulaIdParams$numberOfCandidates, 3)
+})
