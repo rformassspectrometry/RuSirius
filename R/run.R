@@ -178,7 +178,6 @@ run <- function(sirius,
         }
         job <- sirius@api$jobs_api$StartJob(sirius@projectId, js)
     }
-    # Monitor job status
     if (wait) {
         while (sirius@api$jobs_api$GetJob(sirius@projectId,
                                           job$id)$progress$state != "DONE")
@@ -263,6 +262,21 @@ config <- function(compoundsIds = character(),
     if (length(enforceAdducts))
         enforceAdducts <- .normalize_adducts(enforceAdducts)
     detectableAdducts <- .normalize_adducts(detectableAdducts)
+    ## ── Auto-enable prerequisite parameters ──────────────────────────
+    ## MSNovelist (de novo) needs fingerprint prediction + formula id.
+    ## Structure DB search needs fingerprint prediction + formula id.
+    ## Fingerprint prediction needs formula id.
+    if (is(msNovelistParams, "deNovoStructureParam") ||
+        is(structureDbSearchParams, "structureDbSearchParam")) {
+        if (identical(predictParams, NA))
+            predictParams <- predictParam()
+    }
+    if (is(msNovelistParams, "deNovoStructureParam") ||
+        is(structureDbSearchParams, "structureDbSearchParam") ||
+        is(predictParams, "predictParam")) {
+        if (identical(formulaIdParams, NA))
+            formulaIdParams <- formulaIdParam()
+    }
     if (is(spectraSearchParams, "spectraMatchingParam")) {
         spectraSearchParams <- as.list(spectraSearchParams)
         spectraSearchParams$enabled <- TRUE
@@ -270,7 +284,7 @@ config <- function(compoundsIds = character(),
     if (is(formulaIdParams, "formulaIdParam")) {
         formulaIdParams <- as.list(formulaIdParams)
         formulaIdParams$enabled <- TRUE
-    } # here need to input an error in case no input
+    }
     if (is(zodiacParams, "zodiacParam")) {
         zodiacParams <- as.list(zodiacParams)
         zodiacParams$enabled <- TRUE

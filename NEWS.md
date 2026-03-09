@@ -1,5 +1,16 @@
 # Version 0.2
 
+## Changes in 0.2.5
+
+- Fixed a bug where calling `run()` with only `msNovelistParams` (or
+  `structureDbSearchParams`) would silently skip formula identification and
+  fingerprint prediction because `formulaIdParams` and `predictParams`
+  default to `NA` in `run()`. `config()` now automatically enables
+  prerequisite parameters when downstream tools require them:
+  `deNovoStructureParam` / `structureDbSearchParam` → enables `predictParam`;
+  any of those or `predictParam` → enables `formulaIdParam`.
+  Explicitly supplied parameter objects are never overridden.
+
 ## Changes in 0.2.4
 
 - Adduct strings are now automatically normalized to the canonical SIRIUS
