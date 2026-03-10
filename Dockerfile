@@ -8,8 +8,8 @@ LABEL name="rformassspectrometry/rusirius" \
 
 WORKDIR /home/rstudio
 
-## Copy package source (exclude scripts directory which is copied separately)
-COPY --chown=rstudio:rstudio --exclude=./scripts/* . /home/rstudio/
+## Copy package source
+COPY --chown=rstudio:rstudio . /home/rstudio/
 
 ## Install CI tools and the current package (vignettes not built - require Sirius login)
 RUN Rscript -e "install.packages(c('rcmdcheck', 'BiocCheck', 'sessioninfo'), repos = BiocManager::repositories())"

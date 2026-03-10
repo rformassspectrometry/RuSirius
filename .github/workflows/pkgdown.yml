@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::.
+          extra-packages: any::pkgdown, local::., sirius-ms/sirius-client-openAPI/client-api_r/generated@2c983e6
           needs: website
 
       - name: Build pkgdown site
