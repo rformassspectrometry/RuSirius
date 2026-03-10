@@ -21,5 +21,11 @@ README.Rmd
 # Test data files not needed for package
 ^vignettes/standards_dilution\.txt$
 
+# Pre-render infrastructure
+^vignettes/.*\.Rmd\.orig$
+^vignettes/pre-render\.R$
+^vignettes/figures$
+^scripts$
+
 # Empty test folder
 ^test$

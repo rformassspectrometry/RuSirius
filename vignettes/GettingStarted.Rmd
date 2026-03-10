@@ -27,26 +27,29 @@ library(RuSirius)
 software for metabolite identification. This vignette covers the basics of
 connecting to Sirius and managing projects.
 
-**Note:** This vignette code is not evaluated during package checks. To run it 
+**Note:** This vignette code is not evaluated during package checks. To run it
 interactively, ensure Sirius 6.3 is installed and running.
 
 ## Prerequisites
 
 Before using RuSirius, you need:
 
-1. **Sirius 6.3** installed on your system. Download from the 
+1. **Sirius 6.3** installed on your system. Download from the
    [official releases page](https://github.com/sirius-ms/sirius/releases).
 2. A **Sirius account** (free registration at
    [bright-giant.com](https://bright-giant.com/))
 
 ## Connecting to Sirius
 
-The `Sirius()` function creates a connection to the Sirius application. If 
-Sirius is not running, it will attempt to start it automatically.
+The `Sirius()` function creates a connection to the Sirius application. If
+Sirius is not running, it will attempt to start it automatically. The `port`
+parameter allows to configure the Sirius application to use a particular port;
+this is required when using the Docker container (where Sirius is pre-started on
+port 9999), but generally the function can be used without specifying a port.
 
 ```{r connect}
 # Basic connection - Sirius will start if not running
-srs <- Sirius()
+srs <- Sirius(port = 9999)
 srs
 ```
 
@@ -55,14 +58,15 @@ If you have credentials, you can log in during connection:
 ```{r connect-with-login}
 srs <- Sirius(
     username = "your_email@example.com",
-    password = "your_password"
+    password = "your_password",
+    port = 9999
 )
 ```
 
 ## Checking Connection Status
 
 You can verify your connection is valid with `checkConnection(srs)`:
- 
+
 ```{r check-connection}
 # Check if connected
 checkConnection(srs)
@@ -85,7 +89,7 @@ in.
 # Create a new project (or open if it exists)
 srs <- Sirius(
     projectId = "my_analysis",
-    path = getwd()  
+    path = getwd()
 )
 
 # Or open a different project later
@@ -106,9 +110,9 @@ listOpenProjects(srs)
 
 ## Working with Features
 
-After importing data (see the "Importing Spectra" vignette), you can manage 
+After importing data (see the "Importing Spectra" vignette), you can manage
 features:
- 
+
 ```{r features}
 # List feature IDs
 featuresId(srs)

@@ -11,12 +11,15 @@ vignette: >
     %\VignetteDepends{Spectra, MsExperiment, xcms, RSirius, MetaboAnnotation, RuSirius, dplyr}
 ---
 
-```{r setup, include=FALSE}
-# Set eval=FALSE globally - code is shown but not executed
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-```
+<!--
+# Pre-render with (in the vignettes folder)
+knitr::knit("Chromatographic_peak_annotation_public_dataset.Rmd.orig", output = "Chromatographic_peak_annotation_public_dataset.Rmd")
+-->
 
-```{r load-packages, message = FALSE}
+
+
+
+``` r
 library(Spectra)
 library(MsExperiment)
 library(xcms)
@@ -29,10 +32,13 @@ library(MsDataHub)
 
 ## Introduction
 
-**Note:** This vignette code is not evaluated during package checks as it
-requires a running Sirius instance. To run it interactively, set
-`knitr::opts_chunk$set(eval = TRUE)` and ensure Sirius 6.3 is installed and
-running.
+**Note**: this vignette is
+[**pre-computed**](https://ropensci.org/blog/2019/12/08/precompute-vignettes/).
+See the session info for information on packages used and the date the vignette
+was rendered. The vignette requires a running
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance and
+a Sirius account for structure database searches. To reproduce this analysis,
+you will need to log in to your own Sirius account.
 
 This vignette demonstrates a basic workflow for importing detected
 *chromatographic peaks* from an `XcmsExperiment` object into *Sirius*. It then
@@ -58,7 +64,8 @@ input as a user is essential.
 
 Here, we apply pre-optimized parameters for processing the example dataset.
 
-```{r, load-data, warning=FALSE}
+
+``` r
 dda_file <- MsDataHub::PestMix1_DDA.mzML()
 dda_data <- readMsExperiment(dda_file)
 spectra(dda_data) <- setBackend(spectra(dda_data), MsBackendMemory())
@@ -68,6 +75,9 @@ dda_data |>
     spectra() |>
     msLevel() |>
     table()
+#>
+#>    1    2
+#> 1389 2214
 
 prec_int <- estimatePrecursorIntensity(spectra(dda_data))
 cwp <- CentWaveParam(snthresh = 5, noise = 100, ppm = 10,
@@ -81,7 +91,8 @@ MS2 and MS1 spectra corresponding to the identified chromatographic peaks are
 extracted. Each feature imported in Sirius can only have one MS1 spectrum.
 However MS2 can also be loaded by itself wiht no MS1 if wanted.
 
-```{r, extract-msdata, warning=FALSE}
+
+``` r
 # Extract MS1 and MS2 spectra linked to chromatographic peaks
 ms2 <- chromPeakSpectra(dda_data,
                         expandMz = 0.01, expandRt = 3,
@@ -89,8 +100,6 @@ ms2 <- chromPeakSpectra(dda_data,
 low_int <- function(x, ...) x > max(x, na.rm = TRUE) * 0.05
 ms2 <- filterIntensity(ms2, intensity = low_int)
 ms2 <- ms2[lengths(ms2) > 1]
-# cp <- unique(spectraData(ms2)$chrom_peak_id)
-# ms2 <- ms2[spectraData(ms2)$chrom_peak_id %in% cp]
 
 ms1 <- chromPeakSpectra(dda_data,
                         expandMz = 0.01, expandRt = 3,
@@ -111,23 +120,42 @@ work.
 
 This `srs` variable is needed for any task that necessitate to communicate with
 the application. You can learn more about this object class by running `?Sirius`
-in the console. Below I do not precise the `path` parameter, by default Sirius
-will try save your project in the `sirius_projects` folder in your user
-directory. Note that this folder will *not* be created automatically. If you
-want to save it somewhere else you can specify the `path =` parameter.
+in the console. Parameter `port` used below allows to configure the *Sirius*
+application to use a particular port, but generally the function can be used
+without specifying a port.
 
-```{r, start-sirius}
+
+``` r
 # Initialize Sirius connection
-srs <- Sirius(projectId = "test_lcmsms") #add `path = "your/directory"` if needed.
+srs <- Sirius(projectId = "test_lcmsms", port = 9999)
+#> Found SIRIUS in PATH! Using this information to start the application.
+#> SIRIUS was started without specifying --port (-p), trying to find the sirius.port file.
 srs
+#> Sirius object
+#> Valid connection to Sirius:  TRUE
+#> Logged In:  TRUE
+#> Sirius version:  6.3.3
+#> Sirius update available:  FALSE
+#> Project ID:  test_lcmsms
+#> Number of features in the project:  0
+#> No job was run/is running on this project.
 ```
 
 If the user wants to open and perform computations on a different project they
 can use the utility function below:
 
-```{r}
-srs <- openProject(srs, projectId = "test_lcmsms2", path = getwd()) # `path =` also available here
+
+``` r
+srs <- openProject(srs, projectId = "test_lcmsms2", path = getwd())
 srs
+#> Sirius object
+#> Valid connection to Sirius:  TRUE
+#> Logged In:  TRUE
+#> Sirius version:  6.3.3
+#> Sirius update available:  FALSE
+#> Project ID:  test_lcmsms2
+#> Number of features in the project:  0
+#> No job was run/is running on this project.
 ```
 
 You can find all the utility functions of this package by running `?utils` in
@@ -142,7 +170,8 @@ Preprocessed `xcms` data is imported into Sirius, and a summary `data.frame` is
 returned with feature information. This information can also be retrieved using
 the utility function `featuresInfo()`.
 
-```{r data-import}
+
+``` r
 ## load back our original project
 srs <- openProject(srs, "test_lcmsms")
 
@@ -154,6 +183,48 @@ srs <- import(sirius = srs,
 
 ## See information about the features
 featuresInfo(srs) |> head()
+#>      alignedFeatureId
+#> [1,] "819205328622094770"
+#> [2,] "819205328718563763"
+#> [3,] "819205328735340980"
+#> [4,] "819205328781478325"
+#> [5,] "819205328798255542"
+#> [6,] "819205328810838455"
+#>      compoundId
+#> [1,] "819205328445933888"
+#> [2,] "819205328445933889"
+#> [3,] "819205328445933890"
+#> [4,] "819205328445933891"
+#> [5,] "819205328445933892"
+#> [6,] "819205328445933893"
+#>      externalFeatureId
+#> [1,] "CP001"
+#> [2,] "CP002"
+#> [3,] "CP003"
+#> [4,] "CP004"
+#> [5,] "CP005"
+#> [6,] "CP006"
+#>      ionMass  charge
+#> [1,] 0        1
+#> [2,] 0        1
+#> [3,] 220.0975 1
+#> [4,] 219.0932 1
+#> [5,] 153.0656 1
+#> [6,] 235.1442 1
+#>      detectedAdducts hasMs1
+#> [1,] list,1          TRUE
+#> [2,] list,1          TRUE
+#> [3,] list,1          TRUE
+#> [4,] list,1          TRUE
+#> [5,] list,1          TRUE
+#> [6,] list,1          TRUE
+#>      hasMsMs computing
+#> [1,] FALSE   FALSE
+#> [2,] FALSE   FALSE
+#> [3,] TRUE    FALSE
+#> [4,] TRUE    FALSE
+#> [5,] TRUE    FALSE
+#> [6,] TRUE    FALSE
 ```
 
 Notes:
@@ -168,7 +239,8 @@ Notes:
 Below is an example of how to extract features ID, the utility function
 `featuresId()` quickly extract all available ID either `sirius` or `xcms`.
 
-```{r}
+
+``` r
 fts_id <- featuresId(srs, type = "sirius")
 ```
 
@@ -188,7 +260,8 @@ loaded into Sirius to generate a `.sirius.db` file. Below we will download in
 our current directory but you can precise where you want to save it using
 `location =` parameter.
 
-```{r, eval=FALSE}
+
+``` r
 ## Download the MassBank EU library
 download.file("https://external.gnps2.org/gnpslibrary/MASSBANKEU.mgf",
               destfile = "MASSBANKEU.mgf")
@@ -199,7 +272,8 @@ NOTE: THis takes quite a while, will change to a smaller database later. Once
 the database is created and loaded, you can verify its successful import by
 running the following command:
 
-```{r, eval=FALSE}
+
+``` r
 listDbs(srs)
 ```
 
@@ -218,13 +292,11 @@ The `wait` parameter ensures the function waits for job completion before
 proceeding. If set to `FALSE`, the job ID is returned, and the user must check
 the status using `jobInfo()`.
 
-```{r run-job}
+
+``` r
 ## Start computation
 job_id <- run(srs,
               fallbackAdducts = c("[M + H]+", "[M + Na]+", "[M + K]+"),
-              spectraSearchParams = spectraMatchingParam(
-                  spectraSearchDBs = c("BIO", "test")
-              ),
               formulaIdParams = formulaIdParam(numberOfCandidates = 5,
                                                instrument = "QTOF",
                                 numberOfCandidatesPerIonization = 2,
@@ -235,18 +307,184 @@ job_id <- run(srs,
                                 minPeaksToInjectSpecLibMatch = 3),
               predictParams = predictParam(),
               structureDbSearchParams = structureDbSearchParam(
-                  structureSearchDbs = c("BIO", "test")
+                  structureSearchDbs = c("BIO")
               ),
               recompute = TRUE,
               wait = TRUE
 )
 
 srs
+#> Sirius object
+#> Valid connection to Sirius:  TRUE
+#> Logged In:  TRUE
+#> Sirius version:  6.3.3
+#> Sirius update available:  FALSE
+#> Project ID:  test_lcmsms
+#> Number of features in the project:  114
+#> Job ids available:  1
+#> State of latest job:  DONE
 ```
 
-```{r}
+
+``` r
 ## Get more info for the job
 jobInfo(srs, job_id) |> cat()
+#> Job ID: 1
+#>
+#> Command:
+#> --IsotopeSettings.filter=false
+#> --InjectSpectralLibraryMatchFormulas.minPeakMatchesToInject=3
+#> --FormulaSettings.enforced=HCNOP
+#> --InjectSpectralLibraryMatchFormulas.injectFormulas=true
+#> --TagStructuresByElGordo=true
+#> --AdductSettings.detectable=[M+H3N+H]+,[M-H4O2+H]+,[M-H2O-H]-,[M-H3N-H]-,[M+Cl]-,[2M+K]+,[M+K]+,[2M+Cl]-,[M+C2H4O2-H]-,[M+H]+,[2M+H]+,[M-CH3-H]-,[M-H]-,[M+Na]+,[M-H2O+H]+
+#> --RecomputeResults=true
+#> --UseHeuristic.useHeuristicAboveMz=300
+#> --IsotopeMs2Settings=SCORE
+#> --MS2MassDeviation.allowedMassDeviation=10.0ppm
+#> --FormulaSearchSettings.applyFormulaConstraintsToDatabaseCandidates=false
+#> --EnforceElGordoFormula=true
+#> --NumberOfCandidatesPerIonization=2
+#> --AdductSettings.fallback=[M+H]+,[M+Na]+,[M+K]+
+#> --FormulaSearchSettings.performBottomUpAboveMz=0.0
+#> --FormulaSettings.fallback=S
+#> --FormulaSearchSettings.applyFormulaConstraintsToBottomUp=false
+#> --UseHeuristic.useOnlyHeuristicAboveMz=650
+#> --ExpansiveSearchConfidenceMode.confidenceScoreSimilarityMode=APPROXIMATE
+#> --InjectSpectralLibraryMatchFormulas.minScoreToInject=0.7
+#> --FormulaSearchDB=
+#> --FormulaResultThreshold=true
+#> --InjectSpectralLibraryMatchFormulas.alwaysPredict=false
+#> --FormulaSettings.detectable=B,S,Cl,Se,Br
+#> --NumberOfCandidates=5
+#> formulas
+#> fingerprints
+#> classes
+#> structures
+#>
+#> Progress:
+#>    State: DONE
+#>    Current Progress: 58240
+#>    Max Progress: 58240
+#>
+#> Affected Compound IDs:
+#>    819205328450128305, 819205328450128304, 819205328450128303, 819205328450128302, 819205328450128301, 819205328450128300, 819205328450128299, 819205328450128298, 819205328450128297, 819205328450128296, 819205328450128295, 819205328450128294, 819205328450128293, 819205328450128292, 819205328450128291, 819205328450128290, 819205328450128289, 819205328450128288, 819205328445933983, 819205328445933982, 819205328445933981, 819205328445933980, 819205328445933979, 819205328445933978, 819205328445933977, 819205328445933976, 819205328445933975, 819205328445933974, 819205328445933973, 819205328445933972, 819205328445933971, 819205328445933970, 819205328445933969, 819205328445933968, 819205328445933967, 819205328445933966, 819205328445933965, 819205328445933964, 819205328445933963, 819205328445933962, 819205328445933961, 819205328445933960, 819205328445933959, 819205328445933958, 819205328445933957, 819205328445933956, 819205328445933955, 819205328445933954, 819205328445933953, 819205328445933952, 819205328445933951, 819205328445933950, 819205328445933949, 819205328445933948, 819205328445933947, 819205328445933946, 819205328445933945, 819205328445933944, 819205328445933943, 819205328445933942, 819205328445933941, 819205328445933940, 819205328445933939, 819205328445933938, 819205328445933937, 819205328445933936, 819205328445933935, 819205328445933934, 819205328445933933, 819205328445933932, 819205328445933931, 819205328445933930, 819205328445933929, 819205328445933928, 819205328445933927, 819205328445933926, 819205328445933925, 819205328445933924, 819205328445933923, 819205328445933922, 819205328445933921, 819205328445933920, 819205328445933919, 819205328445933918, 819205328445933917, 819205328445933916, 819205328445933915, 819205328445933914, 819205328445933913, 819205328445933912, 819205328445933911, 819205328445933910, 819205328445933909, 819205328445933908, 819205328445933907, 819205328445933906, 819205328445933905, 819205328445933904, 819205328445933903, 819205328445933902, 819205328445933901, 819205328445933900, 819205328445933899, 819205328445933898, 819205328445933897, 819205328445933896, 819205328445933895, 819205328445933894, 819205328445933893, 819205328445933892, 819205328445933891, 819205328445933890, 819205328445933889, 819205328445933888
+#>
+#> Affected Aligned Feature IDs:
+#> 819205329515481635
+#> 819205329511287330
+#> 819205329511287329
+#> 819205329502898720
+#> 819205329502898719
+#> 819205329502898718
+#> 819205329502898717
+#> 819205329498704412
+#> 819205329498704411
+#> 819205329498704410
+#> 819205329498704409
+#> 819205329494510104
+#> 819205329494510103
+#> 819205329490315798
+#> 819205329486121493
+#> 819205329486121492
+#> 819205329481927187
+#> 819205329481927186
+#> 819205329477732881
+#> 819205329473538576
+#> 819205329469344271
+#> 819205329465149966
+#> 819205329465149965
+#> 819205329456761356
+#> 819205329456761355
+#> 819205329452567050
+#> 819205329448372745
+#> 819205329448372744
+#> 819205329444178439
+#> 819205329444178438
+#> 819205329439984133
+#> 819205329439984132
+#> 819205329435789827
+#> 819205329435789826
+#> 819205329431595521
+#> 819205329427401216
+#> 819205329427401215
+#> 819205329423206910
+#> 819205329423206909
+#> 819205329419012604
+#> 819205329414818299
+#> 819205329414818298
+#> 819205329410623993
+#> 819205329406429688
+#> 819205329402235383
+#> 819205329393846774
+#> 819205329393846773
+#> 819205329389652468
+#> 819205329385458163
+#> 819205329381263858
+#> 819205329372875249
+#> 819205329372875248
+#> 819205329368680943
+#> 819205329326737902
+#> 819205329322543597
+#> 819205329318349292
+#> 819205329301572075
+#> 819205329297377770
+#> 819205329293183465
+#> 819205329259629032
+#> 819205329255434727
+#> 819205329251240422
+#> 819205329247046117
+#> 819205329242851812
+#> 819205329242851811
+#> 819205329238657506
+#> 819205329234463201
+#> 819205329230268896
+#> 819205329230268895
+#> 819205329226074590
+#> 819205329213491677
+#> 819205329209297372
+#> 819205329200908763
+#> 819205329179937242
+#> 819205329179937241
+#> 819205329175742936
+#> 819205329175742935
+#> 819205329171548630
+#> 819205329167354325
+#> 819205329163160020
+#> 819205329117022675
+#> 819205329112828370
+#> 819205329108634065
+#> 819205329108634064
+#> 819205329096051151
+#> 819205329096051150
+#> 819205329096051149
+#> 819205329091856844
+#> 819205329087662539
+#> 819205329079273930
+#> 819205329075079625
+#> 819205329066691016
+#> 819205329058302407
+#> 819205329054108102
+#> 819205329041525189
+#> 819205329028942276
+#> 819205329012165059
+#> 819205328995387842
+#> 819205328982804929
+#> 819205328970222016
+#> 819205328932473279
+#> 819205328919890366
+#> 819205328903113149
+#> 819205328886335932
+#> 819205328869558715
+#> 819205328861170106
+#> 819205328844392889
+#> 819205328831809976
+#> 819205328810838455
+#> 819205328798255542
+#> 819205328781478325
+#> 819205328735340980
+#> 819205328718563763
+#> 819205328622094770
 ```
 
 ## Retrieve Results
@@ -261,9 +499,227 @@ results in greater depth.
 An important aspect of the summary table is the confidence-related columns,
 which provide insight into the reliability of the predictions.
 
-```{r}
+
+``` r
 summarytb <- summary(sirius = srs, result.type = "structure")
 head(summarytb)
+#>     alignedFeatureId
+#> 1 819205328622094770
+#> 2 819205328718563763
+#> 3 819205328735340980
+#> 4 819205328781478325
+#> 5 819205328798255542
+#> 6 819205328810838455
+#>           compoundId
+#> 1 819205328445933888
+#> 2 819205328445933889
+#> 3 819205328445933890
+#> 4 819205328445933891
+#> 5 819205328445933892
+#> 6 819205328445933893
+#>   externalFeatureId  ionMass
+#> 1             CP001   0.0000
+#> 2             CP002   0.0000
+#> 3             CP003 220.0975
+#> 4             CP004 219.0932
+#> 5             CP005 153.0656
+#> 6             CP006 235.1442
+#>   charge hasMs1 hasMsMs
+#> 1      1   TRUE   FALSE
+#> 2      1   TRUE   FALSE
+#> 3      1   TRUE    TRUE
+#> 4      1   TRUE    TRUE
+#> 5      1   TRUE    TRUE
+#> 6      1   TRUE    TRUE
+#>            formulaId
+#> 1 819205523682397402
+#> 2 819205528308714745
+#> 3 819205520754773184
+#> 4 819205514274573431
+#> 5 819205517835537577
+#> 6 819205510843632741
+#>   molecularFormula
+#> 1        C6H12N6O3
+#> 2         C10H16O5
+#> 3        C10H10FN5
+#> 4        C12H14N2S
+#> 5         C4H6FNO3
+#> 6      C10H19FN2O3
+#>           adduct rank
+#> 1       [M + H]+    1
+#> 2       [M + H]+    1
+#> 3       [M + H]+    2
+#> 4       [M + H]+    1
+#> 5 [M + H3N + H]+    2
+#> 6       [M + H]+    1
+#>   siriusScoreNormalized
+#> 1            0.08222814
+#> 2            0.07231049
+#> 3            0.09484521
+#> 4            0.94680986
+#> 5            0.49999999
+#> 6            0.99585317
+#>   siriusScore isotopeScore
+#> 1    0.000000     0.000000
+#> 2    0.000000     0.000000
+#> 3    6.372408     0.000000
+#> 4   48.071033     0.000000
+#> 5   27.906019     1.966055
+#> 6   27.272863     4.595855
+#>   treeScore computing
+#> 1  0.000000     FALSE
+#> 2  0.000000     FALSE
+#> 3  6.372408     FALSE
+#> 4 48.071033     FALSE
+#> 5 25.939964     FALSE
+#> 6 22.677008     FALSE
+#>         inchiKey
+#> 1           <NA>
+#> 2           <NA>
+#> 3 LYCFRYBMIAOVRF
+#> 4 YUAUPYJCVKNAEC
+#> 5 VNYARQMKDIBKDQ
+#> 6 FYBNLUNYTZMQQZ
+#>                             smiles
+#> 1                             <NA>
+#> 2                             <NA>
+#> 3 CC1=CC(=C(C=C1)NC2=NC=NC(=N2)N)F
+#> 4   CC1=CC(=C(C=C1)N=C2N(C=CS2)C)C
+#> 5          C(C[N+](=O)[O-])C(=O)CF
+#> 6        C1CN(CCC1N(CCCCO)F)C(=O)O
+#>                                                 structureName
+#> 1                                                        <NA>
+#> 2                                                        <NA>
+#> 3    2-N-(2-fluoro-4-methylphenyl)-1,3,5-triazine-2,4-diamine
+#> 4                                                        <NA>
+#> 5                                1-Fluoro-4-nitrobutane-2-one
+#> 6 4-[Fluoro(4-hydroxybutyl)amino]piperidine-1-carboxylic acid
+#>   xlogP rank.1   csiScore
+#> 1    NA     NA         NA
+#> 2    NA     NA         NA
+#> 3   2.0      1  -95.92160
+#> 4   3.0      1  -76.43829
+#> 5   0.1      1 -172.54632
+#> 6  -1.8      1 -278.49182
+#>   tanimotoSimilarity
+#> 1                 NA
+#> 2                 NA
+#> 3          0.4936709
+#> 4          0.6708861
+#> 5          0.1166667
+#> 6          0.2803030
+#>   mcesDistToTopHit type
+#> 1               NA <NA>
+#> 2               NA <NA>
+#> 3                0  NPC
+#> 4                0  NPC
+#> 5                0  NPC
+#> 6                0  NPC
+#>     level levelIndex
+#> 1    <NA>         NA
+#> 2    <NA>         NA
+#> 3 PATHWAY          0
+#> 4 PATHWAY          0
+#> 5 PATHWAY          0
+#> 6 PATHWAY          0
+#>          name
+#> 1        <NA>
+#> 2        <NA>
+#> 3   Alkaloids
+#> 4   Alkaloids
+#> 5 Fatty acids
+#> 6   Alkaloids
+#>            description id
+#> 1                 <NA> NA
+#> 2                 <NA> NA
+#> 3   Pathway: Alkaloids  0
+#> 4   Pathway: Alkaloids  0
+#> 5 Pathway: Fatty acids  3
+#> 6   Pathway: Alkaloids  0
+#>   probability index type.1
+#> 1          NA    NA   <NA>
+#> 2          NA    NA   <NA>
+#> 3   0.8597484     0    NPC
+#> 4   0.6377908     0    NPC
+#> 5   0.3361939     3    NPC
+#> 6   0.2922554     0    NPC
+#>      level.1 levelIndex.1
+#> 1       <NA>           NA
+#> 2       <NA>           NA
+#> 3 SUPERCLASS            1
+#> 4 SUPERCLASS            1
+#> 5 SUPERCLASS            1
+#> 6 SUPERCLASS            1
+#>                             name.1
+#> 1                             <NA>
+#> 2                             <NA>
+#> 3 Pseudoalkaloids (transamidation)
+#> 4             Tryptophan alkaloids
+#> 5       Fatty Acids and Conjugates
+#> 6 Pseudoalkaloids (transamidation)
+#>                                  description.1
+#> 1                                         <NA>
+#> 2                                         <NA>
+#> 3 Superclass: Pseudoalkaloids (transamidation)
+#> 4             Superclass: Tryptophan alkaloids
+#> 5       Superclass: Fatty Acids and Conjugates
+#> 6 Superclass: Pseudoalkaloids (transamidation)
+#>   id.1 probability.1 index.1
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3   59    0.14546104      59
+#> 4   72    0.08722231      72
+#> 5   24    0.12120167      24
+#> 6   59    0.32983977      59
+#>   type.2 level.2 levelIndex.2
+#> 1   <NA>    <NA>           NA
+#> 2   <NA>    <NA>           NA
+#> 3    NPC   CLASS            2
+#> 4    NPC   CLASS            2
+#> 5    NPC   CLASS            2
+#> 6    NPC   CLASS            2
+#>                    name.2
+#> 1                    <NA>
+#> 2                    <NA>
+#> 3        Purine alkaloids
+#> 4      Pyridine alkaloids
+#> 5 Halogenated fatty acids
+#> 6        Purine alkaloids
+#>                    description.2
+#> 1                           <NA>
+#> 2                           <NA>
+#> 3        Class: Purine alkaloids
+#> 4      Class: Pyridine alkaloids
+#> 5 Class: Halogenated fatty acids
+#> 6        Class: Purine alkaloids
+#>   id.2 probability.2 index.2
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3  597    0.06170827     597
+#> 4  602    0.05239901     602
+#> 5  376    0.57457018     376
+#> 6  597    0.13299610     597
+#>   confidenceExactMatch
+#> 1                 <NA>
+#> 2                 <NA>
+#> 3   0.0771017862497153
+#> 4    0.456098397132935
+#> 5   0.0229246504272595
+#> 6  0.00421334090615453
+#>   confidenceApproxMatch
+#> 1                  <NA>
+#> 2                  <NA>
+#> 3    0.0771017862497153
+#> 4     0.456098397132935
+#> 5    0.0229246504272595
+#> 6   0.00421334090615453
+#>   expansiveSearchState
+#> 1                 <NA>
+#> 2                 <NA>
+#> 3          APPROXIMATE
+#> 4                  OFF
+#> 5                  OFF
+#> 6          APPROXIMATE
 ```
 
 ## Formula identification results:
@@ -279,11 +735,720 @@ returned either as a list or a data.frame, based on the return.type parameter.
 Note: Suggestions for renaming the `results()` function or feedback on this
 implementation are welcome. We aim to adapt based on user needs.
 
-```{r get-res}
+
+``` r
 results(srs,
        return.type = "data.frame",
        result.type = "formulaId",
        topFormula = 5)
+#>              formulaId
+#> 1   819205523682397402
+#> 2   819205523682397403
+#> 3   819205523682397404
+#> 4   819205523682397405
+#> 5   819205523682397406
+#> 6   819205528308714745
+#> 7   819205528308714746
+#> 8   819205528308714747
+#> 9   819205528308714748
+#> 10  819205528308714749
+#> 11  819205520754773183
+#> 12  819205520754773184
+#> 13  819205520754773185
+#> 14  819205520754773186
+#> 15  819205520754773187
+#> 16  819205514274573431
+#> 17  819205514274573432
+#> 18  819205514274573433
+#> 19  819205514274573434
+#> 20  819205514274573435
+#> 21  819205517835537576
+#> 22  819205517835537577
+#> 23  819205517835537578
+#> 24  819205517835537579
+#> 25  819205517835537580
+#> 26  819205510843632741
+#> 27  819205510843632742
+#> 28  819205510843632743
+#> 29  819205510843632744
+#> 30  819205510843632745
+#> 31  819205526358363380
+#> 32  819205526358363381
+#> 33  819205526358363382
+#> 34  819205526358363383
+#> 35  819205526358363384
+#> 36  819205507509161048
+#> 37  819205507509161049
+#> 38  819205507509161050
+#> 39  819205516493360272
+#> 40  819205516493360273
+#> 41  819205516493360274
+#> 42  819205516493360275
+#> 43  819205516493360276
+#> 44  819205504191466564
+#> 45  819205504191466565
+#> 46  819205504191466566
+#> 47  819205504191466567
+#> 48  819205504191466568
+#> 49  819205543399820581
+#> 50  819205543399820582
+#> 51  819205543399820583
+#> 52  819205543399820584
+#> 53  819205543399820585
+#> 54  819205525842463972
+#> 55  819205525842463973
+#> 56  819205525842463974
+#> 57  819205525842463975
+#> 58  819205525842463976
+#> 59  819205524462537952
+#> 60  819205524462537953
+#> 61  819205524462537954
+#> 62  819205524462537955
+#> 63  819205512961756275
+#> 64  819205512961756276
+#> 65  819205512961756277
+#> 66  819205522893868246
+#> 67  819205522893868247
+#> 68  819205522893868248
+#> 69  819205522893868249
+#> 70  819205506200538186
+#> 71  819205506200538187
+#> 72  819205506200538188
+#> 73  819205506200538189
+#> 74  819205506200538190
+#> 75  819205490031496201
+#> 76  819205490031496202
+#> 77  819205490031496203
+#> 78  819205517218974873
+#> 79  819205517218974874
+#> 80  819205517218974875
+#> 81  819205517218974876
+#> 82  819205517218974877
+#> 83  819205518573735089
+#> 84  819205518573735090
+#> 85  819205518573735091
+#> 86  819205518573735092
+#> 87  819205518573735093
+#> 88  819205464869866386
+#> 89  819205464874060691
+#> 90  819205464874060692
+#> 91  819205464874060693
+#> 92  819205464874060694
+#> 93  819205517743262880
+#> 94  819205517743262881
+#> 95  819205517743262882
+#> 96  819205517743262883
+#> 97  819205517743262884
+#> 98  819205480292322241
+#> 99  819205480292322242
+#> 100 819205480292322243
+#>     molecularFormula
+#> 1          C6H12N6O3
+#> 2          C8H15F3O3
+#> 3            C8H18O5
+#> 4           C9H14N4O
+#> 5          C6H18N4O2
+#> 6           C10H16O5
+#> 7          C6H12N6O3
+#> 8            C8H18O5
+#> 9           C9H14N4O
+#> 10          C8H20NO3
+#> 11         C9H14FNO4
+#> 12         C10H10FN5
+#> 13         C12H13NO3
+#> 14       C9H15F2NOSi
+#> 15        C5H13F2N5O
+#> 16         C12H14N2S
+#> 17       C6H13F3N2O3
+#> 18        C11H16ClFO
+#> 19        C10H16FO2P
+#> 20           C12H17F
+#> 21         C4H9FN2O3
+#> 22          C4H6FNO3
+#> 23            C7H14O
+#> 24          C7H8N2O2
+#> 25           C7H5NO2
+#> 26       C10H19FN2O3
+#> 27           C13H24O
+#> 28        C13H18N2O2
+#> 29         C11H23O3P
+#> 30            C16H20
+#> 31         C18H33NO2
+#> 32          C14H29N7
+#> 33         C16H35NO2
+#> 34           C17H38P
+#> 35          C16H37N2
+#> 36         C18H35NO2
+#> 37          C6H29N14
+#> 38           C19H38P
+#> 39       C13H12BClO3
+#> 40         C8H11N3O7
+#> 41       C9H15N3O2S2
+#> 42       C8H12ClN5O3
+#> 43          C9H7N7O3
+#> 44       C9H18NO3PS2
+#> 45           C9H15O9
+#> 46         C11H16INO
+#> 47        C6H14N5O5P
+#> 48         C8H14NO8P
+#> 49      C18H26N6O9S3
+#> 50    C16H31N4O10PS3
+#> 51     C21H31N2O9PS2
+#> 52      C20H24N6O9S3
+#> 53      C23H26N4O8S2
+#> 54       C5H10NO3PS2
+#> 55        C7H5N3O2S2
+#> 56       C4H6FN3O3S2
+#> 57        C4H6F3NO3S
+#> 58         C3H5N3O7S
+#> 59         C18H35NO2
+#> 60          C14H31N7
+#> 61         C16H33N4O
+#> 62         C14H35N4O
+#> 63         C18H35NO2
+#> 64          C6H29N14
+#> 65           C19H38P
+#> 66         C18H35NO2
+#> 67          C14H31N7
+#> 68         C16H33N4O
+#> 69         C14H35N4O
+#> 70     C12H11Cl2N3O2
+#> 71     C10H13Cl2N3O2
+#> 72     C10H16Cl2NO3P
+#> 73      C8H18Cl2NO3P
+#> 74        C15H13Cl2N
+#> 75         C18H35NO2
+#> 76          C6H29N14
+#> 77           C19H38P
+#> 78       C13H18ClNO2
+#> 79       C13H14ClN4O
+#> 80       C11H16ClN4O
+#> 81      C10H16ClN3O4
+#> 82       C11H14FN3O3
+#> 83        C10H15N3O5
+#> 84       C12H17FNO2P
+#> 85       C9H18F2NO3P
+#> 86        C11H15N4O2
+#> 87       C8H14F3N3O3
+#> 88       C8H14F2NO2P
+#> 89       C10H16NOPSi
+#> 90        C11H13FNOP
+#> 91     C6H13F2N3O2Si
+#> 92       C7H10F3N3O2
+#> 93       C13H18ClNO2
+#> 94       C8H15F2N3O4
+#> 95      C10H19ClFNO3
+#> 96       C11H14FN3O3
+#> 97          C14H19NO
+#> 98        C12H14ClNO
+#> 99       C9H15ClFNO2
+#> 100       C11H14NO2P
+#>             adduct rank
+#> 1         [M + H]+    1
+#> 2         [M + H]+    2
+#> 3        [M + Na]+    3
+#> 4        [M + Na]+    4
+#> 5         [M + K]+    5
+#> 6         [M + H]+    1
+#> 7         [M + H]+    2
+#> 8        [M + Na]+    3
+#> 9        [M + Na]+    4
+#> 10        [M + K]+    5
+#> 11        [M + H]+    1
+#> 12        [M + H]+    2
+#> 13        [M + H]+    3
+#> 14        [M + H]+    4
+#> 15       [M + Na]+    5
+#> 16        [M + H]+    1
+#> 17        [M + H]+    2
+#> 18        [M + H]+    3
+#> 19        [M + H]+    4
+#> 20        [M + K]+    5
+#> 21        [M + H]+    1
+#> 22  [M + H3N + H]+    2
+#> 23        [M + K]+    3
+#> 24        [M + H]+    4
+#> 25  [M + H3N + H]+    5
+#> 26        [M + H]+    1
+#> 27        [M + K]+    2
+#> 28        [M + H]+    3
+#> 29        [M + H]+    4
+#> 30       [M + Na]+    5
+#> 31        [M + H]+    1
+#> 32        [M + H]+    2
+#> 33       [M + Na]+    3
+#> 34       [M + Na]+    4
+#> 35        [M + K]+    5
+#> 36        [M + H]+    1
+#> 37        [M + H]+    2
+#> 38        [M + H]+    3
+#> 39       [M + Na]+    1
+#> 40       [M + Na]+    2
+#> 41       [M + Na]+    3
+#> 42       [M + Na]+    4
+#> 43       [M + Na]+    5
+#> 44       [M + Na]+    1
+#> 45        [M + K]+    2
+#> 46        [M + H]+    3
+#> 47        [M + K]+    4
+#> 48       [M + Na]+    5
+#> 49       [M + Na]+    1
+#> 50       [M + Na]+    2
+#> 51        [M + K]+    3
+#> 52        [M + H]+    4
+#> 53        [M + K]+    5
+#> 54        [M + H]+    1
+#> 55        [M + H]+    2
+#> 56        [M + H]+    3
+#> 57       [M + Na]+    4
+#> 58        [M + H]+    5
+#> 59        [M + H]+    1
+#> 60        [M + H]+    2
+#> 61        [M + H]+    3
+#> 62       [M + Na]+    4
+#> 63        [M + H]+    1
+#> 64        [M + H]+    2
+#> 65        [M + H]+    3
+#> 66        [M + H]+    1
+#> 67        [M + H]+    2
+#> 68        [M + H]+    3
+#> 69       [M + Na]+    4
+#> 70        [M + H]+    1
+#> 71       [M + Na]+    2
+#> 72        [M + H]+    3
+#> 73       [M + Na]+    4
+#> 74       [M + Na]+    5
+#> 75        [M + H]+    1
+#> 76        [M + H]+    2
+#> 77        [M + H]+    3
+#> 78       [M + Na]+    1
+#> 79        [M + H]+    2
+#> 80       [M + Na]+    3
+#> 81        [M + H]+    4
+#> 82       [M + Na]+    5
+#> 83        [M + H]+    1
+#> 84        [M + H]+    2
+#> 85        [M + H]+    3
+#> 86       [M + Na]+    4
+#> 87        [M + H]+    5
+#> 88        [M + H]+    1
+#> 89        [M + H]+    2
+#> 90        [M + H]+    3
+#> 91        [M + H]+    4
+#> 92        [M + H]+    5
+#> 93        [M + H]+    1
+#> 94        [M + H]+    2
+#> 95        [M + H]+    3
+#> 96        [M + H]+    4
+#> 97        [M + K]+    5
+#> 98        [M + H]+    1
+#> 99        [M + H]+    2
+#> 100       [M + H]+    3
+#>     siriusScoreNormalized
+#> 1            8.222814e-02
+#> 2            8.222814e-02
+#> 3            8.222814e-02
+#> 4            8.222814e-02
+#> 5            8.222814e-02
+#> 6            7.231049e-02
+#> 7            7.231049e-02
+#> 8            7.231049e-02
+#> 9            7.231049e-02
+#> 10           7.231049e-02
+#> 11           8.122791e-01
+#> 12           9.484521e-02
+#> 13           8.302361e-02
+#> 14           6.517148e-03
+#> 15           2.036129e-03
+#> 16           9.468099e-01
+#> 17           5.319014e-02
+#> 18           7.593616e-12
+#> 19           7.244206e-12
+#> 20           1.602132e-12
+#> 21           5.000000e-01
+#> 22           5.000000e-01
+#> 23           2.581802e-08
+#> 24           1.751684e-09
+#> 25           1.751684e-09
+#> 26           9.958532e-01
+#> 27           4.078914e-03
+#> 28           2.430394e-05
+#> 29           2.198486e-05
+#> 30           1.128546e-05
+#> 31           1.977496e-01
+#> 32           1.977496e-01
+#> 33           1.977496e-01
+#> 34           1.977496e-01
+#> 35           1.977496e-01
+#> 36           9.928559e-01
+#> 37           7.119892e-03
+#> 38           2.425273e-05
+#> 39           8.921402e-01
+#> 40           3.701841e-02
+#> 41           1.026673e-02
+#> 42           9.089105e-03
+#> 43           7.991591e-03
+#> 44           5.280432e-01
+#> 45           2.297166e-01
+#> 46           1.755671e-01
+#> 47           2.677341e-02
+#> 48           7.315068e-03
+#> 49           4.283474e-01
+#> 50           2.701445e-01
+#> 51           7.726103e-02
+#> 52           4.345187e-02
+#> 53           2.681164e-02
+#> 54           9.672835e-01
+#> 55           1.312974e-02
+#> 56           1.114546e-02
+#> 57           2.348729e-03
+#> 58           2.029259e-03
+#> 59           2.500000e-01
+#> 60           2.500000e-01
+#> 61           2.500000e-01
+#> 62           2.500000e-01
+#> 63           3.333333e-01
+#> 64           3.333333e-01
+#> 65           3.333333e-01
+#> 66           2.500000e-01
+#> 67           2.500000e-01
+#> 68           2.500000e-01
+#> 69           2.500000e-01
+#> 70           9.769112e-01
+#> 71           1.690992e-02
+#> 72           1.280042e-03
+#> 73           1.206541e-03
+#> 74           1.145444e-03
+#> 75           3.333333e-01
+#> 76           3.333333e-01
+#> 77           3.333333e-01
+#> 78           9.739294e-01
+#> 79           2.381432e-02
+#> 80           2.158903e-03
+#> 81           5.714491e-05
+#> 82           3.974950e-05
+#> 83           9.997910e-01
+#> 84           6.673339e-05
+#> 85           5.216680e-05
+#> 86           3.457424e-05
+#> 87           3.394164e-05
+#> 88           9.763005e-01
+#> 89           1.879689e-02
+#> 90           4.879830e-03
+#> 91           1.622049e-05
+#> 92           5.957077e-06
+#> 93           9.854011e-01
+#> 94           6.214732e-03
+#> 95           4.483593e-03
+#> 96           2.590275e-03
+#> 97           7.188800e-04
+#> 98           9.423414e-01
+#> 99           5.363181e-02
+#> 100          4.021240e-03
+#>     siriusScore isotopeScore
+#> 1      0.000000     0.000000
+#> 2      0.000000     0.000000
+#> 3      0.000000     0.000000
+#> 4      0.000000     0.000000
+#> 5      0.000000     0.000000
+#> 6      0.000000     0.000000
+#> 7      0.000000     0.000000
+#> 8      0.000000     0.000000
+#> 9      0.000000     0.000000
+#> 10     0.000000     0.000000
+#> 11     8.520006     0.000000
+#> 12     6.372408     0.000000
+#> 13     6.239287     0.000000
+#> 14     3.694599     0.000000
+#> 15     2.531212     0.000000
+#> 16    48.071033     0.000000
+#> 17    45.191808     0.000000
+#> 18    22.521977     0.000000
+#> 19    22.474871     0.000000
+#> 20    20.966005     0.000000
+#> 21    27.906019     1.966055
+#> 22    27.906019     1.966055
+#> 23    11.126973     0.000000
+#> 24     8.436478     2.462666
+#> 25     8.436478     2.462666
+#> 26    27.272863     4.595855
+#> 27    21.775094     0.000000
+#> 28    16.652147     4.558103
+#> 29    16.551862     3.699803
+#> 30    15.885023     1.145766
+#> 31     0.000000     0.000000
+#> 32     0.000000     0.000000
+#> 33     0.000000     0.000000
+#> 34     0.000000     0.000000
+#> 35     0.000000     0.000000
+#> 36     1.435218     0.000000
+#> 37    -3.502475     1.488060
+#> 38    -9.184594     0.000000
+#> 39    13.475137     0.000000
+#> 40    10.292929     0.000000
+#> 41     9.010422     0.000000
+#> 42     8.888590     0.000000
+#> 43     8.759904     0.000000
+#> 44    20.649269     5.298210
+#> 45    19.816937     3.491782
+#> 46    19.548112     2.529954
+#> 47    17.667500     3.437534
+#> 48    16.370027     2.177361
+#> 49    19.791416     9.719789
+#> 50    19.330439    10.462670
+#> 51    18.078672     9.653318
+#> 52    17.503136     9.954285
+#> 53    17.020318     7.391106
+#> 54    16.613407     5.181199
+#> 55    12.313795     2.299407
+#> 56    12.149948     5.106717
+#> 57    10.592790     4.684342
+#> 58    10.446586     4.320071
+#> 59     0.000000     0.000000
+#> 60     0.000000     0.000000
+#> 61     0.000000     0.000000
+#> 62     0.000000     0.000000
+#> 63     0.000000     0.000000
+#> 64     0.000000     0.000000
+#> 65     0.000000     0.000000
+#> 66     0.000000     0.000000
+#> 67     0.000000     0.000000
+#> 68     0.000000     0.000000
+#> 69     0.000000     0.000000
+#> 70    20.181033    11.401897
+#> 71    16.124537     9.373567
+#> 72    13.543530    11.162029
+#> 73    13.484395    10.809551
+#> 74    13.432430     7.615923
+#> 75     0.000000     0.000000
+#> 76     0.000000     0.000000
+#> 77     0.000000     0.000000
+#> 78    51.148372     5.034061
+#> 79    47.437320     4.538336
+#> 80    45.036633     6.473512
+#> 81    41.404868     5.139461
+#> 82    41.041875     1.105920
+#> 83    29.277956     3.239972
+#> 84    19.663360     1.818560
+#> 85    19.417101     2.124648
+#> 86    19.005763     3.140810
+#> 87    18.987297     1.636000
+#> 88    54.550162     2.185135
+#> 89    50.600083     1.012402
+#> 90    49.251502     1.885489
+#> 91    43.544911     2.553124
+#> 92    42.543216     1.723650
+#> 93    35.131892     6.813786
+#> 94    30.065766     3.193495
+#> 95    29.739268     8.498871
+#> 96    29.190607     1.906369
+#> 97    27.908783     0.000000
+#> 98    27.422646     8.443987
+#> 99    24.556421     8.247907
+#> 100   21.965868     2.934373
+#>     treeScore xcms_fts
+#> 1    0.000000    CP001
+#> 2    0.000000    CP001
+#> 3    0.000000    CP001
+#> 4    0.000000    CP001
+#> 5    0.000000    CP001
+#> 6    0.000000    CP002
+#> 7    0.000000    CP002
+#> 8    0.000000    CP002
+#> 9    0.000000    CP002
+#> 10   0.000000    CP002
+#> 11   8.520006    CP003
+#> 12   6.372408    CP003
+#> 13   6.239287    CP003
+#> 14   3.694599    CP003
+#> 15   2.531212    CP003
+#> 16  48.071033    CP004
+#> 17  45.191808    CP004
+#> 18  22.521977    CP004
+#> 19  22.474871    CP004
+#> 20  20.966005    CP004
+#> 21  25.939964    CP005
+#> 22  25.939964    CP005
+#> 23  11.126973    CP005
+#> 24   5.973812    CP005
+#> 25   5.973812    CP005
+#> 26  22.677008    CP006
+#> 27  21.775094    CP006
+#> 28  12.094044    CP006
+#> 29  12.852059    CP006
+#> 30  14.739257    CP006
+#> 31   0.000000    CP007
+#> 32   0.000000    CP007
+#> 33   0.000000    CP007
+#> 34   0.000000    CP007
+#> 35   0.000000    CP007
+#> 36   1.435218    CP008
+#> 37  -4.990535    CP008
+#> 38  -9.184594    CP008
+#> 39  13.475137    CP011
+#> 40  10.292929    CP011
+#> 41   9.010422    CP011
+#> 42   8.888590    CP011
+#> 43   8.759904    CP011
+#> 44  15.351059    CP012
+#> 45  16.325155    CP012
+#> 46  17.018157    CP012
+#> 47  14.229966    CP012
+#> 48  14.192666    CP012
+#> 49  10.071627    CP013
+#> 50   8.867769    CP013
+#> 51   8.425353    CP013
+#> 52   7.548851    CP013
+#> 53   9.629211    CP013
+#> 54  11.432208    CP014
+#> 55  10.014388    CP014
+#> 56   7.043231    CP014
+#> 57   5.908448    CP014
+#> 58   6.126515    CP014
+#> 59   0.000000    CP015
+#> 60   0.000000    CP015
+#> 61   0.000000    CP015
+#> 62   0.000000    CP015
+#> 63   0.000000    CP016
+#> 64   0.000000    CP016
+#> 65   0.000000    CP016
+#> 66   0.000000    CP017
+#> 67   0.000000    CP017
+#> 68   0.000000    CP017
+#> 69   0.000000    CP017
+#> 70   8.779136    CP018
+#> 71   6.750971    CP018
+#> 72   2.381501    CP018
+#> 73   2.674844    CP018
+#> 74   5.816507    CP018
+#> 75   0.000000    CP019
+#> 76   0.000000    CP019
+#> 77   0.000000    CP019
+#> 78  46.114311    CP022
+#> 79  42.898984    CP022
+#> 80  38.563121    CP022
+#> 81  36.265407    CP022
+#> 82  39.935955    CP022
+#> 83  26.037984    CP023
+#> 84  17.844800    CP023
+#> 85  17.292453    CP023
+#> 86  15.864953    CP023
+#> 87  17.351297    CP023
+#> 88  52.365027    CP024
+#> 89  49.587680    CP024
+#> 90  47.366012    CP024
+#> 91  40.991787    CP024
+#> 92  40.819566    CP024
+#> 93  28.318106    CP025
+#> 94  26.872271    CP025
+#> 95  21.240397    CP025
+#> 96  27.284238    CP025
+#> 97  27.908783    CP025
+#> 98  18.978658    CP026
+#> 99  16.308514    CP026
+#> 100 19.031495    CP026
+#>             sirius_fts
+#> 1   819205328622094770
+#> 2   819205328622094770
+#> 3   819205328622094770
+#> 4   819205328622094770
+#> 5   819205328622094770
+#> 6   819205328718563763
+#> 7   819205328718563763
+#> 8   819205328718563763
+#> 9   819205328718563763
+#> 10  819205328718563763
+#> 11  819205328735340980
+#> 12  819205328735340980
+#> 13  819205328735340980
+#> 14  819205328735340980
+#> 15  819205328735340980
+#> 16  819205328781478325
+#> 17  819205328781478325
+#> 18  819205328781478325
+#> 19  819205328781478325
+#> 20  819205328781478325
+#> 21  819205328798255542
+#> 22  819205328798255542
+#> 23  819205328798255542
+#> 24  819205328798255542
+#> 25  819205328798255542
+#> 26  819205328810838455
+#> 27  819205328810838455
+#> 28  819205328810838455
+#> 29  819205328810838455
+#> 30  819205328810838455
+#> 31  819205328831809976
+#> 32  819205328831809976
+#> 33  819205328831809976
+#> 34  819205328831809976
+#> 35  819205328831809976
+#> 36  819205328844392889
+#> 37  819205328844392889
+#> 38  819205328844392889
+#> 39  819205328886335932
+#> 40  819205328886335932
+#> 41  819205328886335932
+#> 42  819205328886335932
+#> 43  819205328886335932
+#> 44  819205328903113149
+#> 45  819205328903113149
+#> 46  819205328903113149
+#> 47  819205328903113149
+#> 48  819205328903113149
+#> 49  819205328919890366
+#> 50  819205328919890366
+#> 51  819205328919890366
+#> 52  819205328919890366
+#> 53  819205328919890366
+#> 54  819205328932473279
+#> 55  819205328932473279
+#> 56  819205328932473279
+#> 57  819205328932473279
+#> 58  819205328932473279
+#> 59  819205328970222016
+#> 60  819205328970222016
+#> 61  819205328970222016
+#> 62  819205328970222016
+#> 63  819205328982804929
+#> 64  819205328982804929
+#> 65  819205328982804929
+#> 66  819205328995387842
+#> 67  819205328995387842
+#> 68  819205328995387842
+#> 69  819205328995387842
+#> 70  819205329012165059
+#> 71  819205329012165059
+#> 72  819205329012165059
+#> 73  819205329012165059
+#> 74  819205329012165059
+#> 75  819205329028942276
+#> 76  819205329028942276
+#> 77  819205329028942276
+#> 78  819205329058302407
+#> 79  819205329058302407
+#> 80  819205329058302407
+#> 81  819205329058302407
+#> 82  819205329058302407
+#> 83  819205329066691016
+#> 84  819205329066691016
+#> 85  819205329066691016
+#> 86  819205329066691016
+#> 87  819205329066691016
+#> 88  819205329075079625
+#> 89  819205329075079625
+#> 90  819205329075079625
+#> 91  819205329075079625
+#> 92  819205329075079625
+#> 93  819205329079273930
+#> 94  819205329079273930
+#> 95  819205329079273930
+#> 96  819205329079273930
+#> 97  819205329079273930
+#> 98  819205329087662539
+#> 99  819205329087662539
+#> 100 819205329087662539
+#>  [ reached 'max' / getOption("max.print") -- omitted 388 rows ]
 ```
 
 ## Structure DBs search results
@@ -292,7 +1457,8 @@ The following example shows the top two structure annotations for the top five
 formulas of each feature. This can provide an insightful view into the
 structural predictions.
 
-```{r}
+
+``` r
 finalstructredb <- results(srs,
                            return.type = "data.frame",
                            result.type = "structureDb",
@@ -300,14 +1466,85 @@ finalstructredb <- results(srs,
                            topStructure = 2)
 
 head(finalstructredb)
+#>            formulaId
+#> 1 819205523682397402
+#> 2 819205523682397403
+#> 3 819205523682397404
+#> 4 819205523682397405
+#> 5 819205523682397406
+#> 6 819205528308714745
+#>   molecularFormula    adduct
+#> 1        C6H12N6O3  [M + H]+
+#> 2        C8H15F3O3  [M + H]+
+#> 3          C8H18O5 [M + Na]+
+#> 4         C9H14N4O [M + Na]+
+#> 5        C6H18N4O2  [M + K]+
+#> 6         C10H16O5  [M + H]+
+#>   rank siriusScoreNormalized
+#> 1    1            0.08222814
+#> 2    2            0.08222814
+#> 3    3            0.08222814
+#> 4    4            0.08222814
+#> 5    5            0.08222814
+#> 6    1            0.07231049
+#>   siriusScore isotopeScore
+#> 1           0            0
+#> 2           0            0
+#> 3           0            0
+#> 4           0            0
+#> 5           0            0
+#> 6           0            0
+#>   treeScore xcms_fts
+#> 1         0    CP001
+#> 2         0    CP001
+#> 3         0    CP001
+#> 4         0    CP001
+#> 5         0    CP001
+#> 6         0    CP002
+#>           sirius_fts rank.x
+#> 1 819205328622094770     NA
+#> 2 819205328622094770     NA
+#> 3 819205328622094770     NA
+#> 4 819205328622094770     NA
+#> 5 819205328622094770     NA
+#> 6 819205328718563763     NA
+#>   inchiKey smiles
+#> 1     <NA>   <NA>
+#> 2     <NA>   <NA>
+#> 3     <NA>   <NA>
+#> 4     <NA>   <NA>
+#> 5     <NA>   <NA>
+#> 6     <NA>   <NA>
+#>   structureName xlogP rank.y
+#> 1          <NA>    NA     NA
+#> 2          <NA>    NA     NA
+#> 3          <NA>    NA     NA
+#> 4          <NA>    NA     NA
+#> 5          <NA>    NA     NA
+#> 6          <NA>    NA     NA
+#>   csiScore tanimotoSimilarity
+#> 1       NA                 NA
+#> 2       NA                 NA
+#> 3       NA                 NA
+#> 4       NA                 NA
+#> 5       NA                 NA
+#> 6       NA                 NA
+#>   mcesDistToTopHit
+#> 1               NA
+#> 2               NA
+#> 3               NA
+#> 4               NA
+#> 5               NA
+#> 6               NA
 ```
 
 For a more visual exploration of the results, you can open the Sirius GUI with
 the commands below:
 
-```{r}
-# openGUI(srs)
-# closeGUI(srs)
+
+``` r
+openGUI(srs)
+closeGUI(srs)
 ```
 
 ## Compound class prediction results
@@ -316,31 +1553,652 @@ To retrieve compound class predictions, use the following code. Below is an
 example showing all compound annotations with confidence scores above 50% for
 the top two formulas of each feature.
 
-```{r}
+
+``` r
 finalcomp <- results(srs,
                      return.type = "data.frame",
                      result.type = "compoundClass",
                      topFormula = 2)
+#> Warning in value[[3L]](cond):
+#> Formula:819205523682397402for
+#> feature:819205328622094770does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205523682397403for
+#> feature:819205328622094770does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205528308714745for
+#> feature:819205328718563763does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205528308714746for
+#> feature:819205328718563763does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205510843632742for
+#> feature:819205328810838455does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205526358363380for
+#> feature:819205328831809976does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205526358363381for
+#> feature:819205328831809976does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205507509161048for
+#> feature:819205328844392889does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205507509161049for
+#> feature:819205328844392889does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205516493360273for
+#> feature:819205328886335932does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205525842463973for
+#> feature:819205328932473279does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205524462537952for
+#> feature:819205328970222016does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205524462537953for
+#> feature:819205328970222016does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205512961756275for
+#> feature:819205328982804929does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205512961756276for
+#> feature:819205328982804929does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205522893868246for
+#> feature:819205328995387842does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205522893868247for
+#> feature:819205328995387842does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205506200538187for
+#> feature:819205329012165059does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205490031496201for
+#> feature:819205329028942276does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205490031496202for
+#> feature:819205329028942276does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205518573735090for
+#> feature:819205329066691016does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205488471215096for
+#> feature:819205329091856844does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205488471215097for
+#> feature:819205329091856844does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205484335631315for
+#> feature:819205329096051149does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205484335631316for
+#> feature:819205329096051149does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205483341581260for
+#> feature:819205329096051150does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205483341581261for
+#> feature:819205329096051150does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205521677520079for
+#> feature:819205329096051151does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205521677520080for
+#> feature:819205329096051151does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205472750963618for
+#> feature:819205329108634064does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205472750963619for
+#> feature:819205329108634064does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205460440681354for
+#> feature:819205329108634065does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205460440681355for
+#> feature:819205329108634065does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205543995411756for
+#> feature:819205329117022675does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205415444187863for
+#> feature:819205329171548630does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205415444187864for
+#> feature:819205329171548630does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205450420489077for
+#> feature:819205329175742935does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205450420489078for
+#> feature:819205329175742935does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205411530902217for
+#> feature:819205329175742936does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205411530902218for
+#> feature:819205329175742936does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205442145127261for
+#> feature:819205329200908763does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205407416289954for
+#> feature:819205329230268895does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205407416289955for
+#> feature:819205329230268895does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205485380013018for
+#> feature:819205329234463201does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205485380013019for
+#> feature:819205329234463201does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205488420883441for
+#> feature:819205329242851811does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205488420883442for
+#> feature:819205329242851811does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205407504370345for
+#> feature:819205329247046117does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205407504370346for
+#> feature:819205329247046117does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205425044949783for
+#> feature:819205329297377770does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205425044949784for
+#> feature:819205329297377770does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205423790852872for
+#> feature:819205329301572075does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205423790852873for
+#> feature:819205329301572075does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205426873666337for
+#> feature:819205329318349292does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205426873666338for
+#> feature:819205329318349292does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205437749496654for
+#> feature:819205329326737902does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205437749496655for
+#> feature:819205329326737902does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205538811251985for
+#> feature:819205329406429688does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205538811251986for
+#> feature:819205329406429688does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205553004776755for
+#> feature:819205329427401216does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205419655269118for
+#> feature:819205329435789826does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205433840405318for
+#> feature:819205329439984132does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205433840405319for
+#> feature:819205329439984132does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205430027782954for
+#> feature:819205329439984133does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205430027782955for
+#> feature:819205329439984133does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205506821295185for
+#> feature:819205329444178438does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205506821295186for
+#> feature:819205329444178438does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205491142986772for
+#> feature:819205329448372744does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205491142986773for
+#> feature:819205329448372744does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205479155665850for
+#> feature:819205329465149965does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205479155665851for
+#> feature:819205329465149965does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205473581435817for
+#> feature:819205329481927186does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205473581435818for
+#> feature:819205329481927186does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205441662782296for
+#> feature:819205329481927187does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205525884407021for
+#> feature:819205329490315798does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205487447804908for
+#> feature:819205329494510103does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205487447804909for
+#> feature:819205329494510103does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205530628164863for
+#> feature:819205329494510104does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205530628164864for
+#> feature:819205329494510104does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205408141904560for
+#> feature:819205329498704409does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205408141904561for
+#> feature:819205329498704409does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205421408488197for
+#> feature:819205329498704410does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205421408488198for
+#> feature:819205329498704410does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205486751550441for
+#> feature:819205329498704411does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205486751550442for
+#> feature:819205329498704411does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205519664254137for
+#> feature:819205329498704412does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205519664254138for
+#> feature:819205329498704412does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205514480094335for
+#> feature:819205329502898717does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205514480094336for
+#> feature:819205329502898717does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205559208152377for
+#> feature:819205329502898718does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205559208152378for
+#> feature:819205329502898718does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205499330268198for
+#> feature:819205329502898719does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205499330268199for
+#> feature:819205329502898719does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205487472970734for
+#> feature:819205329502898720does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205487472970735for
+#> feature:819205329502898720does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205431390931778for
+#> feature:819205329511287329does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205431390931779for
+#> feature:819205329511287329does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205534767942920for
+#> feature:819205329511287330does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205534767942921for
+#> feature:819205329511287330does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205446842747754for
+#> feature:819205329515481635does
+#> not have compound classes
+#> information.
+#> Warning in value[[3L]](cond):
+#> Formula:819205446846942059for
+#> feature:819205329515481635does
+#> not have compound classes
+#> information.
 head(finalcomp)
+#>            formulaId
+#> 1 819205523682397402
+#> 2 819205523682397403
+#> 3 819205528308714745
+#> 4 819205528308714746
+#> 5 819205520754773183
+#> 6 819205520754773183
+#>   molecularFormula   adduct
+#> 1        C6H12N6O3 [M + H]+
+#> 2        C8H15F3O3 [M + H]+
+#> 3         C10H16O5 [M + H]+
+#> 4        C6H12N6O3 [M + H]+
+#> 5        C9H14FNO4 [M + H]+
+#> 6        C9H14FNO4 [M + H]+
+#>   rank siriusScoreNormalized
+#> 1    1            0.08222814
+#> 2    2            0.08222814
+#> 3    1            0.07231049
+#> 4    2            0.07231049
+#> 5    1            0.81227913
+#> 6    1            0.81227913
+#>   siriusScore isotopeScore
+#> 1    0.000000            0
+#> 2    0.000000            0
+#> 3    0.000000            0
+#> 4    0.000000            0
+#> 5    8.520006            0
+#> 6    8.520006            0
+#>   treeScore xcms_fts
+#> 1  0.000000    CP001
+#> 2  0.000000    CP001
+#> 3  0.000000    CP002
+#> 4  0.000000    CP002
+#> 5  8.520006    CP003
+#> 6  8.520006    CP003
+#>           sirius_fts
+#> 1 819205328622094770
+#> 2 819205328622094770
+#> 3 819205328718563763
+#> 4 819205328718563763
+#> 5 819205328735340980
+#> 6 819205328735340980
+#>         section type
+#> 1          <NA> <NA>
+#> 2          <NA> <NA>
+#> 3          <NA> <NA>
+#> 4          <NA> <NA>
+#> 5    npcPathway  NPC
+#> 6 npcSuperclass  NPC
+#>        level levelIndex
+#> 1       <NA>         NA
+#> 2       <NA>         NA
+#> 3       <NA>         NA
+#> 4       <NA>         NA
+#> 5    PATHWAY          0
+#> 6 SUPERCLASS          1
+#>                       name
+#> 1                     <NA>
+#> 2                     <NA>
+#> 3                     <NA>
+#> 4                     <NA>
+#> 5 Amino acids and Peptides
+#> 6           Small peptides
+#>                         description
+#> 1                              <NA>
+#> 2                              <NA>
+#> 3                              <NA>
+#> 4                              <NA>
+#> 5 Pathway: Amino acids and Peptides
+#> 6        Superclass: Small peptides
+#>   id probability index
+#> 1 NA          NA    NA
+#> 2 NA          NA    NA
+#> 3 NA          NA    NA
+#> 4 NA          NA    NA
+#> 5  1   0.5644959     1
+#> 6 63   0.1956930    63
+#>   parentId parentName
+#> 1       NA       <NA>
+#> 2       NA       <NA>
+#> 3       NA       <NA>
+#> 4       NA       <NA>
+#> 5       NA       <NA>
+#> 6       NA       <NA>
 ```
 
 ## Spectral library matching results
 
 The following code gives you a summary of the best matches:
 
-```{r}
+
+``` r
 summaryspectra <- summary(srs, result.type = "spectralDbMatch")
 head(summaryspectra)
+#>     alignedFeatureId
+#> 1 819205328622094770
+#> 2 819205328718563763
+#> 3 819205328735340980
+#> 4 819205328781478325
+#> 5 819205328798255542
+#> 6 819205328810838455
+#>   spectralMatchCount
+#> 1                  0
+#> 2                  0
+#> 3                  0
+#> 4                  0
+#> 5                  0
+#> 6                  0
+#>   referenceSpectraCount
+#> 1                     0
+#> 2                     0
+#> 3                     0
+#> 4                     0
+#> 5                     0
+#> 6                     0
+#>   databaseCompoundCount
+#> 1                     0
+#> 2                     0
+#> 3                     0
+#> 4                     0
+#> 5                     0
+#> 6                     0
 ```
 
 For detailed results, use the following code:
 
-```{r}
+
+``` r
 full_spectral <- results(srs,
                          return.type = "data.frame",
                          result.type = "spectralDbMatch",
                          topSpectralMatches = 2)
 head(full_spectral)
+#> # A tibble: 0 × 0
 ```
 
 ## Fragmentation tree results
@@ -349,7 +2207,8 @@ Below we show how to get the fragmentation tree for the top2 formula of some
 feautres. This is quite inefficient at the moment so limit it to a little number
 of feature. I will improve it.
 
-```{r}
+
+``` r
 resulttree <- results(srs,
                       features = featuresId(srs)[1:5],
                       return.type = "list",
@@ -358,6 +2217,1496 @@ resulttree <- results(srs,
                      )
 
 head(resulttree)
+#> $`819205328622094770`
+#>            formulaId
+#> 1 819205523682397402
+#> 2 819205523682397403
+#> 3 819205523682397404
+#> 4 819205523682397405
+#>   molecularFormula    adduct
+#> 1        C6H12N6O3  [M + H]+
+#> 2        C8H15F3O3  [M + H]+
+#> 3          C8H18O5 [M + Na]+
+#> 4         C9H14N4O [M + Na]+
+#>   rank siriusScoreNormalized
+#> 1    1            0.08222814
+#> 2    2            0.08222814
+#> 3    3            0.08222814
+#> 4    4            0.08222814
+#>   siriusScore isotopeScore
+#> 1           0            0
+#> 2           0            0
+#> 3           0            0
+#> 4           0            0
+#>   treeScore xcms_fts      type
+#> 1         0    CP001 fragments
+#> 2         0    CP001 fragments
+#> 3         0    CP001 fragments
+#> 4         0    CP001 fragments
+#>   fragmentId
+#> 1          0
+#> 2          0
+#> 3          0
+#> 4          0
+#>   molecularFormula_fragment
+#> 1                 C6H12N6O3
+#> 2                 C8H15F3O3
+#> 3                   C8H18O5
+#> 4                  C9H14N4O
+#>   adduct_fragment
+#> 1        [M + H]+
+#> 2        [M + H]+
+#> 3       [M + Na]+
+#> 4       [M + Na]+
+#>   massDeviationDa
+#> 1               0
+#> 2               0
+#> 3               0
+#> 4               0
+#>   massDeviationPpm     score
+#> 1                0 2.0000000
+#> 2                0 0.3905621
+#> 3                0 4.5000000
+#> 4                0 2.0000000
+#>   intensity       mz
+#> 1         0 217.1042
+#> 2         0 217.1042
+#> 3         0 217.1042
+#> 4         0 217.1042
+#>
+#> $`819205328718563763`
+#>            formulaId
+#> 1 819205528308714745
+#> 2 819205528308714746
+#> 3 819205528308714747
+#> 4 819205528308714748
+#>   molecularFormula    adduct
+#> 1         C10H16O5  [M + H]+
+#> 2        C6H12N6O3  [M + H]+
+#> 3          C8H18O5 [M + Na]+
+#> 4         C9H14N4O [M + Na]+
+#>   rank siriusScoreNormalized
+#> 1    1            0.07231049
+#> 2    2            0.07231049
+#> 3    3            0.07231049
+#> 4    4            0.07231049
+#>   siriusScore isotopeScore
+#> 1           0            0
+#> 2           0            0
+#> 3           0            0
+#> 4           0            0
+#>   treeScore xcms_fts      type
+#> 1         0    CP002 fragments
+#> 2         0    CP002 fragments
+#> 3         0    CP002 fragments
+#> 4         0    CP002 fragments
+#>   fragmentId
+#> 1          0
+#> 2          0
+#> 3          0
+#> 4          0
+#>   molecularFormula_fragment
+#> 1                  C10H16O5
+#> 2                 C6H12N6O3
+#> 3                   C8H18O5
+#> 4                  C9H14N4O
+#>   adduct_fragment
+#> 1        [M + H]+
+#> 2        [M + H]+
+#> 3       [M + Na]+
+#> 4       [M + Na]+
+#>   massDeviationDa
+#> 1               0
+#> 2               0
+#> 3               0
+#> 4               0
+#>   massDeviationPpm score
+#> 1                0   4.5
+#> 2                0   2.0
+#> 3                0   4.5
+#> 4                0   2.0
+#>   intensity       mz
+#> 1         0 217.1055
+#> 2         0 217.1055
+#> 3         0 217.1055
+#> 4         0 217.1055
+#>
+#> $`819205328735340980`
+#>             formulaId
+#> 1  819205520754773183
+#> 2  819205520754773183
+#> 3  819205520754773183
+#> 4  819205520754773183
+#> 5  819205520754773183
+#> 6  819205520754773184
+#> 7  819205520754773184
+#> 8  819205520754773184
+#> 9  819205520754773184
+#> 10 819205520754773184
+#> 11 819205520754773185
+#> 12 819205520754773185
+#> 13 819205520754773185
+#> 14 819205520754773186
+#> 15 819205520754773186
+#> 16 819205520754773186
+#> 17 819205520754773186
+#> 18 819205520754773186
+#> 19 819205520754773186
+#> 20 819205520754773186
+#>    molecularFormula   adduct
+#> 1         C9H14FNO4 [M + H]+
+#> 2         C9H14FNO4 [M + H]+
+#> 3         C9H14FNO4 [M + H]+
+#> 4         C9H14FNO4 [M + H]+
+#> 5         C9H14FNO4 [M + H]+
+#> 6         C10H10FN5 [M + H]+
+#> 7         C10H10FN5 [M + H]+
+#> 8         C10H10FN5 [M + H]+
+#> 9         C10H10FN5 [M + H]+
+#> 10        C10H10FN5 [M + H]+
+#> 11        C12H13NO3 [M + H]+
+#> 12        C12H13NO3 [M + H]+
+#> 13        C12H13NO3 [M + H]+
+#> 14      C9H15F2NOSi [M + H]+
+#> 15      C9H15F2NOSi [M + H]+
+#> 16      C9H15F2NOSi [M + H]+
+#> 17      C9H15F2NOSi [M + H]+
+#> 18      C9H15F2NOSi [M + H]+
+#> 19      C9H15F2NOSi [M + H]+
+#> 20      C9H15F2NOSi [M + H]+
+#>    rank siriusScoreNormalized
+#> 1     1           0.812279133
+#> 2     1           0.812279133
+#> 3     1           0.812279133
+#> 4     1           0.812279133
+#> 5     1           0.812279133
+#> 6     2           0.094845210
+#> 7     2           0.094845210
+#> 8     2           0.094845210
+#> 9     2           0.094845210
+#> 10    2           0.094845210
+#> 11    3           0.083023608
+#> 12    3           0.083023608
+#> 13    3           0.083023608
+#> 14    4           0.006517148
+#> 15    4           0.006517148
+#> 16    4           0.006517148
+#> 17    4           0.006517148
+#> 18    4           0.006517148
+#> 19    4           0.006517148
+#> 20    4           0.006517148
+#>    siriusScore isotopeScore
+#> 1     8.520006            0
+#> 2     8.520006            0
+#> 3     8.520006            0
+#> 4     8.520006            0
+#> 5     8.520006            0
+#> 6     6.372408            0
+#> 7     6.372408            0
+#> 8     6.372408            0
+#> 9     6.372408            0
+#> 10    6.372408            0
+#> 11    6.239287            0
+#> 12    6.239287            0
+#> 13    6.239287            0
+#> 14    3.694599            0
+#> 15    3.694599            0
+#> 16    3.694599            0
+#> 17    3.694599            0
+#> 18    3.694599            0
+#> 19    3.694599            0
+#> 20    3.694599            0
+#>    treeScore xcms_fts
+#> 1   8.520006    CP003
+#> 2   8.520006    CP003
+#> 3   8.520006    CP003
+#> 4   8.520006    CP003
+#> 5   8.520006    CP003
+#> 6   6.372408    CP003
+#> 7   6.372408    CP003
+#> 8   6.372408    CP003
+#> 9   6.372408    CP003
+#> 10  6.372408    CP003
+#> 11  6.239287    CP003
+#> 12  6.239287    CP003
+#> 13  6.239287    CP003
+#> 14  3.694599    CP003
+#> 15  3.694599    CP003
+#> 16  3.694599    CP003
+#> 17  3.694599    CP003
+#> 18  3.694599    CP003
+#> 19  3.694599    CP003
+#> 20  3.694599    CP003
+#>         type fragmentId
+#> 1  fragments          0
+#> 2  fragments          1
+#> 3  fragments          2
+#> 4     losses         NA
+#> 5     losses         NA
+#> 6  fragments          0
+#> 7  fragments          1
+#> 8  fragments          2
+#> 9     losses         NA
+#> 10    losses         NA
+#> 11 fragments          0
+#> 12 fragments          1
+#> 13    losses         NA
+#> 14 fragments          0
+#> 15 fragments          1
+#> 16 fragments          2
+#> 17 fragments          3
+#> 18    losses         NA
+#> 19    losses         NA
+#> 20    losses         NA
+#>    molecularFormula_fragment
+#> 1                  C9H14FNO4
+#> 2                  C8H10FNO4
+#> 3                   C7H10FNO
+#> 4                        CH4
+#> 5                     C2H4O3
+#> 6                  C10H10FN5
+#> 7                    C9H6FN5
+#> 8                     C10H9N
+#> 9                        CH4
+#> 10                      FHN4
+#> 11                 C12H13NO3
+#> 12                    C10H9N
+#> 13                    C2H4O3
+#> 14               C9H15F2NOSi
+#> 15                  C9H11F2N
+#> 16                   C8H10F2
+#> 17                  C7H10FNO
+#> 18                     H4OSi
+#> 19                       CHN
+#> 20                   C2H5FSi
+#>    adduct_fragment
+#> 1         [M + H]+
+#> 2         [M + H]+
+#> 3         [M + H]+
+#> 4             <NA>
+#> 5             <NA>
+#> 6         [M + H]+
+#> 7         [M + H]+
+#> 8         [M + H]+
+#> 9             <NA>
+#> 10            <NA>
+#> 11        [M + H]+
+#> 12        [M + H]+
+#> 13            <NA>
+#> 14        [M + H]+
+#> 15        [M + H]+
+#> 16        [M + H]+
+#> 17        [M + H]+
+#> 18            <NA>
+#> 19            <NA>
+#> 20            <NA>
+#>    massDeviationDa
+#> 1    -1.537622e-04
+#> 2     1.742679e-03
+#> 3    -1.047030e-03
+#> 4               NA
+#> 5               NA
+#> 6    -1.491154e-03
+#> 7     4.052873e-04
+#> 8     9.584194e-05
+#> 9               NA
+#> 10              NA
+#> 11    9.891098e-04
+#> 12    9.584194e-05
+#> 13              NA
+#> 14    1.435316e-03
+#> 15   -3.977714e-04
+#> 16    7.508944e-04
+#> 17   -1.047030e-03
+#> 18              NA
+#> 19              NA
+#> 20              NA
+#>    massDeviationPpm      score
+#> 1        -0.6986085 -1.6667446
+#> 2         8.5396820  4.6780651
+#> 3        -7.2669609  6.9231516
+#> 4                NA  4.7569242
+#> 5                NA  5.4298262
+#> 6        -6.7749616 -2.3064100
+#> 7         1.9860364  5.0592344
+#> 8         0.6651955  5.6315752
+#> 9                NA  5.1380935
+#> 10               NA  3.5407245
+#> 11        4.4939557  0.5740459
+#> 12        0.6651955  7.1585663
+#> 13               NA  5.6652409
+#> 14        6.5212635 -2.8837861
+#> 15       -2.3113771  3.5947147
+#> 16        5.1756162  3.8008662
+#> 17       -7.2669609  3.3961606
+#> 18               NA  1.8183825
+#> 19               NA  4.5317564
+#> 20               NA  0.2282458
+#>     intensity       mz
+#> 1  1.00000000 220.0978
+#> 2  0.07443315 204.0684
+#> 3  0.06788801 144.0809
+#> 4          NA       NA
+#> 5          NA       NA
+#> 6  1.00000000 220.0978
+#> 7  0.07443315 204.0684
+#> 8  0.06788801 144.0809
+#> 9          NA       NA
+#> 10         NA       NA
+#> 11 1.00000000 220.0978
+#> 12 0.06788801 144.0809
+#> 13         NA       NA
+#> 14 1.00000000 220.0978
+#> 15 0.11297021 172.0928
+#> 16 0.11707711 145.0831
+#> 17 0.06788801 144.0809
+#> 18         NA       NA
+#> 19         NA       NA
+#> 20         NA       NA
+#>    sourceFragmentIdx
+#> 1                 NA
+#> 2                 NA
+#> 3                 NA
+#> 4                  0
+#> 5                  0
+#> 6                 NA
+#> 7                 NA
+#> 8                 NA
+#> 9                  0
+#> 10                 0
+#> 11                NA
+#> 12                NA
+#> 13                 0
+#> 14                NA
+#> 15                NA
+#> 16                NA
+#> 17                NA
+#> 18                 0
+#> 19                 1
+#> 20                 0
+#>    targetFragmentIdx
+#> 1                 NA
+#> 2                 NA
+#> 3                 NA
+#> 4                  1
+#> 5                  2
+#> 6                 NA
+#> 7                 NA
+#> 8                 NA
+#> 9                  1
+#> 10                 2
+#> 11                NA
+#> 12                NA
+#> 13                 1
+#> 14                NA
+#> 15                NA
+#> 16                NA
+#> 17                NA
+#> 18                 1
+#> 19                 2
+#> 20                 3
+#>
+#> $`819205328781478325`
+#>             formulaId
+#> 1  819205514274573431
+#> 2  819205514274573431
+#> 3  819205514274573431
+#> 4  819205514274573431
+#> 5  819205514274573431
+#> 6  819205514274573431
+#> 7  819205514274573431
+#> 8  819205514274573431
+#> 9  819205514274573431
+#> 10 819205514274573431
+#> 11 819205514274573431
+#> 12 819205514274573431
+#> 13 819205514274573431
+#> 14 819205514274573431
+#> 15 819205514274573431
+#> 16 819205514274573431
+#> 17 819205514274573431
+#> 18 819205514274573431
+#> 19 819205514274573431
+#> 20 819205514274573431
+#> 21 819205514274573431
+#> 22 819205514274573431
+#> 23 819205514274573431
+#> 24 819205514274573432
+#> 25 819205514274573432
+#> 26 819205514274573432
+#> 27 819205514274573432
+#> 28 819205514274573432
+#> 29 819205514274573432
+#> 30 819205514274573432
+#> 31 819205514274573432
+#> 32 819205514274573432
+#> 33 819205514274573432
+#> 34 819205514274573432
+#> 35 819205514274573432
+#> 36 819205514274573432
+#> 37 819205514274573432
+#> 38 819205514274573432
+#> 39 819205514274573432
+#> 40 819205514274573432
+#> 41 819205514274573432
+#> 42 819205514274573432
+#> 43 819205514274573432
+#> 44 819205514274573432
+#> 45 819205514274573433
+#> 46 819205514274573433
+#> 47 819205514274573433
+#> 48 819205514274573433
+#> 49 819205514274573433
+#> 50 819205514274573433
+#>    molecularFormula   adduct
+#> 1         C12H14N2S [M + H]+
+#> 2         C12H14N2S [M + H]+
+#> 3         C12H14N2S [M + H]+
+#> 4         C12H14N2S [M + H]+
+#> 5         C12H14N2S [M + H]+
+#> 6         C12H14N2S [M + H]+
+#> 7         C12H14N2S [M + H]+
+#> 8         C12H14N2S [M + H]+
+#> 9         C12H14N2S [M + H]+
+#> 10        C12H14N2S [M + H]+
+#> 11        C12H14N2S [M + H]+
+#> 12        C12H14N2S [M + H]+
+#> 13        C12H14N2S [M + H]+
+#> 14        C12H14N2S [M + H]+
+#> 15        C12H14N2S [M + H]+
+#> 16        C12H14N2S [M + H]+
+#> 17        C12H14N2S [M + H]+
+#> 18        C12H14N2S [M + H]+
+#> 19        C12H14N2S [M + H]+
+#> 20        C12H14N2S [M + H]+
+#> 21        C12H14N2S [M + H]+
+#> 22        C12H14N2S [M + H]+
+#> 23        C12H14N2S [M + H]+
+#> 24      C6H13F3N2O3 [M + H]+
+#> 25      C6H13F3N2O3 [M + H]+
+#> 26      C6H13F3N2O3 [M + H]+
+#> 27      C6H13F3N2O3 [M + H]+
+#> 28      C6H13F3N2O3 [M + H]+
+#> 29      C6H13F3N2O3 [M + H]+
+#> 30      C6H13F3N2O3 [M + H]+
+#> 31      C6H13F3N2O3 [M + H]+
+#> 32      C6H13F3N2O3 [M + H]+
+#> 33      C6H13F3N2O3 [M + H]+
+#> 34      C6H13F3N2O3 [M + H]+
+#> 35      C6H13F3N2O3 [M + H]+
+#> 36      C6H13F3N2O3 [M + H]+
+#> 37      C6H13F3N2O3 [M + H]+
+#> 38      C6H13F3N2O3 [M + H]+
+#> 39      C6H13F3N2O3 [M + H]+
+#> 40      C6H13F3N2O3 [M + H]+
+#> 41      C6H13F3N2O3 [M + H]+
+#> 42      C6H13F3N2O3 [M + H]+
+#> 43      C6H13F3N2O3 [M + H]+
+#> 44      C6H13F3N2O3 [M + H]+
+#> 45       C11H16ClFO [M + H]+
+#> 46       C11H16ClFO [M + H]+
+#> 47       C11H16ClFO [M + H]+
+#> 48       C11H16ClFO [M + H]+
+#> 49       C11H16ClFO [M + H]+
+#> 50       C11H16ClFO [M + H]+
+#>    rank siriusScoreNormalized
+#> 1     1          9.468099e-01
+#> 2     1          9.468099e-01
+#> 3     1          9.468099e-01
+#> 4     1          9.468099e-01
+#> 5     1          9.468099e-01
+#> 6     1          9.468099e-01
+#> 7     1          9.468099e-01
+#> 8     1          9.468099e-01
+#> 9     1          9.468099e-01
+#> 10    1          9.468099e-01
+#> 11    1          9.468099e-01
+#> 12    1          9.468099e-01
+#> 13    1          9.468099e-01
+#> 14    1          9.468099e-01
+#> 15    1          9.468099e-01
+#> 16    1          9.468099e-01
+#> 17    1          9.468099e-01
+#> 18    1          9.468099e-01
+#> 19    1          9.468099e-01
+#> 20    1          9.468099e-01
+#> 21    1          9.468099e-01
+#> 22    1          9.468099e-01
+#> 23    1          9.468099e-01
+#> 24    2          5.319014e-02
+#> 25    2          5.319014e-02
+#> 26    2          5.319014e-02
+#> 27    2          5.319014e-02
+#> 28    2          5.319014e-02
+#> 29    2          5.319014e-02
+#> 30    2          5.319014e-02
+#> 31    2          5.319014e-02
+#> 32    2          5.319014e-02
+#> 33    2          5.319014e-02
+#> 34    2          5.319014e-02
+#> 35    2          5.319014e-02
+#> 36    2          5.319014e-02
+#> 37    2          5.319014e-02
+#> 38    2          5.319014e-02
+#> 39    2          5.319014e-02
+#> 40    2          5.319014e-02
+#> 41    2          5.319014e-02
+#> 42    2          5.319014e-02
+#> 43    2          5.319014e-02
+#> 44    2          5.319014e-02
+#> 45    3          7.593616e-12
+#> 46    3          7.593616e-12
+#> 47    3          7.593616e-12
+#> 48    3          7.593616e-12
+#> 49    3          7.593616e-12
+#> 50    3          7.593616e-12
+#>    siriusScore isotopeScore
+#> 1     48.07103            0
+#> 2     48.07103            0
+#> 3     48.07103            0
+#> 4     48.07103            0
+#> 5     48.07103            0
+#> 6     48.07103            0
+#> 7     48.07103            0
+#> 8     48.07103            0
+#> 9     48.07103            0
+#> 10    48.07103            0
+#> 11    48.07103            0
+#> 12    48.07103            0
+#> 13    48.07103            0
+#> 14    48.07103            0
+#> 15    48.07103            0
+#> 16    48.07103            0
+#> 17    48.07103            0
+#> 18    48.07103            0
+#> 19    48.07103            0
+#> 20    48.07103            0
+#> 21    48.07103            0
+#> 22    48.07103            0
+#> 23    48.07103            0
+#> 24    45.19181            0
+#> 25    45.19181            0
+#> 26    45.19181            0
+#> 27    45.19181            0
+#> 28    45.19181            0
+#> 29    45.19181            0
+#> 30    45.19181            0
+#> 31    45.19181            0
+#> 32    45.19181            0
+#> 33    45.19181            0
+#> 34    45.19181            0
+#> 35    45.19181            0
+#> 36    45.19181            0
+#> 37    45.19181            0
+#> 38    45.19181            0
+#> 39    45.19181            0
+#> 40    45.19181            0
+#> 41    45.19181            0
+#> 42    45.19181            0
+#> 43    45.19181            0
+#> 44    45.19181            0
+#> 45    22.52198            0
+#> 46    22.52198            0
+#> 47    22.52198            0
+#> 48    22.52198            0
+#> 49    22.52198            0
+#> 50    22.52198            0
+#>    treeScore xcms_fts
+#> 1   48.07103    CP004
+#> 2   48.07103    CP004
+#> 3   48.07103    CP004
+#> 4   48.07103    CP004
+#> 5   48.07103    CP004
+#> 6   48.07103    CP004
+#> 7   48.07103    CP004
+#> 8   48.07103    CP004
+#> 9   48.07103    CP004
+#> 10  48.07103    CP004
+#> 11  48.07103    CP004
+#> 12  48.07103    CP004
+#> 13  48.07103    CP004
+#> 14  48.07103    CP004
+#> 15  48.07103    CP004
+#> 16  48.07103    CP004
+#> 17  48.07103    CP004
+#> 18  48.07103    CP004
+#> 19  48.07103    CP004
+#> 20  48.07103    CP004
+#> 21  48.07103    CP004
+#> 22  48.07103    CP004
+#> 23  48.07103    CP004
+#> 24  45.19181    CP004
+#> 25  45.19181    CP004
+#> 26  45.19181    CP004
+#> 27  45.19181    CP004
+#> 28  45.19181    CP004
+#> 29  45.19181    CP004
+#> 30  45.19181    CP004
+#> 31  45.19181    CP004
+#> 32  45.19181    CP004
+#> 33  45.19181    CP004
+#> 34  45.19181    CP004
+#> 35  45.19181    CP004
+#> 36  45.19181    CP004
+#> 37  45.19181    CP004
+#> 38  45.19181    CP004
+#> 39  45.19181    CP004
+#> 40  45.19181    CP004
+#> 41  45.19181    CP004
+#> 42  45.19181    CP004
+#> 43  45.19181    CP004
+#> 44  45.19181    CP004
+#> 45  22.52198    CP004
+#> 46  22.52198    CP004
+#> 47  22.52198    CP004
+#> 48  22.52198    CP004
+#> 49  22.52198    CP004
+#> 50  22.52198    CP004
+#>         type fragmentId
+#> 1  fragments          0
+#> 2  fragments          1
+#> 3  fragments          2
+#> 4  fragments          3
+#> 5  fragments          4
+#> 6  fragments          5
+#> 7  fragments          6
+#> 8  fragments          7
+#> 9  fragments          8
+#> 10 fragments          9
+#> 11 fragments         10
+#> 12 fragments         11
+#> 13    losses         NA
+#> 14    losses         NA
+#> 15    losses         NA
+#> 16    losses         NA
+#> 17    losses         NA
+#> 18    losses         NA
+#> 19    losses         NA
+#> 20    losses         NA
+#> 21    losses         NA
+#> 22    losses         NA
+#> 23    losses         NA
+#> 24 fragments          0
+#> 25 fragments          1
+#> 26 fragments          2
+#> 27 fragments          3
+#> 28 fragments          4
+#> 29 fragments          5
+#> 30 fragments          6
+#> 31 fragments          7
+#> 32 fragments          8
+#> 33 fragments          9
+#> 34 fragments         10
+#> 35    losses         NA
+#> 36    losses         NA
+#> 37    losses         NA
+#> 38    losses         NA
+#> 39    losses         NA
+#> 40    losses         NA
+#> 41    losses         NA
+#> 42    losses         NA
+#> 43    losses         NA
+#> 44    losses         NA
+#> 45 fragments          0
+#> 46 fragments          1
+#> 47 fragments          2
+#> 48 fragments          3
+#> 49 fragments          4
+#> 50 fragments          5
+#>    molecularFormula_fragment
+#> 1                  C12H14N2S
+#> 2                  C11H11N2S
+#> 3                  C11H10N2S
+#> 4                   C10H8N2S
+#> 5                   C11H10N2
+#> 6                    C10H7N2
+#> 7                     C10H9N
+#> 8                     C10H8N
+#> 9                      C9H8N
+#> 10                     C9H7N
+#> 11                     C8H9N
+#> 12                      C8H8
+#> 13                       CH3
+#> 14                       CH4
+#> 15                       CH3
+#> 16                         S
+#> 17                       CH3
+#> 18                       CHN
+#> 19                     CH3NS
+#> 20                    C2H3NS
+#> 21                      CHNS
+#> 22                      C3HN
+#> 23                      C2HN
+#> 24               C6H13F3N2O3
+#> 25               C5H10F3N2O3
+#> 26                C5H9F3N2O3
+#> 27                C4H7F3N2O3
+#> 28               C5H12F2N2O2
+#> 29                C4H9F2N2O2
+#> 30                C4H11F2NO2
+#> 31                C4H10F2NO2
+#> 32                 C3H9F2NO2
+#> 33                  C5H10FNO
+#> 34                    C5H9FO
+#> 35                       CH3
+#> 36                       CH4
+#> 37                       CH3
+#> 38                      CHFO
+#> 39                       CH3
+#> 40                       CHN
+#> 41                         H
+#> 42                     C2H3N
+#> 43                     FH2NO
+#> 44                    FH3N2O
+#> 45                C11H16ClFO
+#> 46                C10H13ClFO
+#> 47                C10H12ClFO
+#> 48                 C9H10ClFO
+#> 49                  C10H15Cl
+#> 50                   C9H12Cl
+#>    adduct_fragment
+#> 1         [M + H]+
+#> 2         [M + H]+
+#> 3         [M + H]+
+#> 4         [M + H]+
+#> 5         [M + H]+
+#> 6         [M + H]+
+#> 7         [M + H]+
+#> 8         [M + H]+
+#> 9         [M + H]+
+#> 10        [M + H]+
+#> 11        [M + H]+
+#> 12        [M + H]+
+#> 13            <NA>
+#> 14            <NA>
+#> 15            <NA>
+#> 16            <NA>
+#> 17            <NA>
+#> 18            <NA>
+#> 19            <NA>
+#> 20            <NA>
+#> 21            <NA>
+#> 22            <NA>
+#> 23            <NA>
+#> 24        [M + H]+
+#> 25        [M + H]+
+#> 26        [M + H]+
+#> 27        [M + H]+
+#> 28        [M + H]+
+#> 29        [M + H]+
+#> 30        [M + H]+
+#> 31        [M + H]+
+#> 32        [M + H]+
+#> 33        [M + H]+
+#> 34        [M + H]+
+#> 35            <NA>
+#> 36            <NA>
+#> 37            <NA>
+#> 38            <NA>
+#> 39            <NA>
+#> 40            <NA>
+#> 41            <NA>
+#> 42            <NA>
+#> 43            <NA>
+#> 44            <NA>
+#> 45        [M + H]+
+#> 46        [M + H]+
+#> 47        [M + H]+
+#> 48        [M + H]+
+#> 49        [M + H]+
+#> 50        [M + H]+
+#>    massDeviationDa
+#> 1     0.0012523177
+#> 2     0.0004354215
+#> 3     0.0010277875
+#> 4     0.0006408642
+#> 5     0.0013885824
+#> 6     0.0010447087
+#> 7     0.0011029220
+#> 8     0.0006576903
+#> 9     0.0011307128
+#> 10    0.0006549636
+#> 11    0.0009884811
+#> 12    0.0009164438
+#> 13              NA
+#> 14              NA
+#> 15              NA
+#> 16              NA
+#> 17              NA
+#> 18              NA
+#> 19              NA
+#> 20              NA
+#> 21              NA
+#> 22              NA
+#> 23              NA
+#> 24    0.0011948297
+#> 25    0.0003779335
+#> 26    0.0009702995
+#> 27    0.0005833762
+#> 28   -0.0008971616
+#> 29   -0.0012410353
+#> 30   -0.0011828220
+#> 31   -0.0016280537
+#> 32   -0.0016307804
+#> 33   -0.0001543909
+#> 34   -0.0002264282
+#> 35              NA
+#> 36              NA
+#> 37              NA
+#> 38              NA
+#> 39              NA
+#> 40              NA
+#> 41              NA
+#> 42              NA
+#> 43              NA
+#> 44              NA
+#> 45    0.0016507337
+#> 46    0.0008338375
+#> 47    0.0014262035
+#> 48    0.0010392802
+#> 49   -0.0004412576
+#> 50   -0.0007851313
+#>    massDeviationPpm
+#> 1          5.715832
+#> 2          2.133666
+#> 3          5.061378
+#> 4          3.389942
+#> 5          8.115948
+#> 6          6.693879
+#> 7          7.654828
+#> 8          4.596867
+#> 9          8.626517
+#> 10         5.035633
+#> 11         8.231734
+#> 12         8.722155
+#> 13               NA
+#> 14               NA
+#> 15               NA
+#> 16               NA
+#> 17               NA
+#> 18               NA
+#> 19               NA
+#> 20               NA
+#> 21               NA
+#> 22               NA
+#> 23               NA
+#> 24         5.453445
+#> 25         1.851961
+#> 26         4.778276
+#> 27         3.085851
+#> 28        -5.243705
+#> 29        -7.951825
+#> 30        -8.209374
+#> 31       -11.379133
+#> 32       -12.538121
+#> 33        -1.285715
+#> 34        -2.155006
+#> 35               NA
+#> 36               NA
+#> 37               NA
+#> 38               NA
+#> 39               NA
+#> 40               NA
+#> 41               NA
+#> 42               NA
+#> 43               NA
+#> 44               NA
+#> 45         7.534284
+#> 46         4.085996
+#> 47         7.023392
+#> 48         5.497419
+#> 49        -2.579050
+#> 50        -5.030660
+#>          score   intensity
+#> 1   -0.1757686 0.827676377
+#> 2    3.1078620 0.431772302
+#> 3    2.7937670 0.380906223
+#> 4    0.5219581 0.006316214
+#> 5   11.8173194 1.000000000
+#> 6    2.6962436 0.133101421
+#> 7    6.3838806 0.923662249
+#> 8    3.5974360 0.299314154
+#> 9    1.3829304 0.006476616
+#> 10   3.9145318 0.355810157
+#> 11   3.0512030 0.129069092
+#> 12   3.5663203 0.131285802
+#> 13   4.8202179          NA
+#> 14   4.1997289          NA
+#> 15   2.5862251          NA
+#> 16  12.4868807          NA
+#> 17   4.6927471          NA
+#> 18   7.6792456          NA
+#> 19   2.8620467          NA
+#> 20   0.1024434          NA
+#> 21   3.3115045          NA
+#> 22   2.4045278          NA
+#> 23   3.1012343          NA
+#> 24  -0.1446987 0.827676377
+#> 25   3.5264115 0.431772302
+#> 26   3.2153014 0.380906223
+#> 27   0.9418298 0.006316214
+#> 28  11.9640250 1.000000000
+#> 29   2.6376497 0.133101421
+#> 30   6.3600354 0.923662249
+#> 31   3.3074749 0.299314154
+#> 32   3.6229368 0.355810157
+#> 33   3.2575522 0.129069092
+#> 34   3.4038030 0.131285802
+#> 35   5.2387673          NA
+#> 36   4.6212633          NA
+#> 37   3.0060968          NA
+#> 38  11.1004357          NA
+#> 39   4.6341531          NA
+#> 40   7.6554004          NA
+#> 41   1.5082927          NA
+#> 42   2.8564656          NA
+#> 43   2.4062170          NA
+#> 44   2.3094150          NA
+#> 45 -21.0147369 0.827676377
+#> 46   5.4151131 0.431772302
+#> 47   5.0797026 0.380906223
+#> 48   2.8195129 0.006316214
+#> 49  14.4056915 1.000000000
+#> 50   5.1986069 0.133101421
+#>          mz sourceFragmentIdx
+#> 1  219.0963                NA
+#> 2  204.0720                NA
+#> 3  203.0648                NA
+#> 4  189.0487                NA
+#> 5  171.0931                NA
+#> 6  156.0692                NA
+#> 7  144.0819                NA
+#> 8  143.0736                NA
+#> 9  131.0741                NA
+#> 10 130.0658                NA
+#> 11 120.0818                NA
+#> 12 105.0708                NA
+#> 13       NA                 0
+#> 14       NA                 0
+#> 15       NA                 1
+#> 16       NA                 2
+#> 17       NA                 4
+#> 18       NA                 4
+#> 19       NA                 1
+#> 20       NA                 1
+#> 21       NA                 3
+#> 22       NA                 4
+#> 23       NA                 6
+#> 24 219.0963                NA
+#> 25 204.0720                NA
+#> 26 203.0648                NA
+#> 27 189.0487                NA
+#> 28 171.0931                NA
+#> 29 156.0692                NA
+#> 30 144.0819                NA
+#> 31 143.0736                NA
+#> 32 130.0658                NA
+#> 33 120.0818                NA
+#> 34 105.0708                NA
+#> 35       NA                 0
+#> 36       NA                 0
+#> 37       NA                 1
+#> 38       NA                 0
+#> 39       NA                 4
+#> 40       NA                 4
+#> 41       NA                 6
+#> 42       NA                 4
+#> 43       NA                 4
+#> 44       NA                 4
+#> 45 219.0963                NA
+#> 46 204.0720                NA
+#> 47 203.0648                NA
+#> 48 189.0487                NA
+#> 49 171.0931                NA
+#> 50 156.0692                NA
+#>    targetFragmentIdx
+#> 1                 NA
+#> 2                 NA
+#> 3                 NA
+#> 4                 NA
+#> 5                 NA
+#> 6                 NA
+#> 7                 NA
+#> 8                 NA
+#> 9                 NA
+#> 10                NA
+#> 11                NA
+#> 12                NA
+#> 13                 1
+#> 14                 2
+#> 15                 3
+#> 16                 4
+#> 17                 5
+#> 18                 6
+#> 19                 7
+#> 20                 8
+#> 21                 9
+#> 22                10
+#> 23                11
+#> 24                NA
+#> 25                NA
+#> 26                NA
+#> 27                NA
+#> 28                NA
+#> 29                NA
+#> 30                NA
+#> 31                NA
+#> 32                NA
+#> 33                NA
+#> 34                NA
+#> 35                 1
+#> 36                 2
+#> 37                 3
+#> 38                 4
+#> 39                 5
+#> 40                 6
+#> 41                 7
+#> 42                 8
+#> 43                 9
+#> 44                10
+#> 45                NA
+#> 46                NA
+#> 47                NA
+#> 48                NA
+#> 49                NA
+#> 50                NA
+#>  [ reached 'max' / getOption("max.print") -- omitted 20 rows ]
+#>
+#> $`819205328798255542`
+#>             formulaId
+#> 1  819205517835537576
+#> 2  819205517835537576
+#> 3  819205517835537576
+#> 4  819205517835537576
+#> 5  819205517835537576
+#> 6  819205517835537576
+#> 7  819205517835537576
+#> 8  819205517835537576
+#> 9  819205517835537576
+#> 10 819205517835537576
+#> 11 819205517835537576
+#> 12 819205517835537576
+#> 13 819205517835537576
+#> 14 819205517835537577
+#> 15 819205517835537577
+#> 16 819205517835537577
+#> 17 819205517835537577
+#> 18 819205517835537577
+#> 19 819205517835537577
+#> 20 819205517835537577
+#> 21 819205517835537577
+#> 22 819205517835537577
+#> 23 819205517835537577
+#> 24 819205517835537577
+#> 25 819205517835537578
+#> 26 819205517835537578
+#> 27 819205517835537578
+#> 28 819205517835537579
+#> 29 819205517835537579
+#> 30 819205517835537579
+#>    molecularFormula
+#> 1         C4H9FN2O3
+#> 2         C4H9FN2O3
+#> 3         C4H9FN2O3
+#> 4         C4H9FN2O3
+#> 5         C4H9FN2O3
+#> 6         C4H9FN2O3
+#> 7         C4H9FN2O3
+#> 8         C4H9FN2O3
+#> 9         C4H9FN2O3
+#> 10        C4H9FN2O3
+#> 11        C4H9FN2O3
+#> 12        C4H9FN2O3
+#> 13        C4H9FN2O3
+#> 14         C4H6FNO3
+#> 15         C4H6FNO3
+#> 16         C4H6FNO3
+#> 17         C4H6FNO3
+#> 18         C4H6FNO3
+#> 19         C4H6FNO3
+#> 20         C4H6FNO3
+#> 21         C4H6FNO3
+#> 22         C4H6FNO3
+#> 23         C4H6FNO3
+#> 24         C4H6FNO3
+#> 25           C7H14O
+#> 26           C7H14O
+#> 27           C7H14O
+#> 28         C7H8N2O2
+#> 29         C7H8N2O2
+#> 30         C7H8N2O2
+#>            adduct rank
+#> 1        [M + H]+    1
+#> 2        [M + H]+    1
+#> 3        [M + H]+    1
+#> 4        [M + H]+    1
+#> 5        [M + H]+    1
+#> 6        [M + H]+    1
+#> 7        [M + H]+    1
+#> 8        [M + H]+    1
+#> 9        [M + H]+    1
+#> 10       [M + H]+    1
+#> 11       [M + H]+    1
+#> 12       [M + H]+    1
+#> 13       [M + H]+    1
+#> 14 [M + H3N + H]+    2
+#> 15 [M + H3N + H]+    2
+#> 16 [M + H3N + H]+    2
+#> 17 [M + H3N + H]+    2
+#> 18 [M + H3N + H]+    2
+#> 19 [M + H3N + H]+    2
+#> 20 [M + H3N + H]+    2
+#> 21 [M + H3N + H]+    2
+#> 22 [M + H3N + H]+    2
+#> 23 [M + H3N + H]+    2
+#> 24 [M + H3N + H]+    2
+#> 25       [M + K]+    3
+#> 26       [M + K]+    3
+#> 27       [M + K]+    3
+#> 28       [M + H]+    4
+#> 29       [M + H]+    4
+#> 30       [M + H]+    4
+#>    siriusScoreNormalized
+#> 1           5.000000e-01
+#> 2           5.000000e-01
+#> 3           5.000000e-01
+#> 4           5.000000e-01
+#> 5           5.000000e-01
+#> 6           5.000000e-01
+#> 7           5.000000e-01
+#> 8           5.000000e-01
+#> 9           5.000000e-01
+#> 10          5.000000e-01
+#> 11          5.000000e-01
+#> 12          5.000000e-01
+#> 13          5.000000e-01
+#> 14          5.000000e-01
+#> 15          5.000000e-01
+#> 16          5.000000e-01
+#> 17          5.000000e-01
+#> 18          5.000000e-01
+#> 19          5.000000e-01
+#> 20          5.000000e-01
+#> 21          5.000000e-01
+#> 22          5.000000e-01
+#> 23          5.000000e-01
+#> 24          5.000000e-01
+#> 25          2.581802e-08
+#> 26          2.581802e-08
+#> 27          2.581802e-08
+#> 28          1.751684e-09
+#> 29          1.751684e-09
+#> 30          1.751684e-09
+#>    siriusScore isotopeScore
+#> 1    27.906019     1.966055
+#> 2    27.906019     1.966055
+#> 3    27.906019     1.966055
+#> 4    27.906019     1.966055
+#> 5    27.906019     1.966055
+#> 6    27.906019     1.966055
+#> 7    27.906019     1.966055
+#> 8    27.906019     1.966055
+#> 9    27.906019     1.966055
+#> 10   27.906019     1.966055
+#> 11   27.906019     1.966055
+#> 12   27.906019     1.966055
+#> 13   27.906019     1.966055
+#> 14   27.906019     1.966055
+#> 15   27.906019     1.966055
+#> 16   27.906019     1.966055
+#> 17   27.906019     1.966055
+#> 18   27.906019     1.966055
+#> 19   27.906019     1.966055
+#> 20   27.906019     1.966055
+#> 21   27.906019     1.966055
+#> 22   27.906019     1.966055
+#> 23   27.906019     1.966055
+#> 24   27.906019     1.966055
+#> 25   11.126973     0.000000
+#> 26   11.126973     0.000000
+#> 27   11.126973     0.000000
+#> 28    8.436478     2.462666
+#> 29    8.436478     2.462666
+#> 30    8.436478     2.462666
+#>    treeScore xcms_fts
+#> 1  25.939964    CP005
+#> 2  25.939964    CP005
+#> 3  25.939964    CP005
+#> 4  25.939964    CP005
+#> 5  25.939964    CP005
+#> 6  25.939964    CP005
+#> 7  25.939964    CP005
+#> 8  25.939964    CP005
+#> 9  25.939964    CP005
+#> 10 25.939964    CP005
+#> 11 25.939964    CP005
+#> 12 25.939964    CP005
+#> 13 25.939964    CP005
+#> 14 25.939964    CP005
+#> 15 25.939964    CP005
+#> 16 25.939964    CP005
+#> 17 25.939964    CP005
+#> 18 25.939964    CP005
+#> 19 25.939964    CP005
+#> 20 25.939964    CP005
+#> 21 25.939964    CP005
+#> 22 25.939964    CP005
+#> 23 25.939964    CP005
+#> 24 25.939964    CP005
+#> 25 11.126973    CP005
+#> 26 11.126973    CP005
+#> 27 11.126973    CP005
+#> 28  5.973812    CP005
+#> 29  5.973812    CP005
+#> 30  5.973812    CP005
+#>         type fragmentId
+#> 1  fragments          0
+#> 2  fragments          1
+#> 3  fragments          2
+#> 4  fragments          3
+#> 5  fragments          4
+#> 6  fragments          5
+#> 7  fragments          6
+#> 8     losses         NA
+#> 9     losses         NA
+#> 10    losses         NA
+#> 11    losses         NA
+#> 12    losses         NA
+#> 13    losses         NA
+#> 14 fragments          0
+#> 15 fragments          1
+#> 16 fragments          2
+#> 17 fragments          3
+#> 18 fragments          4
+#> 19 fragments          5
+#> 20    losses         NA
+#> 21    losses         NA
+#> 22    losses         NA
+#> 23    losses         NA
+#> 24    losses         NA
+#> 25 fragments          0
+#> 26 fragments          1
+#> 27    losses         NA
+#> 28 fragments          0
+#> 29 fragments          1
+#> 30    losses         NA
+#>    molecularFormula_fragment
+#> 1                  C4H9FN2O3
+#> 2                  C4H7FN2O2
+#> 3                   C3H8FNO2
+#> 4                     H6N2O2
+#> 5                     CH5FNO
+#> 6                        CO3
+#> 7                      CH5FO
+#> 8                        H2O
+#> 9                       CHNO
+#> 10                      C4HF
+#> 11                    C3H2NO
+#> 12                   C3H9FN2
+#> 13                   C3H2N2O
+#> 14                  C4H6FNO3
+#> 15                  C4H4FNO2
+#> 16                   C3H5FO2
+#> 17                       CO3
+#> 18                     H3NO2
+#> 19                     CH2FO
+#> 20                       H2O
+#> 21                      CHNO
+#> 22                    C3H6FN
+#> 23                      C4HF
+#> 24                    C3H2NO
+#> 25                    C7H14O
+#> 26                     C7H12
+#> 27                       H2O
+#> 28                  C7H8N2O2
+#> 29                    C6H7NO
+#> 30                      CHNO
+#>    adduct_fragment
+#> 1         [M + H]+
+#> 2         [M + H]+
+#> 3         [M + H]+
+#> 4         [M + H]+
+#> 5         [M + H]+
+#> 6         [M + H]+
+#> 7         [M + H]+
+#> 8             <NA>
+#> 9             <NA>
+#> 10            <NA>
+#> 11            <NA>
+#> 12            <NA>
+#> 13            <NA>
+#> 14  [M + H3N + H]+
+#> 15  [M + H3N + H]+
+#> 16  [M + H3N + H]+
+#> 17        [M + H]+
+#> 18  [M + H3N + H]+
+#> 19  [M + H3N + H]+
+#> 20            <NA>
+#> 21            <NA>
+#> 22            <NA>
+#> 23            <NA>
+#> 24            <NA>
+#> 25        [M + K]+
+#> 26        [M + K]+
+#> 27            <NA>
+#> 28        [M + H]+
+#> 29        [M + H]+
+#> 30            <NA>
+#>    massDeviationDa
+#> 1    -1.094110e-03
+#> 2     1.886956e-03
+#> 3    -1.521303e-03
+#> 4     3.332253e-04
+#> 5     1.373113e-03
+#> 6    -5.499752e-04
+#> 7     1.631866e-03
+#> 8               NA
+#> 9               NA
+#> 10              NA
+#> 11              NA
+#> 12              NA
+#> 13              NA
+#> 14   -1.094110e-03
+#> 15    1.886956e-03
+#> 16   -1.521303e-03
+#> 17   -5.499752e-04
+#> 18    3.332253e-04
+#> 19    1.373113e-03
+#> 20              NA
+#> 21              NA
+#> 22              NA
+#> 23              NA
+#> 24              NA
+#> 25   -1.720458e-03
+#> 26    1.260608e-03
+#> 27              NA
+#> 28    4.876187e-05
+#> 29   -3.784309e-04
+#> 30              NA
+#>    massDeviationPpm     score
+#> 1        -7.1479677  1.819346
+#> 2        13.9714141  7.058971
+#> 3       -13.8225289  4.258650
+#> 4         4.9697631  4.758526
+#> 5        20.4807207  6.926701
+#> 6        -9.0172474  5.019691
+#> 7        30.7659256  7.041774
+#> 8                NA  6.849474
+#> 9                NA  3.672010
+#> 10               NA  2.902315
+#> 11               NA  3.577534
+#> 12               NA  3.314685
+#> 13               NA  5.770656
+#> 14       -7.1479677  1.819346
+#> 15       13.9714141 12.829627
+#> 16      -13.8225289  4.258650
+#> 17       -9.0172474  5.019691
+#> 18        4.9697631  4.758526
+#> 19       20.4807207  6.926701
+#> 20               NA 12.620130
+#> 21               NA  3.672010
+#> 22               NA  3.314685
+#> 23               NA  2.902315
+#> 24               NA  3.577534
+#> 25      -11.2399829  3.557526
+#> 26        9.3338027  7.778944
+#> 27               NA  7.569447
+#> 28        0.3185678  4.443024
+#> 29       -3.4384156  4.580095
+#> 30               NA  3.993454
+#>      intensity        mz
+#> 1  0.051592892 153.06590
+#> 2  0.535645687 135.05832
+#> 3  0.003872357 110.05966
+#> 4  0.001187399  67.05054
+#> 5  0.121864569  67.04417
+#> 6  0.003774877  60.99147
+#> 7  0.133356745  53.04135
+#> 8           NA        NA
+#> 9           NA        NA
+#> 10          NA        NA
+#> 11          NA        NA
+#> 12          NA        NA
+#> 13          NA        NA
+#> 14 0.051592892 153.06590
+#> 15 0.535645687 135.05832
+#> 16 0.003872357 110.05966
+#> 17 0.003774877  60.99147
+#> 18 0.001187399  67.05054
+#> 19 0.121864569  67.04417
+#> 20          NA        NA
+#> 21          NA        NA
+#> 22          NA        NA
+#> 23          NA        NA
+#> 24          NA        NA
+#> 25 0.051592892 153.06590
+#> 26 0.535645687 135.05832
+#> 27          NA        NA
+#> 28 0.051592892 153.06590
+#> 29 0.003872357 110.05966
+#> 30          NA        NA
+#>    sourceFragmentIdx
+#> 1                 NA
+#> 2                 NA
+#> 3                 NA
+#> 4                 NA
+#> 5                 NA
+#> 6                 NA
+#> 7                 NA
+#> 8                  0
+#> 9                  0
+#> 10                 1
+#> 11                 1
+#> 12                 0
+#> 13                 1
+#> 14                NA
+#> 15                NA
+#> 16                NA
+#> 17                NA
+#> 18                NA
+#> 19                NA
+#> 20                 0
+#> 21                 0
+#> 22                 0
+#> 23                 1
+#> 24                 1
+#> 25                NA
+#> 26                NA
+#> 27                 0
+#> 28                NA
+#> 29                NA
+#> 30                 0
+#>    targetFragmentIdx
+#> 1                 NA
+#> 2                 NA
+#> 3                 NA
+#> 4                 NA
+#> 5                 NA
+#> 6                 NA
+#> 7                 NA
+#> 8                  1
+#> 9                  2
+#> 10                 3
+#> 11                 4
+#> 12                 5
+#> 13                 6
+#> 14                NA
+#> 15                NA
+#> 16                NA
+#> 17                NA
+#> 18                NA
+#> 19                NA
+#> 20                 1
+#> 21                 2
+#> 22                 3
+#> 23                 4
+#> 24                 5
+#> 25                NA
+#> 26                NA
+#> 27                 1
+#> 28                NA
+#> 29                NA
+#> 30                 1
 ```
 
 ## Submit job to Sirius - For De Novo structure annotation.
@@ -365,14 +3714,16 @@ head(resulttree)
 *De novo* structure annotation is computationally intensive and recommended only
 for specific features.
 
-```{r}
+
+``` r
 # Determine features that do not have/have poor structure prediction
 fts_denovo <-summarytb$alignedFeatureId[which(
     summarytb$confidenceApproxMatch < 0.3 |
         summarytb$confidenceApproxMatch %in% c("NA", "-Infinity"))]
 ```
 
-```{r}
+
+``` r
 # Compute with zodiac and denovo
 job_id <- run(srs,
     msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
@@ -383,24 +3734,587 @@ job_id <- run(srs,
 
 ## Get info for the job
 jobInfo(srs, job_id) |> cat()
+#> Job ID: 2
+#>
+#> Command:
+#> --FormulaSettings.fallback=S
+#> --FormulaSearchSettings.applyFormulaConstraintsToBottomUp=false
+#> --IsotopeSettings.filter=true
+#> --UseHeuristic.useOnlyHeuristicAboveMz=650
+#> --InjectSpectralLibraryMatchFormulas.minScoreToInject=0.7
+#> --FormulaSearchDB=
+#> --InjectSpectralLibraryMatchFormulas.minPeakMatchesToInject=6
+#> --FormulaSettings.enforced=HCNOP
+#> --InjectSpectralLibraryMatchFormulas.injectFormulas=true
+#> --AdductSettings.detectable=[M+H3N+H]+,[M-H4O2+H]+,[M-H2O-H]-,[M-H3N-H]-,[M+Cl]-,[2M+K]+,[M+K]+,[2M+Cl]-,[M+C2H4O2-H]-,[M+H]+,[2M+H]+,[M-CH3-H]-,[M-H]-,[M+Na]+,[M-H2O+H]+
+#> --RecomputeResults=false
+#> --FormulaResultThreshold=true
+#> --InjectSpectralLibraryMatchFormulas.alwaysPredict=false
+#> --UseHeuristic.useHeuristicAboveMz=300
+#> --IsotopeMs2Settings=IGNORE
+#> --MS2MassDeviation.allowedMassDeviation=10.0ppm
+#> --FormulaSearchSettings.applyFormulaConstraintsToDatabaseCandidates=false
+#> --EnforceElGordoFormula=true
+#> --NumberOfCandidatesPerIonization=1
+#> --FormulaSettings.detectable=B,S,Cl,Se,Br
+#> --AdductSettings.fallback=[M+H]+,[M-H]-,[M+Na]+,[M+K]+
+#> --NumberOfCandidates=10
+#> --FormulaSearchSettings.performBottomUpAboveMz=0.0
+#> --NumberOfMsNovelistCandidates=5
+#> formulas
+#> fingerprints
+#> classes
+#> denovo-structures
+#>
+#> Progress:
+#>    State: DONE
+#>    Current Progress: 57100
+#>    Max Progress: 57100
+#>
+#> Affected Compound IDs:
+#>    819205328450128305, 819205328450128304, 819205328450128303, 819205328450128302, 819205328450128301, 819205328450128300, 819205328450128299, 819205328450128298, 819205328450128297, 819205328450128296, 819205328450128295, 819205328450128294, 819205328450128293, 819205328450128292, 819205328450128291, 819205328450128290, 819205328450128289, 819205328450128288, 819205328445933983, 819205328445933982, 819205328445933981, 819205328445933980, 819205328445933979, 819205328445933978, 819205328445933977, 819205328445933976, 819205328445933975, 819205328445933974, 819205328445933973, 819205328445933972, 819205328445933971, 819205328445933970, 819205328445933969, 819205328445933968, 819205328445933967, 819205328445933966, 819205328445933965, 819205328445933964, 819205328445933963, 819205328445933962, 819205328445933961, 819205328445933960, 819205328445933959, 819205328445933958, 819205328445933957, 819205328445933956, 819205328445933955, 819205328445933954, 819205328445933953, 819205328445933952, 819205328445933951, 819205328445933950, 819205328445933949, 819205328445933948, 819205328445933947, 819205328445933946, 819205328445933945, 819205328445933944, 819205328445933943, 819205328445933942, 819205328445933941, 819205328445933940, 819205328445933939, 819205328445933938, 819205328445933937, 819205328445933936, 819205328445933935, 819205328445933934, 819205328445933933, 819205328445933932, 819205328445933931, 819205328445933930, 819205328445933929, 819205328445933928, 819205328445933927, 819205328445933926, 819205328445933925, 819205328445933924, 819205328445933923, 819205328445933922, 819205328445933921, 819205328445933920, 819205328445933919, 819205328445933918, 819205328445933917, 819205328445933916, 819205328445933915, 819205328445933914, 819205328445933913, 819205328445933912, 819205328445933911, 819205328445933910, 819205328445933909, 819205328445933908, 819205328445933907, 819205328445933906, 819205328445933905, 819205328445933904, 819205328445933903, 819205328445933902, 819205328445933901, 819205328445933900, 819205328445933899, 819205328445933898, 819205328445933897, 819205328445933896, 819205328445933895, 819205328445933894, 819205328445933893, 819205328445933892, 819205328445933891, 819205328445933890, 819205328445933889, 819205328445933888
+#>
+#> Affected Aligned Feature IDs:
+#> 819205329515481635
+#> 819205329511287330
+#> 819205329511287329
+#> 819205329502898720
+#> 819205329502898719
+#> 819205329502898718
+#> 819205329502898717
+#> 819205329498704412
+#> 819205329498704411
+#> 819205329498704410
+#> 819205329498704409
+#> 819205329494510104
+#> 819205329494510103
+#> 819205329490315798
+#> 819205329486121493
+#> 819205329486121492
+#> 819205329481927187
+#> 819205329481927186
+#> 819205329477732881
+#> 819205329473538576
+#> 819205329469344271
+#> 819205329465149966
+#> 819205329465149965
+#> 819205329456761356
+#> 819205329456761355
+#> 819205329452567050
+#> 819205329448372745
+#> 819205329448372744
+#> 819205329444178439
+#> 819205329444178438
+#> 819205329439984133
+#> 819205329439984132
+#> 819205329435789827
+#> 819205329435789826
+#> 819205329431595521
+#> 819205329427401216
+#> 819205329427401215
+#> 819205329423206910
+#> 819205329423206909
+#> 819205329419012604
+#> 819205329414818299
+#> 819205329414818298
+#> 819205329410623993
+#> 819205329406429688
+#> 819205329402235383
+#> 819205329393846774
+#> 819205329393846773
+#> 819205329389652468
+#> 819205329385458163
+#> 819205329381263858
+#> 819205329372875249
+#> 819205329372875248
+#> 819205329368680943
+#> 819205329326737902
+#> 819205329322543597
+#> 819205329318349292
+#> 819205329301572075
+#> 819205329297377770
+#> 819205329293183465
+#> 819205329259629032
+#> 819205329255434727
+#> 819205329251240422
+#> 819205329247046117
+#> 819205329242851812
+#> 819205329242851811
+#> 819205329238657506
+#> 819205329234463201
+#> 819205329230268896
+#> 819205329230268895
+#> 819205329226074590
+#> 819205329213491677
+#> 819205329209297372
+#> 819205329200908763
+#> 819205329179937242
+#> 819205329179937241
+#> 819205329175742936
+#> 819205329175742935
+#> 819205329171548630
+#> 819205329167354325
+#> 819205329163160020
+#> 819205329117022675
+#> 819205329112828370
+#> 819205329108634065
+#> 819205329108634064
+#> 819205329096051151
+#> 819205329096051150
+#> 819205329096051149
+#> 819205329091856844
+#> 819205329087662539
+#> 819205329079273930
+#> 819205329075079625
+#> 819205329066691016
+#> 819205329058302407
+#> 819205329054108102
+#> 819205329041525189
+#> 819205329028942276
+#> 819205329012165059
+#> 819205328995387842
+#> 819205328982804929
+#> 819205328970222016
+#> 819205328932473279
+#> 819205328919890366
+#> 819205328903113149
+#> 819205328886335932
+#> 819205328869558715
+#> 819205328861170106
+#> 819205328844392889
+#> 819205328831809976
+#> 819205328810838455
+#> 819205328798255542
+#> 819205328781478325
+#> 819205328735340980
+#> 819205328718563763
+#> 819205328622094770
 ```
 
 ## Retrieve results
 
-```{r}
+
+``` r
 summraryDeNovo <- summary(srs, result.type = "deNovo")
 head(summraryDeNovo)
+#>     alignedFeatureId
+#> 1 819205328622094770
+#> 2 819205328718563763
+#> 3 819205328735340980
+#> 4 819205328781478325
+#> 5 819205328798255542
+#> 6 819205328810838455
+#>           compoundId
+#> 1 819205328445933888
+#> 2 819205328445933889
+#> 3 819205328445933890
+#> 4 819205328445933891
+#> 5 819205328445933892
+#> 6 819205328445933893
+#>   externalFeatureId  ionMass
+#> 1             CP001   0.0000
+#> 2             CP002   0.0000
+#> 3             CP003 220.0975
+#> 4             CP004 219.0932
+#> 5             CP005 153.0656
+#> 6             CP006 235.1442
+#>   charge hasMs1 hasMsMs
+#> 1      1   TRUE   FALSE
+#> 2      1   TRUE   FALSE
+#> 3      1   TRUE    TRUE
+#> 4      1   TRUE    TRUE
+#> 5      1   TRUE    TRUE
+#> 6      1   TRUE    TRUE
+#>            formulaId
+#> 1 819205523682397402
+#> 2 819205528308714745
+#> 3 819205520754773184
+#> 4 819205514274573431
+#> 5 819205517835537576
+#> 6 819205510843632741
+#>   molecularFormula   adduct
+#> 1        C6H12N6O3 [M + H]+
+#> 2         C10H16O5 [M + H]+
+#> 3        C10H10FN5 [M + H]+
+#> 4        C12H14N2S [M + H]+
+#> 5        C4H9FN2O3 [M + H]+
+#> 6      C10H19FN2O3 [M + H]+
+#>   rank siriusScoreNormalized
+#> 1    1            0.08222814
+#> 2    1            0.07231049
+#> 3    2            0.09484521
+#> 4    1            0.94680986
+#> 5    1            0.49999999
+#> 6    1            0.99585317
+#>   siriusScore isotopeScore
+#> 1    0.000000     0.000000
+#> 2    0.000000     0.000000
+#> 3    6.372408     0.000000
+#> 4   48.071033     0.000000
+#> 5   27.906019     1.966055
+#> 6   27.272863     4.595855
+#>   treeScore        formulaId.1
+#> 1  0.000000 819205523682397402
+#> 2  0.000000 819205528308714745
+#> 3  6.372408 819205520754773184
+#> 4 48.071033 819205514274573431
+#> 5 25.939964 819205517835537576
+#> 6 22.677008 819205510843632741
+#>   molecularFormula.1 adduct.1
+#> 1          C6H12N6O3 [M + H]+
+#> 2           C10H16O5 [M + H]+
+#> 3          C10H10FN5 [M + H]+
+#> 4          C12H14N2S [M + H]+
+#> 5          C4H9FN2O3 [M + H]+
+#> 6        C10H19FN2O3 [M + H]+
+#>   rank.1
+#> 1      1
+#> 2      1
+#> 3      1
+#> 4      1
+#> 5      1
+#> 6      1
+#>   siriusScoreNormalized.1
+#> 1              0.08222814
+#> 2              0.07231049
+#> 3              0.09484521
+#> 4              0.94680986
+#> 5              0.49999999
+#> 6              0.99585317
+#>   siriusScore.1 isotopeScore.1
+#> 1      0.000000       0.000000
+#> 2      0.000000       0.000000
+#> 3      6.372408       0.000000
+#> 4     48.071033       0.000000
+#> 5     27.906019       1.966055
+#> 6     27.272863       4.595855
+#>   treeScore.1 computing
+#> 1    0.000000     FALSE
+#> 2    0.000000     FALSE
+#> 3    6.372408     FALSE
+#> 4   48.071033     FALSE
+#> 5   25.939964     FALSE
+#> 6   22.677008     FALSE
+#>         inchiKey
+#> 1           <NA>
+#> 2           <NA>
+#> 3 JZOXOBXBBIFYSC
+#> 4 UUVNICFMINSQCH
+#> 5 OKHHVSOXIKKYPM
+#> 6 FLEAFHNQGJZFAF
+#>                      smiles
+#> 1                      <NA>
+#> 2                      <NA>
+#> 3  Cc1ccc(Nc2ncnc(N)n2)cc1F
+#> 4   Cc1csc(Nc2c(C)cccc2C)n1
+#> 5             O=C(F)NCNCCOO
+#> 6 O=C(NC1CCCCC1)NC(O)(O)CCF
+#>   xlogP   csiScore
+#> 1    NA         NA
+#> 2    NA         NA
+#> 3     0  -90.94557
+#> 4     0  -53.58922
+#> 5     0 -102.35347
+#> 6     0 -155.98293
+#>   tanimotoSimilarity type
+#> 1                 NA <NA>
+#> 2                 NA <NA>
+#> 3          0.5194805  NPC
+#> 4          0.6447368  NPC
+#> 5          0.3205128  NPC
+#> 6          0.7200000  NPC
+#>     level levelIndex
+#> 1    <NA>         NA
+#> 2    <NA>         NA
+#> 3 PATHWAY          0
+#> 4 PATHWAY          0
+#> 5 PATHWAY          0
+#> 6 PATHWAY          0
+#>                       name
+#> 1                     <NA>
+#> 2                     <NA>
+#> 3                Alkaloids
+#> 4                Alkaloids
+#> 5 Amino acids and Peptides
+#> 6                Alkaloids
+#>                         description
+#> 1                              <NA>
+#> 2                              <NA>
+#> 3                Pathway: Alkaloids
+#> 4                Pathway: Alkaloids
+#> 5 Pathway: Amino acids and Peptides
+#> 6                Pathway: Alkaloids
+#>   id probability index type.1
+#> 1 NA          NA    NA   <NA>
+#> 2 NA          NA    NA   <NA>
+#> 3  0   0.8597484     0    NPC
+#> 4  0   0.6377908     0    NPC
+#> 5  1   0.1932061     1    NPC
+#> 6  0   0.2922554     0    NPC
+#>      level.1 levelIndex.1
+#> 1       <NA>           NA
+#> 2       <NA>           NA
+#> 3 SUPERCLASS            1
+#> 4 SUPERCLASS            1
+#> 5 SUPERCLASS            1
+#> 6 SUPERCLASS            1
+#>                             name.1
+#> 1                             <NA>
+#> 2                             <NA>
+#> 3 Pseudoalkaloids (transamidation)
+#> 4             Tryptophan alkaloids
+#> 5                   Small peptides
+#> 6 Pseudoalkaloids (transamidation)
+#>                                  description.1
+#> 1                                         <NA>
+#> 2                                         <NA>
+#> 3 Superclass: Pseudoalkaloids (transamidation)
+#> 4             Superclass: Tryptophan alkaloids
+#> 5                   Superclass: Small peptides
+#> 6 Superclass: Pseudoalkaloids (transamidation)
+#>   id.1 probability.1 index.1
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3   59    0.14546104      59
+#> 4   72    0.08722231      72
+#> 5   63    0.28825998      63
+#> 6   59    0.32983977      59
+#>   type.2 level.2 levelIndex.2
+#> 1   <NA>    <NA>           NA
+#> 2   <NA>    <NA>           NA
+#> 3    NPC   CLASS            2
+#> 4    NPC   CLASS            2
+#> 5    NPC   CLASS            2
+#> 6    NPC   CLASS            2
+#>               name.2
+#> 1               <NA>
+#> 2               <NA>
+#> 3   Purine alkaloids
+#> 4 Pyridine alkaloids
+#> 5         Aminoacids
+#> 6   Purine alkaloids
+#>               description.2
+#> 1                      <NA>
+#> 2                      <NA>
+#> 3   Class: Purine alkaloids
+#> 4 Class: Pyridine alkaloids
+#> 5         Class: Aminoacids
+#> 6   Class: Purine alkaloids
+#>   id.2 probability.2 index.2
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3  597    0.06170827     597
+#> 4  602    0.05239901     602
+#> 5  109    0.42593104     109
+#> 6  597    0.13299610     597
+#>   rank.2     inchiKey.1
+#> 1     NA           <NA>
+#> 2     NA           <NA>
+#> 3      2 JZOXOBXBBIFYSC
+#> 4      1 UUVNICFMINSQCH
+#> 5      1 OKHHVSOXIKKYPM
+#> 6      1 FLEAFHNQGJZFAF
+#>                    smiles.1
+#> 1                      <NA>
+#> 2                      <NA>
+#> 3  Cc1ccc(Nc2ncnc(N)n2)cc1F
+#> 4   Cc1csc(Nc2c(C)cccc2C)n1
+#> 5             O=C(F)NCNCCOO
+#> 6 O=C(NC1CCCCC1)NC(O)(O)CCF
+#>   xlogP.1 rank.3 csiScore.1
+#> 1      NA     NA         NA
+#> 2      NA     NA         NA
+#> 3       0      1  -90.94557
+#> 4       0      1  -53.58922
+#> 5       0      1 -102.35347
+#> 6       0      1 -155.98293
+#>   tanimotoSimilarity.1 type.3
+#> 1                   NA   <NA>
+#> 2                   NA   <NA>
+#> 3            0.5194805    NPC
+#> 4            0.6447368    NPC
+#> 5            0.3205128    NPC
+#> 6            0.7200000    NPC
+#>   level.3 levelIndex.3
+#> 1    <NA>           NA
+#> 2    <NA>           NA
+#> 3 PATHWAY            0
+#> 4 PATHWAY            0
+#> 5 PATHWAY            0
+#> 6 PATHWAY            0
+#>                     name.3
+#> 1                     <NA>
+#> 2                     <NA>
+#> 3                Alkaloids
+#> 4                Alkaloids
+#> 5 Amino acids and Peptides
+#> 6                Alkaloids
+#>                       description.3
+#> 1                              <NA>
+#> 2                              <NA>
+#> 3                Pathway: Alkaloids
+#> 4                Pathway: Alkaloids
+#> 5 Pathway: Amino acids and Peptides
+#> 6                Pathway: Alkaloids
+#>   id.3 probability.3 index.3
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3    0     0.8597484       0
+#> 4    0     0.6377908       0
+#> 5    1     0.1932061       1
+#> 6    0     0.2922554       0
+#>   type.4    level.4
+#> 1   <NA>       <NA>
+#> 2   <NA>       <NA>
+#> 3    NPC SUPERCLASS
+#> 4    NPC SUPERCLASS
+#> 5    NPC SUPERCLASS
+#> 6    NPC SUPERCLASS
+#>   levelIndex.4
+#> 1           NA
+#> 2           NA
+#> 3            1
+#> 4            1
+#> 5            1
+#> 6            1
+#>                             name.4
+#> 1                             <NA>
+#> 2                             <NA>
+#> 3 Pseudoalkaloids (transamidation)
+#> 4             Tryptophan alkaloids
+#> 5                   Small peptides
+#> 6 Pseudoalkaloids (transamidation)
+#>                                  description.4
+#> 1                                         <NA>
+#> 2                                         <NA>
+#> 3 Superclass: Pseudoalkaloids (transamidation)
+#> 4             Superclass: Tryptophan alkaloids
+#> 5                   Superclass: Small peptides
+#> 6 Superclass: Pseudoalkaloids (transamidation)
+#>   id.4 probability.4 index.4
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3   59    0.14546104      59
+#> 4   72    0.08722231      72
+#> 5   63    0.28825998      63
+#> 6   59    0.32983977      59
+#>   type.5 level.5 levelIndex.5
+#> 1   <NA>    <NA>           NA
+#> 2   <NA>    <NA>           NA
+#> 3    NPC   CLASS            2
+#> 4    NPC   CLASS            2
+#> 5    NPC   CLASS            2
+#> 6    NPC   CLASS            2
+#>               name.5
+#> 1               <NA>
+#> 2               <NA>
+#> 3   Purine alkaloids
+#> 4 Pyridine alkaloids
+#> 5         Aminoacids
+#> 6   Purine alkaloids
+#>               description.5
+#> 1                      <NA>
+#> 2                      <NA>
+#> 3   Class: Purine alkaloids
+#> 4 Class: Pyridine alkaloids
+#> 5         Class: Aminoacids
+#> 6   Class: Purine alkaloids
+#>   id.5 probability.5 index.5
+#> 1   NA            NA      NA
+#> 2   NA            NA      NA
+#> 3  597    0.06170827     597
+#> 4  602    0.05239901     602
+#> 5  109    0.42593104     109
+#> 6  597    0.13299610     597
+#>   structureName
+#> 1          <NA>
+#> 2          <NA>
+#> 3          <NA>
+#> 4          <NA>
+#> 5          <NA>
+#> 6          <NA>
+#>   structureName.1
+#> 1            <NA>
+#> 2            <NA>
+#> 3            <NA>
+#> 4            <NA>
+#> 5            <NA>
+#> 6            <NA>
 ```
 
 Below is the full results.
 
-```{r}
+
+``` r
 full_de_novo <- results(srs,
                         return.type = "data.frame",
                         result.type = "deNovo",
                         topFormula = 5)
 
 head(full_de_novo)
+#>            formulaId
+#> 1 819205523682397402
+#> 2 819205523682397403
+#> 3 819205523682397404
+#> 4 819205523682397405
+#> 5 819205523682397406
+#> 6 819205528308714745
+#>   molecularFormula    adduct
+#> 1        C6H12N6O3  [M + H]+
+#> 2        C8H15F3O3  [M + H]+
+#> 3          C8H18O5 [M + Na]+
+#> 4         C9H14N4O [M + Na]+
+#> 5        C6H18N4O2  [M + K]+
+#> 6         C10H16O5  [M + H]+
+#>   rank siriusScoreNormalized
+#> 1    1            0.08222814
+#> 2    2            0.08222814
+#> 3    3            0.08222814
+#> 4    4            0.08222814
+#> 5    5            0.08222814
+#> 6    1            0.07231049
+#>   siriusScore isotopeScore
+#> 1           0            0
+#> 2           0            0
+#> 3           0            0
+#> 4           0            0
+#> 5           0            0
+#> 6           0            0
+#>   treeScore xcms_fts
+#> 1         0    CP001
+#> 2         0    CP001
+#> 3         0    CP001
+#> 4         0    CP001
+#> 5         0    CP001
+#> 6         0    CP002
+#>           sirius_fts rank.x
+#> 1 819205328622094770     NA
+#> 2 819205328622094770     NA
+#> 3 819205328622094770     NA
+#> 4 819205328622094770     NA
+#> 5 819205328622094770     NA
+#> 6 819205328718563763     NA
+#>   inchiKey smiles xlogP rank.y
+#> 1     <NA>   <NA>    NA     NA
+#> 2     <NA>   <NA>    NA     NA
+#> 3     <NA>   <NA>    NA     NA
+#> 4     <NA>   <NA>    NA     NA
+#> 5     <NA>   <NA>    NA     NA
+#> 6     <NA>   <NA>    NA     NA
+#>   csiScore tanimotoSimilarity
+#> 1       NA                 NA
+#> 2       NA                 NA
+#> 3       NA                 NA
+#> 4       NA                 NA
+#> 5       NA                 NA
+#> 6       NA                 NA
+#>   structureName
+#> 1          <NA>
+#> 2          <NA>
+#> 3          <NA>
+#> 4          <NA>
+#> 5          <NA>
+#> 6          <NA>
 ```
 
 ## Setting a Known Molecular Formula
@@ -413,7 +4327,8 @@ for a known compound rather than performing an open search.
 Use the `candidateFormulas` parameter of `formulaIdParam()` together with
 `enforceAdducts` to lock in both the formula and adduct:
 
-```{r}
+
+``` r
 # Select a feature with MS2 data (e.g. Carbaryl, [M+H]+ at m/z ~220.10)
 fi <- featuresInfo(srs)
 target_ft <- fi[fi[, "hasMsMs"] == TRUE, "alignedFeatureId"][[1]]
@@ -432,7 +4347,8 @@ job_id <- run(srs,
 You can also supply multiple candidate formulas if you want to compare a small
 set of possibilities:
 
-```{r}
+
+``` r
 job_id <- run(srs,
               alignedFeaturesIds = target_ft,
               enforceAdducts = "[M+H]+",
@@ -446,12 +4362,25 @@ job_id <- run(srs,
 After the job completes, retrieve the formula results and fragmentation tree as
 usual:
 
-```{r}
+
+``` r
 # Formula results - should only contain the specified candidate(s)
 results(srs,
         features = target_ft,
         result.type = "formulaId",
         return.type = "data.frame")
+#>            formulaId
+#> 1 819207515184100003
+#>   molecularFormula   adduct
+#> 1        C12H13NO3 [M + H]+
+#>   rank siriusScoreNormalized
+#> 1    1                     1
+#>   siriusScore isotopeScore
+#> 1    7.239287            0
+#>   treeScore xcms_fts
+#> 1  7.239287    CP003
+#>           sirius_fts
+#> 1 819205328735340980
 
 # Fragmentation tree for the known formula
 results(srs,
@@ -459,20 +4388,248 @@ results(srs,
         result.type = "fragTree",
         topFormula = 1,
         return.type = "list")
+#> $`819205328735340980`
+#>            formulaId
+#> 1 819207515184100003
+#> 2 819207515184100003
+#> 3 819207515184100003
+#>   molecularFormula   adduct
+#> 1        C12H13NO3 [M + H]+
+#> 2        C12H13NO3 [M + H]+
+#> 3        C12H13NO3 [M + H]+
+#>   rank siriusScoreNormalized
+#> 1    1                     1
+#> 2    1                     1
+#> 3    1                     1
+#>   siriusScore isotopeScore
+#> 1    7.239287            0
+#> 2    7.239287            0
+#> 3    7.239287            0
+#>   treeScore xcms_fts      type
+#> 1  7.239287    CP003 fragments
+#> 2  7.239287    CP003 fragments
+#> 3  7.239287    CP003    losses
+#>   fragmentId
+#> 1          0
+#> 2          1
+#> 3         NA
+#>   molecularFormula_fragment
+#> 1                 C12H13NO3
+#> 2                    C10H9N
+#> 3                    C2H4O3
+#>   adduct_fragment
+#> 1        [M + H]+
+#> 2        [M + H]+
+#> 3            <NA>
+#>   massDeviationDa
+#> 1    9.891098e-04
+#> 2    9.584194e-05
+#> 3              NA
+#>   massDeviationPpm    score
+#> 1        4.4939557 1.574046
+#> 2        0.6651955 7.158566
+#> 3               NA 5.665241
+#>    intensity       mz
+#> 1 1.00000000 220.0978
+#> 2 0.06788801 144.0809
+#> 3         NA       NA
+#>   sourceFragmentIdx
+#> 1                NA
+#> 2                NA
+#> 3                 0
+#>   targetFragmentIdx
+#> 1                NA
+#> 2                NA
+#> 3                 1
 ```
 
 ## CleanUp
 
-```{r}
-#delete results
-file.remove(projectInfo(srs)$location)
-removeDb(srs, databaseId = "massbankeuCustom")
+
+``` r
 # Close the Sirius session
 shutdown(srs)
+#> Sirius was shut down successfully
 ```
 
-## Session info
+# Session information
 
-```{r}
+The R code was run on:
+
+
+``` r
+date()
+#> [1] "Tue Mar 10 14:58:15 2026"
+```
+
+Information on the R session:
+
+
+``` r
 sessionInfo()
+#> R version 4.5.2 (2025-10-31 ucrt)
+#> Platform: x86_64-w64-mingw32/x64
+#> Running under: Windows 11 x64 (build 26200)
+#>
+#> Matrix products: default
+#>   LAPACK version 3.12.1
+#>
+#> locale:
+#> [1] LC_COLLATE=English_United Kingdom.utf8
+#> [2] LC_CTYPE=English_United Kingdom.utf8
+#> [3] LC_MONETARY=English_United Kingdom.utf8
+#> [4] LC_NUMERIC=C
+#> [5] LC_TIME=English_United Kingdom.utf8
+#>
+#> time zone: Europe/Paris
+#> tzcode source: internal
+#>
+#> attached base packages:
+#> [1] stats4    stats
+#> [3] graphics  grDevices
+#> [5] utils     datasets
+#> [7] methods   base
+#>
+#> other attached packages:
+#>  [1] MsDataHub_1.10.0
+#>  [2] dplyr_1.2.0
+#>  [3] RuSirius_0.2.5
+#>  [4] jsonlite_2.0.0
+#>  [5] MetaboAnnotation_1.14.0
+#>  [6] RSirius_6.3.3
+#>  [7] xcms_4.8.0
+#>  [8] MsExperiment_1.12.0
+#>  [9] ProtGenerics_1.42.0
+#> [10] Spectra_1.20.1
+#> [11] BiocParallel_1.44.0
+#> [12] S4Vectors_0.48.0
+#> [13] BiocGenerics_0.56.0
+#> [14] generics_0.1.4
+#>
+#> loaded via a namespace (and not attached):
+#>   [1] RColorBrewer_1.1-3
+#>   [2] MultiAssayExperiment_1.36.1
+#>   [3] magrittr_2.0.4
+#>   [4] farver_2.1.2
+#>   [5] MALDIquant_1.22.3
+#>   [6] fs_1.6.6
+#>   [7] vctrs_0.7.1
+#>   [8] memoise_2.0.1
+#>   [9] RCurl_1.98-1.17
+#>  [10] base64enc_0.1-6
+#>  [11] htmltools_0.5.9
+#>  [12] S4Arrays_1.10.1
+#>  [13] BiocBaseUtils_1.12.0
+#>  [14] progress_1.2.3
+#>  [15] curl_7.0.0
+#>  [16] AnnotationHub_4.0.0
+#>  [17] SparseArray_1.10.8
+#>  [18] mzID_1.48.0
+#>  [19] htmlwidgets_1.6.4
+#>  [20] plyr_1.8.9
+#>  [21] httr2_1.2.2
+#>  [22] impute_1.84.0
+#>  [23] cachem_1.1.0
+#>  [24] igraph_2.2.2
+#>  [25] lifecycle_1.0.5
+#>  [26] iterators_1.0.14
+#>  [27] pkgconfig_2.0.3
+#>  [28] Matrix_1.7-4
+#>  [29] R6_2.6.1
+#>  [30] fastmap_1.2.0
+#>  [31] MatrixGenerics_1.22.0
+#>  [32] clue_0.3-67
+#>  [33] digest_0.6.39
+#>  [34] pcaMethods_2.2.0
+#>  [35] rsvg_2.7.0
+#>  [36] ps_1.9.1
+#>  [37] AnnotationDbi_1.72.0
+#>  [38] ExperimentHub_3.0.0
+#>  [39] GenomicRanges_1.62.1
+#>  [40] RSQLite_2.4.6
+#>  [41] filelock_1.0.3
+#>  [42] httr_1.4.8
+#>  [43] abind_1.4-8
+#>  [44] compiler_4.5.2
+#>  [45] withr_3.0.2
+#>  [46] bit64_4.6.0-1
+#>  [47] doParallel_1.0.17
+#>  [48] S7_0.2.1
+#>  [49] DBI_1.2.3
+#>  [50] MASS_7.3-65
+#>  [51] ChemmineR_3.62.0
+#>  [52] rappdirs_0.3.4
+#>  [53] DelayedArray_0.36.0
+#>  [54] rjson_0.2.23
+#>  [55] mzR_2.44.0
+#>  [56] tools_4.5.2
+#>  [57] PSMatch_1.14.0
+#>  [58] otel_0.2.0
+#>  [59] CompoundDb_1.14.2
+#>  [60] glue_1.8.0
+#>  [61] QFeatures_1.20.0
+#>  [62] grid_4.5.2
+#>  [63] cluster_2.1.8.1
+#>  [64] reshape2_1.4.5
+#>  [65] snow_0.4-4
+#>  [66] gtable_0.3.6
+#>  [67] preprocessCore_1.72.0
+#>  [68] tidyr_1.3.2
+#>  [69] data.table_1.18.2.1
+#>  [70] hms_1.1.4
+#>  [71] MetaboCoreUtils_1.19.2
+#>  [72] xml2_1.5.2
+#>  [73] XVector_0.50.0
+#>  [74] BiocVersion_3.22.0
+#>  [75] foreach_1.5.2
+#>  [76] pillar_1.11.1
+#>  [77] stringr_1.6.0
+#>  [78] limma_3.66.0
+#>  [79] BiocFileCache_3.0.0
+#>  [80] lattice_0.22-7
+#>  [81] bit_4.6.0
+#>  [82] tidyselect_1.2.1
+#>  [83] Biostrings_2.78.0
+#>  [84] knitr_1.51
+#>  [85] gridExtra_2.3
+#>  [86] IRanges_2.44.0
+#>  [87] Seqinfo_1.0.0
+#>  [88] SummarizedExperiment_1.40.0
+#>  [89] xfun_0.56
+#>  [90] Biobase_2.70.0
+#>  [91] statmod_1.5.1
+#>  [92] MSnbase_2.36.0
+#>  [93] matrixStats_1.5.0
+#>  [94] DT_0.34.0
+#>  [95] stringi_1.8.7
+#>  [96] yaml_2.3.12
+#>  [97] lazyeval_0.2.2
+#>  [98] evaluate_1.0.5
+#>  [99] codetools_0.2-20
+#> [100] MsCoreUtils_1.22.1
+#> [101] tibble_3.3.1
+#> [102] BiocManager_1.30.27
+#> [103] cli_3.6.5
+#> [104] affyio_1.80.0
+#> [105] processx_3.8.6
+#> [106] Rcpp_1.1.1
+#> [107] MassSpecWavelet_1.76.0
+#> [108] dbplyr_2.5.2
+#> [109] png_0.1-8
+#> [110] XML_3.99-0.22
+#> [111] parallel_4.5.2
+#> [112] ggplot2_4.0.2
+#> [113] blob_1.3.0
+#> [114] prettyunits_1.2.0
+#> [115] AnnotationFilter_1.34.0
+#> [116] bitops_1.0-9
+#> [117] MsFeatures_1.18.0
+#> [118] scales_1.4.0
+#> [119] affy_1.88.0
+#> [120] ncdf4_1.24
+#> [121] purrr_1.2.1
+#> [122] crayon_1.5.3
+#> [123] rlang_1.1.7
+#> [124] KEGGREST_1.50.0
+#> [125] vsn_3.78.1
 ```

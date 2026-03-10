@@ -8,7 +8,7 @@ IMPORTANT: THIS IS ACTIVELY DEVELOPED.
 
 **RuSirius** (spelled R-U-Sirius (*are you serious*)) is an R package that
 provides an interface to the Sirius software, enabling seamless integration of
-**xcms** preprocessing results with Sirius.\ 
+**xcms** preprocessing results with Sirius.\
 It is built upon **RSirius**, the
 REST API library for the R programming language, which you can find
 [here](https://github.com/sirius-ms/sirius-client-openAPI/tree/master/client-api_r).
@@ -138,8 +138,9 @@ If you encounter other issues, please let us know so we can improve the package!
 
 A pre-built Docker image is available on Docker Hub, based on the official
 Bioconductor docker image `bioconductor/bioconductor_docker:RELEASE_3_22`. It
-includes *RuSirius*, all dependencies, and the Sirius 6.3 software (installed
-via conda).
+includes *RuSirius*, all dependencies, and Sirius 6.3.3 (downloaded directly
+from the official GitHub releases). The Sirius REST API starts automatically on
+port 9999 when the container launches.
 
 ### Pulling the image
 
@@ -166,14 +167,15 @@ docker run -it rformassspectrometry/rusirius:latest R
 
 ### Sirius login
 
-Vignettes and most package functions require an active Sirius session. After
-starting the container, log in from the R console:
+Sirius starts automatically inside the container on port 9999. Connect and log
+in from the R console:
 
 ``` r
 library(RuSirius)
 srs <- Sirius(projectId = "my_project",
               username = "your_email",
-              password = "your_password")
+              password = "your_password",
+              port = 9999)
 ```
 
 Note that Sirius requires a valid account — you can register for free at
@@ -187,8 +189,7 @@ If you prefer to build the image from source instead of pulling from Docker Hub:
 docker build -t rformassspectrometry/rusirius .
 ```
 
-This builds the image using the `Dockerfile` in the repository root. The build
-takes several minutes as it installs Miniconda, Sirius, and all R dependencies.
+This builds the image using the `Dockerfile` in the repository root.
 
 --------------------------------------------------------------------------------
 

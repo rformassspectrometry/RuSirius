@@ -22,10 +22,10 @@ library(RuSirius)
 
 ## Introduction
 
-**Note:** This vignette code is not evaluated during package checks as it 
+**Note:** This vignette code is not evaluated during package checks as it
 requires a running Sirius instance with completed computations.
 
-After running Sirius computations (see the "Importing Spectra" vignette), you 
+After running Sirius computations (see the "Importing Spectra" vignette), you
 can retrieve various types of results. RuSirius provides two main functions:
 
 - `summary()` - Quick overview of top results per feature
@@ -36,12 +36,12 @@ can retrieve various types of results. RuSirius provides two main functions:
 First, connect to an existing Sirius project that has completed computations:
 
 ```{r}
-srs <- Sirius(projectId = "my_analysis", path = getwd())
+srs <- Sirius(projectId = "my_analysis", path = getwd(), port = 9999)
 ```
 
 ## Quick Summary with `summary()`
- 
-The `summary()` function provides the top annotation for each feature. This is 
+
+The `summary()` function provides the top annotation for each feature. This is
 useful for a quick overview of your results.
 
 ### Formula Identification Summary
@@ -78,14 +78,14 @@ summary_spectral <- summary(srs, result.type = "spectralDbMatch")
 
 ## Detailed Results with `results()`
 
-The `results()` function returns multiple candidates per feature, giving you 
+The `results()` function returns multiple candidates per feature, giving you
 more options to explore.
 
 ### Formula Candidates
 
 ```{r}
 # Get top 5 formula candidates per feature
-formulas <- results(srs, 
+formulas <- results(srs,
                     result.type = "formulaId",
                     topFormula = 5,
                     return.type = "data.frame")
@@ -179,7 +179,7 @@ results_list[["feature_id_here"]]
 
 ## Mapping to Original IDs
 
-If you imported data from xcms, results include the original xcms feature IDs 
+If you imported data from xcms, results include the original xcms feature IDs
 in the `xcms_fts` column for easy mapping back to your original data.
 
 ```{r}
