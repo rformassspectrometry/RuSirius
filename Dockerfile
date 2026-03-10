@@ -3,43 +3,32 @@ FROM bioconductor/bioconductor_docker:RELEASE_3_22
 LABEL name="rformassspectrometry/rusirius" \
       url="https://github.com/rformassspectrometry/RuSirius" \
       maintainer="philippine.louail@eurac.edu" \
-      description="Docker container with RuSirius package environment. Note: Vignettes require Sirius login and cannot be run automatically." \
+      description="Docker container with RuSirius package and Sirius 6.3 for metabolite identification. Includes RStudio Server with all dependencies pre-installed. Sirius REST API starts automatically on port 9999." \
       license="Artistic-2.0"
 
 WORKDIR /home/rstudio
 
-# Copy the current directory to the container
-COPY --chown=rstudio:rstudio . /home/rstudio/
+## Copy package source (exclude scripts directory which is copied separately)
+COPY --chown=rstudio:rstudio --exclude=./scripts/* . /home/rstudio/
 
-# Install Miniconda
-RUN apt-get update && apt-get install -y curl && \
-    curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh && \
-    bash miniconda.sh -b -p /opt/conda && \
-    rm miniconda.sh && \
-    /opt/conda/bin/conda clean --all -y && \
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile && \
-    echo "conda activate base" >> ~/.bashrc
-
-# Accept conda ToS and configure to use only conda-forge
-RUN /opt/conda/bin/conda config --remove channels defaults || true && \
-    /opt/conda/bin/conda config --add channels conda-forge && \
-    /opt/conda/bin/conda config --set channel_priority strict
-
-# Use Conda to install r-sirius-ms (includes Sirius 6.3) from conda-forge only
-RUN /opt/conda/bin/conda install --override-channels -c conda-forge r-sirius-ms -y
-
-# Find and set Sirius path dynamically
-RUN SIRIUS_PATH=$(find /opt/conda/pkgs -maxdepth 1 -type d -name "sirius-ms-*" | head -1) && \
-    echo "export PATH=${SIRIUS_PATH}/bin:\${PATH}" >> /etc/profile.d/sirius.sh && \
-    echo "export PATH=${SIRIUS_PATH}/bin:\${PATH}" >> /home/rstudio/.bashrc
-
-
-# Install CI tools and the current package (vignettes not built - require Sirius login)
+## Install CI tools and the current package (vignettes not built - require Sirius login)
 RUN Rscript -e "install.packages(c('rcmdcheck', 'BiocCheck', 'sessioninfo'), repos = BiocManager::repositories())"
 RUN Rscript -e "devtools::install('.', dependencies = TRUE, type = 'source', build_vignettes = FALSE, repos = BiocManager::repositories())"
 
-# Note: To run vignettes interactively, start the container and log in to Sirius:
-# 1. docker run -it -p 8787:8787 rformassspectrometry/rusirius
-# 2. Open RStudio at http://localhost:8787
-# 3. In R: srs <- Sirius(username = "your_email", password = "your_password")
+## root user needed for rstudio server properly working
+USER root
+
+## Clean up
+RUN rm -rf /tmp/*
+
+## Install Sirius 6.3.3
+RUN wget -nv https://github.com/sirius-ms/sirius/releases/download/v6.3.3/sirius-6.3.3-linux-x64.zip && \
+    unzip sirius-*.zip && \
+    rm sirius-*.zip && \
+    chown -R rstudio:rstudio sirius && \
+    ln -s /home/rstudio/sirius/bin/sirius /usr/local/bin/sirius && \
+    echo "export PATH=/home/rstudio/sirius/bin:\$PATH" >> /home/rstudio/.bashrc
+
+## Copy Sirius init script (starts Sirius REST API on port 9999 at container startup)
+COPY ./scripts/sirius-init.sh /etc/cont-init.d/03_sirius
+RUN chmod a+x /etc/cont-init.d/03_sirius

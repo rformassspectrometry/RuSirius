@@ -11,11 +11,15 @@ vignette: >
     %\VignetteDepends{RSirius, RuSirius, MsDataHub, Spectra}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-```
+<!--
+# Pre-render with (in the vignettes folder)
+knitr::knit("CustomDatabases.Rmd.orig", output = "CustomDatabases.Rmd")
+-->
 
-```{r load-packages, message = FALSE}
+
+
+
+``` r
 library(RSirius)
 library(RuSirius)
 library(MsDataHub)
@@ -24,12 +28,16 @@ library(Spectra)
 
 ## Introduction
 
-**Note:** This vignette code is not evaluated during package checks as it 
-requires a running Sirius instance.
+**Note**: this vignette is
+[**pre-computed**](https://ropensci.org/blog/2019/12/08/precompute-vignettes/).
+See the session info for information on packages used and the date the vignette
+was rendered. The vignette requires a running
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
+reproduce this analysis, you will need Sirius 6.3 installed and running.
 
-Sirius can search against custom databases in addition to the built-in 
+Sirius can search against custom databases in addition to the built-in
 databases (BIO, PubChem, etc.). This is useful when you have:
- 
+
 - A list of suspect compounds specific to your study
 - A custom spectral library (e.g., from MassBank)
 - Target compounds you want to prioritize in the search
@@ -41,33 +49,119 @@ the impact on structure identification results.
 
 ### Listing Available Databases
 
-```{r}
-srs <- Sirius()
+
+``` r
+srs <- Sirius(port = 9999)
+#> Found SIRIUS in PATH! Using this information to start the application.
+#> SIRIUS was started without specifying --port (-p), trying to find the sirius.port file.
 
 # List all searchable databases
 dbs <- listDbs(srs)
 dbs[, c("databaseId", "displayName")]
+#>                         databaseId
+#> 1                              ALL
+#> 2                              BIO
+#> 3                          PUBCHEM
+#> 4                             MESH
+#> 5                             HMDB
+#> 6                         KNAPSACK
+#> 7                            CHEBI
+#> 8                           PUBMED
+#> 9                             KEGG
+#> 10                            HSDB
+#> 11                         MACONDA
+#> 12                         METACYC
+#> 13                            GNPS
+#> 14                           TRAIN
+#> 15                            YMDB
+#> 16                        PLANTCYC
+#> 17                          NORMAN
+#> 18                    SUPERNATURAL
+#> 19                         COCONUT
+#> 20                   BloodExposome
+#> 21                         TeroMol
+#> 22            PUBCHEMANNOTATIONBIO
+#> 23           PUBCHEMANNOTATIONDRUG
+#> 24 PUBCHEMANNOTATIONSAFETYANDTOXIC
+#> 25           PUBCHEMANNOTATIONFOOD
+#> 26                           LOTUS
+#> 27                           FooDB
+#> 28                          MiMeDB
+#> 29                       LIPIDMAPS
+#> 30                           LIPID
+#> 31                          DSSTox
+#>                     displayName
+#> 1              All included DBs
+#> 2                  Bio Database
+#> 3                       PubChem
+#> 4                          MeSH
+#> 5                          HMDB
+#> 6                      KNApSAcK
+#> 7                         CHEBI
+#> 8                        PubMed
+#> 9                          KEGG
+#> 10                         HSDB
+#> 11                      Maconda
+#> 12                       Biocyc
+#> 13                         GNPS
+#> 14                 Training Set
+#> 15                         YMDB
+#> 16                     Plantcyc
+#> 17                       NORMAN
+#> 18                 SuperNatural
+#> 19                      COCONUT
+#> 20               Blood Exposome
+#> 21                      TeroMOL
+#> 22 PubChem: bio and metabolites
+#> 23                PubChem: drug
+#> 24    PubChem: safety and toxic
+#> 25                PubChem: food
+#> 26                        LOTUS
+#> 27                        FooDB
+#> 28                       MiMeDB
+#> 29                    LipidMaps
+#> 30                        Lipid
+#> 31                       DSSTox
 ```
 
 ### Database Information
 
-```{r}
+
+``` r
 # Get details about a specific database
 infoDb(srs, databaseId = "BIO")
+#> $displayName
+#> [1] "Bio Database"
+#>
+#> $matchRtOfReferenceSpectra
+#> [1] FALSE
+#>
+#> $databaseId
+#> [1] "BIO"
+#>
+#> $customDb
+#> [1] FALSE
+#>
+#> $searchable
+#> [1] TRUE
+#>
+#> $updateNeeded
+#> [1] FALSE
 ```
 
 ## Creating a Custom Database
 
 Custom databases can be created from files containing compound information.
-Supported formats include `.tsv`, `.csv`, or `.mgf` files with structure 
+Supported formats include `.tsv`, `.csv`, or `.mgf` files with structure
 information.
 
 ### From a Compound List (TSV/CSV)
 
-The file should contain columns for compound name, SMILES (or InChI), and 
+The file should contain columns for compound name, SMILES (or InChI), and
 optionally the molecular formula.
 
-```{r}
+
+``` r
 # Create database from a TSV file
 createDb(srs,
          databaseId = "my_suspects",
@@ -80,10 +174,11 @@ listDbs(srs)
 
 ### From a Spectral Library (MGF)
 
-Spectral libraries in MGF format can also be imported. An example MGF file is 
+Spectral libraries in MGF format can also be imported. An example MGF file is
 included in the package:
 
-```{r}
+
+``` r
 # Path to example MassBank MGF file
 mgf_file <- system.file("vignettes", "MASSBANKEU.mgf", package = "RuSirius")
 
@@ -91,6 +186,8 @@ createDb(srs,
          databaseId = "massbank_custom",
          files = mgf_file,
          location = getwd())
+#> Error in `createDb()`:
+#> ! Please provide valid file(s) that exist.
 ```
 
 ## Comparing Results: Default vs Custom Database
@@ -99,7 +196,8 @@ Let's demonstrate how using a custom database affects structure identification.
 
 ### Setup: Import Sample Data
 
-```{r}
+
+``` r
 # Load example data
 dda_file <- MsDataHub::PestMix1_DDA.mzML()
 sp <- Spectra(dda_file)
@@ -111,14 +209,15 @@ idxs <- fragmentGroupIndex(sp)
 sp$Msn_idx <- idxs
 
 # Create project and import
-srs <- Sirius(projectId = "db_comparison", path = getwd())
+srs <- Sirius(projectId = "db_comparison", path = getwd(), port = 9999)
 sp_subset <- sp[sp$Msn_idx %in% c(421, 707)]
 srs <- import(srs, spectra = sp_subset, ms_column_name = "Msn_idx")
 ```
 
 ### Run with Default Database (BIO)
 
-```{r}
+
+``` r
 # Run structure search with BIO database only
 run(srs,
     formulaIdParams = formulaIdParam(numberOfCandidates = 5),
@@ -128,16 +227,30 @@ run(srs,
     ),
     recompute = TRUE,
     wait = TRUE)
+#> [1] "1"
 
 # Get results
 results_bio <- summary(srs, result.type = "structure")
-results_bio[, c("alignedFeatureId", "molecularFormula", 
+results_bio[, c("alignedFeatureId", "molecularFormula",
                 "structureName", "confidenceExactMatch")]
+#>     alignedFeatureId
+#> 1 819207692309640598
+#> 2 819207692339000727
+#>   molecularFormula
+#> 1        C9H16N2O4
+#> 2     C15H20F6N2O5
+#>                                                                                                                  structureName
+#> 1                                                                         Malonic acid, oxo-, diethyl ester, dimethylhydrazone
+#> 2 tert-butyl-(3R)-3-{[5-(2,2,2-trifluoro-1-hydroxy-1-trifluoromethyl-ethyl)-4,5-dihydro-isoxazole-3-carbonyl]-amino}-butanoate
+#>   confidenceExactMatch
+#> 1           0.07049930
+#> 2           0.04112307
 ```
 
 ### Run with Custom Database Added
 
-```{r}
+
+``` r
 # Now include custom database in search
 run(srs,
     formulaIdParams = formulaIdParam(numberOfCandidates = 5),
@@ -147,16 +260,30 @@ run(srs,
     ),
     recompute = TRUE,
     wait = TRUE)
+#> [1] "2"
 
 # Get results with custom DB
 results_custom <- summary(srs, result.type = "structure")
-results_custom[, c("alignedFeatureId", "molecularFormula", 
+results_custom[, c("alignedFeatureId", "molecularFormula",
                    "structureName", "confidenceExactMatch")]
+#>     alignedFeatureId
+#> 1 819207692309640598
+#> 2 819207692339000727
+#>   molecularFormula
+#> 1        C9H16N2O4
+#> 2     C15H20F6N2O5
+#>                                                                                                                  structureName
+#> 1                                                                         Malonic acid, oxo-, diethyl ester, dimethylhydrazone
+#> 2 tert-butyl-(3R)-3-{[5-(2,2,2-trifluoro-1-hydroxy-1-trifluoromethyl-ethyl)-4,5-dihydro-isoxazole-3-carbonyl]-amino}-butanoate
+#>   confidenceExactMatch
+#> 1           0.07049930
+#> 2           0.04112307
 ```
 
 ### Compare Results
 
-```{r}
+
+``` r
 # Compare confidence scores
 comparison <- merge(
     results_bio[, c("alignedFeatureId", "confidenceExactMatch")],
@@ -165,43 +292,392 @@ comparison <- merge(
     suffixes = c("_bio", "_custom")
 )
 comparison
+#>     alignedFeatureId
+#> 1 819207692309640598
+#> 2 819207692339000727
+#>   confidenceExactMatch_bio
+#> 1               0.07049930
+#> 2               0.04112307
+#>   confidenceExactMatch_custom
+#> 1                  0.07049930
+#> 2                  0.04112307
 ```
 
-Including relevant custom databases can improve identification confidence when 
+Including relevant custom databases can improve identification confidence when
 your compounds are well-represented in the custom database.
 
 ## Removing a Database
 
-```{r}
+
+``` r
 # Remove a custom database when no longer needed
 removeDb(srs, databaseId = "massbank_custom")
+#> [1] TRUE
 
 # Verify removal
 listDbs(srs)
+#>                     displayName
+#> 1              All included DBs
+#> 2                  Bio Database
+#> 3                       PubChem
+#> 4                          MeSH
+#> 5                          HMDB
+#> 6                      KNApSAcK
+#> 7                         CHEBI
+#> 8                        PubMed
+#> 9                          KEGG
+#> 10                         HSDB
+#> 11                      Maconda
+#> 12                       Biocyc
+#> 13                         GNPS
+#> 14                 Training Set
+#> 15                         YMDB
+#> 16                     Plantcyc
+#> 17                       NORMAN
+#> 18                 SuperNatural
+#> 19                      COCONUT
+#> 20               Blood Exposome
+#> 21                      TeroMOL
+#> 22 PubChem: bio and metabolites
+#> 23                PubChem: drug
+#> 24    PubChem: safety and toxic
+#> 25                PubChem: food
+#> 26                        LOTUS
+#> 27                        FooDB
+#> 28                       MiMeDB
+#> 29                    LipidMaps
+#> 30                        Lipid
+#> 31                       DSSTox
+#>    matchRtOfReferenceSpectra
+#> 1                      FALSE
+#> 2                      FALSE
+#> 3                      FALSE
+#> 4                      FALSE
+#> 5                      FALSE
+#> 6                      FALSE
+#> 7                      FALSE
+#> 8                      FALSE
+#> 9                      FALSE
+#> 10                     FALSE
+#> 11                     FALSE
+#> 12                     FALSE
+#> 13                     FALSE
+#> 14                     FALSE
+#> 15                     FALSE
+#> 16                     FALSE
+#> 17                     FALSE
+#> 18                     FALSE
+#> 19                     FALSE
+#> 20                     FALSE
+#> 21                     FALSE
+#> 22                     FALSE
+#> 23                     FALSE
+#> 24                     FALSE
+#> 25                     FALSE
+#> 26                     FALSE
+#> 27                     FALSE
+#> 28                     FALSE
+#> 29                     FALSE
+#> 30                     FALSE
+#> 31                     FALSE
+#>                         databaseId
+#> 1                              ALL
+#> 2                              BIO
+#> 3                          PUBCHEM
+#> 4                             MESH
+#> 5                             HMDB
+#> 6                         KNAPSACK
+#> 7                            CHEBI
+#> 8                           PUBMED
+#> 9                             KEGG
+#> 10                            HSDB
+#> 11                         MACONDA
+#> 12                         METACYC
+#> 13                            GNPS
+#> 14                           TRAIN
+#> 15                            YMDB
+#> 16                        PLANTCYC
+#> 17                          NORMAN
+#> 18                    SUPERNATURAL
+#> 19                         COCONUT
+#> 20                   BloodExposome
+#> 21                         TeroMol
+#> 22            PUBCHEMANNOTATIONBIO
+#> 23           PUBCHEMANNOTATIONDRUG
+#> 24 PUBCHEMANNOTATIONSAFETYANDTOXIC
+#> 25           PUBCHEMANNOTATIONFOOD
+#> 26                           LOTUS
+#> 27                           FooDB
+#> 28                          MiMeDB
+#> 29                       LIPIDMAPS
+#> 30                           LIPID
+#> 31                          DSSTox
+#>    customDb searchable
+#> 1     FALSE      FALSE
+#> 2     FALSE       TRUE
+#> 3     FALSE       TRUE
+#> 4     FALSE       TRUE
+#> 5     FALSE       TRUE
+#> 6     FALSE       TRUE
+#> 7     FALSE       TRUE
+#> 8     FALSE       TRUE
+#> 9     FALSE       TRUE
+#> 10    FALSE       TRUE
+#> 11    FALSE       TRUE
+#> 12    FALSE       TRUE
+#> 13    FALSE       TRUE
+#> 14    FALSE      FALSE
+#> 15    FALSE       TRUE
+#> 16    FALSE       TRUE
+#> 17    FALSE       TRUE
+#> 18    FALSE       TRUE
+#> 19    FALSE       TRUE
+#> 20    FALSE       TRUE
+#> 21    FALSE       TRUE
+#> 22    FALSE       TRUE
+#> 23    FALSE       TRUE
+#> 24    FALSE       TRUE
+#> 25    FALSE       TRUE
+#> 26    FALSE       TRUE
+#> 27    FALSE       TRUE
+#> 28    FALSE       TRUE
+#> 29    FALSE       TRUE
+#> 30    FALSE      FALSE
+#> 31    FALSE       TRUE
+#>    updateNeeded
+#> 1         FALSE
+#> 2         FALSE
+#> 3         FALSE
+#> 4         FALSE
+#> 5         FALSE
+#> 6         FALSE
+#> 7         FALSE
+#> 8         FALSE
+#> 9         FALSE
+#> 10        FALSE
+#> 11        FALSE
+#> 12        FALSE
+#> 13        FALSE
+#> 14        FALSE
+#> 15        FALSE
+#> 16        FALSE
+#> 17        FALSE
+#> 18        FALSE
+#> 19        FALSE
+#> 20        FALSE
+#> 21        FALSE
+#> 22        FALSE
+#> 23        FALSE
+#> 24        FALSE
+#> 25        FALSE
+#> 26        FALSE
+#> 27        FALSE
+#> 28        FALSE
+#> 29        FALSE
+#> 30        FALSE
+#> 31        FALSE
 ```
 
 ## Best Practices
 
-1. **Targeted databases**: Create focused databases with compounds relevant to 
+1. **Targeted databases**: Create focused databases with compounds relevant to
    your study rather than very large generic databases.
 
-2. **Quality over quantity**: Ensure your custom database has accurate 
+2. **Quality over quantity**: Ensure your custom database has accurate
    structure information (SMILES/InChI).
 
-3. **Combine strategically**: Use custom databases alongside BIO for best 
+3. **Combine strategically**: Use custom databases alongside BIO for best
    coverage - BIO for general metabolites, custom for your specific targets.
 
-4. **Spectral libraries**: When available, spectral libraries (MGF) provide 
+4. **Spectral libraries**: When available, spectral libraries (MGF) provide
    additional matching power through spectral similarity.
 
 ## Clean Up
 
-```{r}
+
+``` r
 shutdown(srs)
+#> Sirius was shut down successfully
 ```
 
-## Session Info
+# Session information
 
-```{r session-info, eval=TRUE}
+The R code was run on:
+
+
+``` r
+date()
+#> [1] "Tue Mar 10 14:59:23 2026"
+```
+
+Information on the R session:
+
+
+``` r
 sessionInfo()
+#> R version 4.5.2 (2025-10-31 ucrt)
+#> Platform: x86_64-w64-mingw32/x64
+#> Running under: Windows 11 x64 (build 26200)
+#>
+#> Matrix products: default
+#>   LAPACK version 3.12.1
+#>
+#> locale:
+#> [1] LC_COLLATE=English_United Kingdom.utf8
+#> [2] LC_CTYPE=English_United Kingdom.utf8
+#> [3] LC_MONETARY=English_United Kingdom.utf8
+#> [4] LC_NUMERIC=C
+#> [5] LC_TIME=English_United Kingdom.utf8
+#>
+#> time zone: Europe/Paris
+#> tzcode source: internal
+#>
+#> attached base packages:
+#> [1] stats4    stats
+#> [3] graphics  grDevices
+#> [5] utils     datasets
+#> [7] methods   base
+#>
+#> other attached packages:
+#>  [1] MsDataHub_1.10.0
+#>  [2] dplyr_1.2.0
+#>  [3] RuSirius_0.2.5
+#>  [4] jsonlite_2.0.0
+#>  [5] MetaboAnnotation_1.14.0
+#>  [6] RSirius_6.3.3
+#>  [7] xcms_4.8.0
+#>  [8] MsExperiment_1.12.0
+#>  [9] ProtGenerics_1.42.0
+#> [10] Spectra_1.20.1
+#> [11] BiocParallel_1.44.0
+#> [12] S4Vectors_0.48.0
+#> [13] BiocGenerics_0.56.0
+#> [14] generics_0.1.4
+#>
+#> loaded via a namespace (and not attached):
+#>   [1] RColorBrewer_1.1-3
+#>   [2] MultiAssayExperiment_1.36.1
+#>   [3] magrittr_2.0.4
+#>   [4] farver_2.1.2
+#>   [5] MALDIquant_1.22.3
+#>   [6] fs_1.6.6
+#>   [7] vctrs_0.7.1
+#>   [8] memoise_2.0.1
+#>   [9] RCurl_1.98-1.17
+#>  [10] base64enc_0.1-6
+#>  [11] htmltools_0.5.9
+#>  [12] S4Arrays_1.10.1
+#>  [13] BiocBaseUtils_1.12.0
+#>  [14] progress_1.2.3
+#>  [15] curl_7.0.0
+#>  [16] AnnotationHub_4.0.0
+#>  [17] SparseArray_1.10.8
+#>  [18] mzID_1.48.0
+#>  [19] htmlwidgets_1.6.4
+#>  [20] plyr_1.8.9
+#>  [21] httr2_1.2.2
+#>  [22] impute_1.84.0
+#>  [23] cachem_1.1.0
+#>  [24] igraph_2.2.2
+#>  [25] lifecycle_1.0.5
+#>  [26] iterators_1.0.14
+#>  [27] pkgconfig_2.0.3
+#>  [28] Matrix_1.7-4
+#>  [29] R6_2.6.1
+#>  [30] fastmap_1.2.0
+#>  [31] MatrixGenerics_1.22.0
+#>  [32] clue_0.3-67
+#>  [33] digest_0.6.39
+#>  [34] pcaMethods_2.2.0
+#>  [35] rsvg_2.7.0
+#>  [36] ps_1.9.1
+#>  [37] AnnotationDbi_1.72.0
+#>  [38] ExperimentHub_3.0.0
+#>  [39] GenomicRanges_1.62.1
+#>  [40] RSQLite_2.4.6
+#>  [41] filelock_1.0.3
+#>  [42] httr_1.4.8
+#>  [43] abind_1.4-8
+#>  [44] compiler_4.5.2
+#>  [45] withr_3.0.2
+#>  [46] bit64_4.6.0-1
+#>  [47] doParallel_1.0.17
+#>  [48] S7_0.2.1
+#>  [49] DBI_1.2.3
+#>  [50] MASS_7.3-65
+#>  [51] ChemmineR_3.62.0
+#>  [52] rappdirs_0.3.4
+#>  [53] DelayedArray_0.36.0
+#>  [54] rjson_0.2.23
+#>  [55] mzR_2.44.0
+#>  [56] tools_4.5.2
+#>  [57] PSMatch_1.14.0
+#>  [58] otel_0.2.0
+#>  [59] CompoundDb_1.14.2
+#>  [60] glue_1.8.0
+#>  [61] QFeatures_1.20.0
+#>  [62] grid_4.5.2
+#>  [63] cluster_2.1.8.1
+#>  [64] reshape2_1.4.5
+#>  [65] snow_0.4-4
+#>  [66] gtable_0.3.6
+#>  [67] preprocessCore_1.72.0
+#>  [68] tidyr_1.3.2
+#>  [69] data.table_1.18.2.1
+#>  [70] hms_1.1.4
+#>  [71] MetaboCoreUtils_1.19.2
+#>  [72] xml2_1.5.2
+#>  [73] XVector_0.50.0
+#>  [74] BiocVersion_3.22.0
+#>  [75] foreach_1.5.2
+#>  [76] pillar_1.11.1
+#>  [77] stringr_1.6.0
+#>  [78] limma_3.66.0
+#>  [79] BiocFileCache_3.0.0
+#>  [80] lattice_0.22-7
+#>  [81] bit_4.6.0
+#>  [82] tidyselect_1.2.1
+#>  [83] Biostrings_2.78.0
+#>  [84] knitr_1.51
+#>  [85] gridExtra_2.3
+#>  [86] IRanges_2.44.0
+#>  [87] Seqinfo_1.0.0
+#>  [88] SummarizedExperiment_1.40.0
+#>  [89] xfun_0.56
+#>  [90] Biobase_2.70.0
+#>  [91] statmod_1.5.1
+#>  [92] MSnbase_2.36.0
+#>  [93] matrixStats_1.5.0
+#>  [94] DT_0.34.0
+#>  [95] stringi_1.8.7
+#>  [96] yaml_2.3.12
+#>  [97] lazyeval_0.2.2
+#>  [98] evaluate_1.0.5
+#>  [99] codetools_0.2-20
+#> [100] MsCoreUtils_1.22.1
+#> [101] tibble_3.3.1
+#> [102] BiocManager_1.30.27
+#> [103] cli_3.6.5
+#> [104] affyio_1.80.0
+#> [105] processx_3.8.6
+#> [106] Rcpp_1.1.1
+#> [107] MassSpecWavelet_1.76.0
+#> [108] dbplyr_2.5.2
+#> [109] png_0.1-8
+#> [110] XML_3.99-0.22
+#> [111] parallel_4.5.2
+#> [112] ggplot2_4.0.2
+#> [113] blob_1.3.0
+#> [114] prettyunits_1.2.0
+#> [115] AnnotationFilter_1.34.0
+#> [116] bitops_1.0-9
+#> [117] MsFeatures_1.18.0
+#> [118] scales_1.4.0
+#> [119] affy_1.88.0
+#> [120] ncdf4_1.24
+#> [121] purrr_1.2.1
+#> [122] crayon_1.5.3
+#> [123] rlang_1.1.7
+#> [124] KEGGREST_1.50.0
+#> [125] vsn_3.78.1
 ```

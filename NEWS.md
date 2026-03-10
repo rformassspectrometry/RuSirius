@@ -1,5 +1,13 @@
 # Version 0.2
 
+## Changes in 0.2.6
+
+- Rewrote `Dockerfile` to install Sirius 6.3.3 directly (replaces conda).
+  Sirius REST API now auto-starts on port 9999 via s6-overlay init script.
+- All vignettes now use `port = 9999` in `Sirius()` calls.
+- Added pre-computed vignette infrastructure (`.Rmd.orig` + `pre-render.R`)
+  so pkgdown articles display real output.
+
 ## Changes in 0.2.5
 
 - Fixed a bug where calling `run()` with only `msNovelistParams` (or

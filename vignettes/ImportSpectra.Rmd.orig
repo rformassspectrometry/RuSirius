@@ -16,10 +16,16 @@ vignette: >
 knitr::knit("ImportSpectra.Rmd.orig", output = "ImportSpectra.Rmd")
 -->
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    message = FALSE,
+    fig.path = "figures/import-"
+)
+```
 
-
-
-``` r
+```{r load-packages, message = FALSE}
 library(RuSirius)
 library(MsDataHub)
 library(Spectra)
@@ -54,8 +60,7 @@ input as a user is essential.
 Below we load the example mass spectrometry (MS) data, provided by the
 *MsDataHub*, as a `Spectra` object:
 
-
-``` r
+```{r}
 dda_file <- MsDataHub::PestMix1_DDA.mzML()
 sp <- Spectra(dda_file)
 sp <- setBackend(sp, MsBackendMemory())
@@ -69,14 +74,10 @@ We use the `fragmentGroupIndex()` function to assign an index to each spectrum.
 MS2 spectra that belong to the same MS1 spectrum will share the same index. See
 `?fragmentGroupIndex` for details on how these spectra groups are defined.
 
-
-``` r
+```{r}
 sp |>
     msLevel() |>
     table()
-#>
-#>    1    2
-#> 4627 2756
 
 idxs <- fragmentGroupIndex(sp)
 sp$Msn_idx <- idxs
@@ -97,11 +98,8 @@ will try save your project in the `sirius_projects` folder in your user
 directory. Note that this folder will *not* be created automatically. If you
 want to save it somewhere else you can specify the `path =` parameter.
 
-
-``` r
+```{r}
 srs <- Sirius(projectId = "test_spectra", path = getwd(), port = 9999)
-#> Found SIRIUS in PATH! Using this information to start the application.
-#> SIRIUS was started without specifying --port (-p), trying to find the sirius.port file.
 ```
 
 You could import the entire `Spectra` object, but for demonstration purposes, we
@@ -114,8 +112,7 @@ When importing, the `ms_column_name` parameter defines which column contains the
 index that groups the spectra. Each such group is considered one *feature* in
 Sirius terminology.
 
-
-``` r
+```{r}
 sp_subset <- sp[sp$Msn_idx %in% c(421, 707, 895)]
 
 srs <- import(sirius = srs,
@@ -125,30 +122,6 @@ srs <- import(sirius = srs,
 
 ## See information about the features
 featuresInfo(srs)
-#>      alignedFeatureId
-#> [1,] "819207974345125059"
-#> [2,] "819207974382873796"
-#> [3,] "819207974403845317"
-#>      compoundId
-#> [1,] "819207974319959232"
-#> [2,] "819207974319959233"
-#> [3,] "819207974319959234"
-#>      externalFeatureId
-#> [1,] "421"
-#> [2,] "707"
-#> [3,] "895"
-#>      ionMass  charge
-#> [1,] 217.1185 1
-#> [2,] 445.1181 1
-#> [3,] 0        1
-#>      detectedAdducts hasMs1
-#> [1,] list,1          TRUE
-#> [2,] list,1          TRUE
-#> [3,] list,1          TRUE
-#>      hasMsMs computing
-#> [1,] TRUE    FALSE
-#> [2,] TRUE    FALSE
-#> [3,] FALSE   FALSE
 ```
 
 ## Submit job to Sirius - For structure DB search
@@ -157,8 +130,7 @@ Once data is imported, annotation and prediction can begin. The `run()` function
 accepts parameters for each Sirius tool, such as formula identification,
 structure database search, and compound class prediction.
 
-
-``` r
+```{r}
 ## Start computation
 run(srs,
     fallbackAdducts = c("[M + H]+", "[M + Na]+"),
@@ -178,7 +150,6 @@ run(srs,
     recompute = TRUE,
     wait = TRUE
     )
-#> [1] "1"
 
 ## could test featureInfo vs featureId
 info <- featuresInfo(srs)
@@ -189,8 +160,7 @@ info <- featuresInfo(srs)
 To get a summary of all results—including top formulas, structures, and compound
 class predictions—use the following:
 
-
-``` r
+```{r}
 summarytb <- summary(sirius = srs, result.type = "structure")
 ```
 
@@ -203,15 +173,13 @@ Key columns include confidence scores that help assess result reliability.
 
 ## De novo structure description
 
-
-``` r
+```{r}
 # Compute with zodiac and denovo
 run(srs,
     msNovelistParams = deNovoStructureParam(numberOfCandidateToPredict = 5),
     recompute = FALSE,
     wait = TRUE
 )
-#> [1] "2"
 
 summaryDeNovo <- summary(srs, result.type = "deNovo")
 ```
@@ -221,10 +189,8 @@ the second—originally having lower confidence—the predictions now differ.
 
 For a visual exploration of results, you can open the Sirius GUI:
 
-
-``` r
+```{r}
 shutdown(srs)
-#> Sirius was shut down successfully
 
 # openGUI(srs)
 # closeGUI(srs)
@@ -248,8 +214,7 @@ same group as their preceding MS2. With `deleteExistingFeatures = TRUE` any
 eventually present previously imported spectra (*features*) and their results
 are removed.
 
-
-``` r
+```{r, eval = FALSE}
 ## Example: importing MS2-only spectra
 ## Assume sp_ms2 is a Spectra object containing only MS2 (and optionally MS3)
 ## spectra, with no MS1 data.
@@ -270,180 +235,12 @@ detection tool), you can still pass it via `ms_column_name` as usual.
 
 The R code was run on:
 
-
-``` r
+```{r}
 date()
-#> [1] "Tue Mar 10 15:00:44 2026"
 ```
 
 Information on the R session:
 
-
-``` r
+```{r}
 sessionInfo()
-#> R version 4.5.2 (2025-10-31 ucrt)
-#> Platform: x86_64-w64-mingw32/x64
-#> Running under: Windows 11 x64 (build 26200)
-#>
-#> Matrix products: default
-#>   LAPACK version 3.12.1
-#>
-#> locale:
-#> [1] LC_COLLATE=English_United Kingdom.utf8
-#> [2] LC_CTYPE=English_United Kingdom.utf8
-#> [3] LC_MONETARY=English_United Kingdom.utf8
-#> [4] LC_NUMERIC=C
-#> [5] LC_TIME=English_United Kingdom.utf8
-#>
-#> time zone: Europe/Paris
-#> tzcode source: internal
-#>
-#> attached base packages:
-#> [1] stats4    stats
-#> [3] graphics  grDevices
-#> [5] utils     datasets
-#> [7] methods   base
-#>
-#> other attached packages:
-#>  [1] MsDataHub_1.10.0
-#>  [2] dplyr_1.2.0
-#>  [3] RuSirius_0.2.5
-#>  [4] jsonlite_2.0.0
-#>  [5] MetaboAnnotation_1.14.0
-#>  [6] RSirius_6.3.3
-#>  [7] xcms_4.8.0
-#>  [8] MsExperiment_1.12.0
-#>  [9] ProtGenerics_1.42.0
-#> [10] Spectra_1.20.1
-#> [11] BiocParallel_1.44.0
-#> [12] S4Vectors_0.48.0
-#> [13] BiocGenerics_0.56.0
-#> [14] generics_0.1.4
-#>
-#> loaded via a namespace (and not attached):
-#>   [1] RColorBrewer_1.1-3
-#>   [2] MultiAssayExperiment_1.36.1
-#>   [3] magrittr_2.0.4
-#>   [4] farver_2.1.2
-#>   [5] MALDIquant_1.22.3
-#>   [6] fs_1.6.6
-#>   [7] vctrs_0.7.1
-#>   [8] memoise_2.0.1
-#>   [9] RCurl_1.98-1.17
-#>  [10] base64enc_0.1-6
-#>  [11] htmltools_0.5.9
-#>  [12] S4Arrays_1.10.1
-#>  [13] BiocBaseUtils_1.12.0
-#>  [14] progress_1.2.3
-#>  [15] curl_7.0.0
-#>  [16] AnnotationHub_4.0.0
-#>  [17] SparseArray_1.10.8
-#>  [18] mzID_1.48.0
-#>  [19] htmlwidgets_1.6.4
-#>  [20] plyr_1.8.9
-#>  [21] httr2_1.2.2
-#>  [22] impute_1.84.0
-#>  [23] cachem_1.1.0
-#>  [24] igraph_2.2.2
-#>  [25] lifecycle_1.0.5
-#>  [26] iterators_1.0.14
-#>  [27] pkgconfig_2.0.3
-#>  [28] Matrix_1.7-4
-#>  [29] R6_2.6.1
-#>  [30] fastmap_1.2.0
-#>  [31] MatrixGenerics_1.22.0
-#>  [32] clue_0.3-67
-#>  [33] digest_0.6.39
-#>  [34] pcaMethods_2.2.0
-#>  [35] rsvg_2.7.0
-#>  [36] ps_1.9.1
-#>  [37] AnnotationDbi_1.72.0
-#>  [38] ExperimentHub_3.0.0
-#>  [39] GenomicRanges_1.62.1
-#>  [40] RSQLite_2.4.6
-#>  [41] filelock_1.0.3
-#>  [42] httr_1.4.8
-#>  [43] abind_1.4-8
-#>  [44] compiler_4.5.2
-#>  [45] withr_3.0.2
-#>  [46] bit64_4.6.0-1
-#>  [47] doParallel_1.0.17
-#>  [48] S7_0.2.1
-#>  [49] DBI_1.2.3
-#>  [50] MASS_7.3-65
-#>  [51] ChemmineR_3.62.0
-#>  [52] rappdirs_0.3.4
-#>  [53] DelayedArray_0.36.0
-#>  [54] rjson_0.2.23
-#>  [55] mzR_2.44.0
-#>  [56] tools_4.5.2
-#>  [57] PSMatch_1.14.0
-#>  [58] otel_0.2.0
-#>  [59] CompoundDb_1.14.2
-#>  [60] glue_1.8.0
-#>  [61] QFeatures_1.20.0
-#>  [62] grid_4.5.2
-#>  [63] cluster_2.1.8.1
-#>  [64] reshape2_1.4.5
-#>  [65] snow_0.4-4
-#>  [66] gtable_0.3.6
-#>  [67] preprocessCore_1.72.0
-#>  [68] tidyr_1.3.2
-#>  [69] data.table_1.18.2.1
-#>  [70] hms_1.1.4
-#>  [71] MetaboCoreUtils_1.19.2
-#>  [72] xml2_1.5.2
-#>  [73] XVector_0.50.0
-#>  [74] BiocVersion_3.22.0
-#>  [75] foreach_1.5.2
-#>  [76] pillar_1.11.1
-#>  [77] stringr_1.6.0
-#>  [78] limma_3.66.0
-#>  [79] BiocFileCache_3.0.0
-#>  [80] lattice_0.22-7
-#>  [81] bit_4.6.0
-#>  [82] tidyselect_1.2.1
-#>  [83] Biostrings_2.78.0
-#>  [84] knitr_1.51
-#>  [85] gridExtra_2.3
-#>  [86] IRanges_2.44.0
-#>  [87] Seqinfo_1.0.0
-#>  [88] SummarizedExperiment_1.40.0
-#>  [89] xfun_0.56
-#>  [90] Biobase_2.70.0
-#>  [91] statmod_1.5.1
-#>  [92] MSnbase_2.36.0
-#>  [93] matrixStats_1.5.0
-#>  [94] DT_0.34.0
-#>  [95] stringi_1.8.7
-#>  [96] yaml_2.3.12
-#>  [97] lazyeval_0.2.2
-#>  [98] evaluate_1.0.5
-#>  [99] codetools_0.2-20
-#> [100] MsCoreUtils_1.22.1
-#> [101] tibble_3.3.1
-#> [102] BiocManager_1.30.27
-#> [103] cli_3.6.5
-#> [104] affyio_1.80.0
-#> [105] processx_3.8.6
-#> [106] Rcpp_1.1.1
-#> [107] MassSpecWavelet_1.76.0
-#> [108] dbplyr_2.5.2
-#> [109] png_0.1-8
-#> [110] XML_3.99-0.22
-#> [111] parallel_4.5.2
-#> [112] ggplot2_4.0.2
-#> [113] blob_1.3.0
-#> [114] prettyunits_1.2.0
-#> [115] AnnotationFilter_1.34.0
-#> [116] bitops_1.0-9
-#> [117] MsFeatures_1.18.0
-#> [118] scales_1.4.0
-#> [119] affy_1.88.0
-#> [120] ncdf4_1.24
-#> [121] purrr_1.2.1
-#> [122] crayon_1.5.3
-#> [123] rlang_1.1.7
-#> [124] KEGGREST_1.50.0
-#> [125] vsn_3.78.1
 ```
