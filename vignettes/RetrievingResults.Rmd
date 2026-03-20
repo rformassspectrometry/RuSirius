@@ -22,9 +22,6 @@ library(RuSirius)
 
 ## Introduction
 
-**Note:** This vignette code is not evaluated during package checks as it
-requires a running Sirius instance with completed computations.
-
 After running Sirius computations (see the "Importing Spectra" vignette), you
 can retrieve various types of results. RuSirius provides two main functions:
 

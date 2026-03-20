@@ -2,8 +2,6 @@
 # These tests do not require the Sirius API but may need RSirius
 
 test_that(".createpeaks creates SimplePeak objects from matrix", {
-    skip_if_not_installed("RSirius")
-
     mat <- matrix(c(100.5, 1000, 200.3, 500), ncol = 2, byrow = TRUE)
     peaks <- RuSirius:::.createpeaks(mat)
 
@@ -15,8 +13,6 @@ test_that(".createpeaks creates SimplePeak objects from matrix", {
 })
 
 test_that(".createpeaks handles single row matrix", {
-    skip_if_not_installed("RSirius")
-
     mat <- matrix(c(150.0, 2000), ncol = 2)
     peaks <- RuSirius:::.createpeaks(mat)
 

@@ -7,9 +7,6 @@
 # =============================================================================
 
 test_that(".groupMSnIndex groups MS2 scans by precursorMz in order", {
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     # Two MS2 scans with different precursorMz = 2 groups
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 2L, 2L),
@@ -25,9 +22,6 @@ test_that(".groupMSnIndex groups MS2 scans by precursorMz in order", {
 })
 
 test_that(".groupMSnIndex keeps MS3 with preceding MS2", {
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     # MS2 at 300, then MS3 at 150, then new MS2 at 400
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 3L, 2L),
@@ -43,9 +37,6 @@ test_that(".groupMSnIndex keeps MS3 with preceding MS2", {
 })
 
 test_that(".groupMSnIndex handles multiple dataOrigins independently", {
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 2L, 2L, 2L),
         precursorMz = c(300.0, 400.0, 300.0, 400.0),
@@ -60,9 +51,6 @@ test_that(".groupMSnIndex handles multiple dataOrigins independently", {
 })
 
 test_that(".groupMSnIndex groups consecutive same precursorMz MS2 together", {
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     # Two consecutive MS2 with same precursorMz = same group
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 2L, 2L),
@@ -81,10 +69,6 @@ test_that(".groupMSnIndex groups consecutive same precursorMz MS2 together", {
 # =============================================================================
 
 test_that(".createfeatures includes MS2 spectra when no MS1 present", {
-    skip_if_not_installed("RSirius")
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 2L),
         polarity = c(1L, 1L),
@@ -106,10 +90,6 @@ test_that(".createfeatures includes MS2 spectra when no MS1 present", {
 })
 
 test_that(".createfeatures sets ionMass to precursorMz without MS1", {
-    skip_if_not_installed("RSirius")
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     sp <- Spectra(DataFrame(
         msLevel = 2L,
         polarity = 1L,
@@ -126,10 +106,6 @@ test_that(".createfeatures sets ionMass to precursorMz without MS1", {
 })
 
 test_that(".createfeatures sets ionMass from precursorMz with MS1+MS2", {
-    skip_if_not_installed("RSirius")
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     sp <- Spectra(DataFrame(
         msLevel = c(1L, 2L),
         polarity = c(1L, 1L),
@@ -147,10 +123,6 @@ test_that(".createfeatures sets ionMass from precursorMz with MS1+MS2", {
 })
 
 test_that(".createfeatures sets ionMass to 0 for MS1-only data", {
-    skip_if_not_installed("RSirius")
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     sp <- Spectra(DataFrame(
         msLevel = 1L,
         polarity = 1L,
@@ -169,10 +141,6 @@ test_that(".createfeatures sets ionMass to 0 for MS1-only data", {
 })
 
 test_that(".createfeatures includes MS3 spectra alongside MS2", {
-    skip_if_not_installed("RSirius")
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 3L),
         polarity = c(1L, 1L),
@@ -201,8 +169,6 @@ test_that("import auto-groups MSn-only spectra by precursorMz", {
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
     skip_if_not_logged_in(srs)
-
-    library(Spectra)
 
     # Create MS2 + MS3 spectra without MS1
     sp <- Spectra(DataFrame(
@@ -237,8 +203,6 @@ test_that("import works with MS2-only spectra (single MS level)", {
     if (is.null(srs)) skip("Could not create Sirius connection")
     skip_if_not_logged_in(srs)
 
-    library(Spectra)
-
     # Create MS2-only spectra (single MS level, no ms_column_name needed)
     sp <- Spectra(DataFrame(
         msLevel = c(2L, 2L),
@@ -269,8 +233,6 @@ test_that("import single MS2 spectrum sets correct ionMass", {
     if (is.null(srs)) skip("Could not create Sirius connection")
     skip_if_not_logged_in(srs)
 
-    library(Spectra)
-
     ## Minimal repro of the reported bug: a single MS2 spectrum, no MS1
     sp <- Spectra(DataFrame(
         msLevel     = 2L,
@@ -294,9 +256,6 @@ test_that("import single MS2 spectrum sets correct ionMass", {
 })
 
 test_that("import still requires ms_column_name with MS1+MS2 data", {
-    skip_if_not_installed("Spectra")
-    library(Spectra)
-
     # Create MS1 + MS2 spectra
     sp <- Spectra(DataFrame(
         msLevel = c(1L, 2L),
@@ -407,4 +366,150 @@ test_that("API accepts MS2+MS3 feature (no MS1)", {
     expect_true(length(result) == 1)
     expect_false(result[[1]]$hasMs1)
     expect_true(result[[1]]$hasMsMs)
+})
+
+# =============================================================================
+# Validation tests: NA polarity and dataOrigin
+# =============================================================================
+
+test_that("import errors on NA polarity", {
+    sp <- Spectra(DataFrame(
+        msLevel = 2L,
+        polarity = NA_integer_,
+        precursorMz = 300.0,
+        scanIndex = 1L,
+        dataOrigin = "file1",
+        mz = I(list(c(100, 150))),
+        intensity = I(list(c(999, 500)))
+    ))
+
+    expect_error(
+        import(new("Sirius"), sp, deleteExistingFeatures = FALSE),
+        "polarity.*must not contain NA"
+    )
+})
+
+test_that("import errors on NA dataOrigin", {
+    sp <- Spectra(DataFrame(
+        msLevel = 2L,
+        polarity = 1L,
+        precursorMz = 300.0,
+        scanIndex = 1L,
+        dataOrigin = NA_character_,
+        mz = I(list(c(100, 150))),
+        intensity = I(list(c(999, 500)))
+    ))
+
+    expect_error(
+        import(new("Sirius"), sp, deleteExistingFeatures = FALSE),
+        "dataOrigin.*must not contain NA"
+    )
+})
+
+test_that(".createfeatures errors on NA polarity", {
+    sp <- Spectra(DataFrame(
+        msLevel = 2L,
+        polarity = NA_integer_,
+        precursorMz = 300.0,
+        scanIndex = 1L,
+        dataOrigin = "file1",
+        mz = I(list(c(100, 150))),
+        intensity = I(list(c(999, 500)))
+    ))
+
+    expect_error(
+        RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+"),
+        "polarity.*is NA"
+    )
+})
+
+test_that(".groupMSnIndex errors on NA dataOrigin", {
+    sp <- Spectra(DataFrame(
+        msLevel = c(2L, 2L),
+        precursorMz = c(300.0, 400.0),
+        dataOrigin = c(NA_character_, NA_character_),
+        mz = I(list(c(100), c(200))),
+        intensity = I(list(c(999), c(500)))
+    ))
+
+    expect_error(
+        RuSirius:::.groupMSnIndex(sp),
+        "dataOrigin.*must not contain NA"
+    )
+})
+
+test_that(".createfeatures sets charge -1 for negative mode (polarity 0)", {
+    sp <- Spectra(DataFrame(
+        msLevel = 2L,
+        polarity = 0L,
+        precursorMz = 300.0,
+        scanIndex = 1L,
+        dataOrigin = "file1",
+        mz = I(list(c(100, 150))),
+        intensity = I(list(c(999, 500)))
+    ))
+
+    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M-H]-")
+    expect_equal(feat$charge, -1L)
+})
+
+# =============================================================================
+# Negative mode import
+# =============================================================================
+
+test_that("import negative mode MS2 uses correct default adduct", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_not_logged_in(srs)
+
+    sp_neg <- Spectra(DataFrame(
+        msLevel = 2L,
+        polarity = 0L,
+        precursorMz = 207.24,
+        scanIndex = 45L,
+        rtime = 59.71,
+        dataOrigin = "user_file",
+        mz = I(list(c(51.81, 52.73, 200.51, 207.24))),
+        intensity = I(list(c(3991, 3641, 7690, 6591)))
+    ))
+
+    srs <- import(srs, sp_neg, deleteExistingFeatures = TRUE)
+
+    info <- featuresInfo(srs)
+    expect_true(!is.null(info))
+    expect_equal(nrow(info), 1)
+    expect_true(info[1, "hasMsMs"] == TRUE)
+    expect_equal(as.numeric(info[1, "ionMass"]), 207.24)
+})
+
+# =============================================================================
+# Non-sequential group indices
+# =============================================================================
+
+test_that("import with non-sequential ms_column_name indices works", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_not_logged_in(srs)
+
+    sp <- Spectra(DataFrame(
+        msLevel = c(1L, 2L, 1L, 2L),
+        polarity = c(1L, 1L, 1L, 1L),
+        precursorMz = c(NA_real_, 300.0, NA_real_, 400.0),
+        scanIndex = c(1L, 2L, 3L, 4L),
+        dataOrigin = rep("file1", 4),
+        my_group = c(5L, 5L, 10L, 10L),
+        mz = I(list(c(300), c(100, 150), c(400), c(200, 250))),
+        intensity = I(list(c(9999), c(999, 500), c(9999), c(700, 300)))
+    ))
+
+    srs <- import(srs, sp, ms_column_name = "my_group",
+                  adducts = "[M+H]+", deleteExistingFeatures = TRUE)
+
+    info <- featuresInfo(srs)
+    expect_true(!is.null(info))
+    expect_equal(nrow(info), 2)
 })

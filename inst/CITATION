@@ -1,0 +1,14 @@
+bibentry(
+    bibtype = "Manual",
+    title = "RuSirius: R Interface to the SIRIUS Software for Mass Spectrometry Annotation",
+    author = c(
+        person("Philippine", "Louail"),
+        person("Adriano", "Rutz"),
+        person("Markus", "Fleischauer"),
+        person("Jonas", "Emmert")
+    ),
+    year = format(Sys.Date(), "%Y"),
+    note = sprintf("R package version %s",
+                   meta$Version),
+    url = "https://github.com/RforMassSpectrometry/RuSirius"
+)

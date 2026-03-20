@@ -96,7 +96,8 @@ closeGUI <- function(sirius, closeProject = FALSE) {
     if (!length(sirius@projectId))
         stop("No project is currently open.")
     close_arg <- if (closeProject) "true" else NULL
-    sirius@api$gui_api$CloseGui(sirius@projectId, close_project = close_arg)
+    sirius@api$gui_api$CloseGui(sirius@projectId,
+                                     close_project = close_arg)
     message("GUI closed for project: ", sirius@projectId)
     invisible(TRUE)
 }
@@ -110,8 +111,12 @@ closeGUI <- function(sirius, closeProject = FALSE) {
 #' @export
 projectInfo <- function(sirius,
                         infoType = c("compatibilityInfo", "sizeInformation")) {
+    if (!checkConnection(sirius))
+        stop("The connection to the Sirius instance is not valid.")
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to retrieve project info. Use logIn() first.")
     info <- sirius@api$projects_api$GetProject(project_id = sirius@projectId,
-                                                 opt_fields = infoType)
+                                           opt_fields = infoType)
     info$toSimpleType()
 }
 
@@ -120,6 +125,11 @@ projectInfo <- function(sirius,
 #' @return a `character` vector with the open projects.
 #' @export
 listOpenProjects <- function(sirius) {
+    if (!checkConnection(sirius))
+        stop("The connection to the Sirius instance is not valid. ",
+             "Cannot retrieve open projects.")
+    if (!.is_logged_in(sirius))
+        return(character(0))
     tst <- tryCatch(
         sirius@api$projects_api$GetProjects(),
         error = function(e) {
@@ -136,18 +146,25 @@ listOpenProjects <- function(sirius) {
 #' @param projectId `character(1)` specifying the id of the project to open.
 #'        can be an already existing project or a new one.
 #' @param path `character(1)` path where to find the existing project or where
-#'        to create a new one.By default, the porject will be opened in the
+#'        to create a new one. By default, the project will be opened in the
 #'        current `"."` directory.
 #' @return a `Sirius` object with the project opened.
 #' @export
 openProject <- function(sirius, projectId, path = character()) {
     if (!checkConnection(sirius))
         stop("The connection to the Sirius instance is not valid.")
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to open a project. Use logIn() first.")
     l <- listOpenProjects(sirius)
     if (!is.null(l) && length(l) > 0) {
         for (project in l) {
-            sirius@api$projects_api$CloseProject(project_id = project)
-            message("Closed project ", project)
+            tryCatch({
+                sirius@api$projects_api$CloseProject(project_id = project)
+                message("Closed project ", project)
+            }, error = function(e) {
+                message("Could not close project ", project, ": ",
+                        conditionMessage(e))
+            })
         }
     }
     if (length(path) > 0) {
@@ -156,10 +173,11 @@ openProject <- function(sirius, projectId, path = character()) {
     } else path <- getwd()
     f <- file.path(path, paste0(projectId, ".sirius"))
     if (file.exists(f))
-       sirius@api$projects_api$OpenProject(project_id = projectId,
-                                             path_to_project = f)
-    else sirius@api$projects_api$CreateProject(project_id = projectId,
-                                            path_to_project = f)
+        sirius@api$projects_api$OpenProject(project_id = projectId,
+                                                path_to_project = f)
+    else
+        sirius@api$projects_api$CreateProject(project_id = projectId,
+                                                  path_to_project = f)
     sirius@projectId <- projectId
     sirius
 }
@@ -228,7 +246,7 @@ mapFeatures <- function(sirius) {
 saveConfig <- function(sirius, config, name) {
     if (!length(name))
         stop("Please provide a name for the configuration.")
-    sirius@api@jobs_api$SaveJobConfig(name, config) # see where it saves it.
+    sirius@api$jobs_api$SaveJobConfig(name, config)
 }
 
 #' @rdname utils
@@ -241,7 +259,7 @@ jobInfo <- function(sirius, jobId = character()) {
         stop("Please provide a jobId that you wish to retrieve")
     j <- sirius@api$jobs_api$GetJob(sirius@projectId, jobId,
                                     c("command", "progress", "affectedIds"))
-    return(.clean_output(j))
+    .clean_output(j)
 }
 
 #' @rdname utils
@@ -253,7 +271,7 @@ jobInfo <- function(sirius, jobId = character()) {
 deleteJob <- function(sirius, jobId = character(), all = FALSE) {
     if (!all) {
         if (!length(jobId))
-            stop("Please provide a jobId that you wish to delete or set",
+            stop("Please provide a jobId that you wish to delete or set ",
                  "all = TRUE to delete all jobs.")
         sirius@api$jobs_api$DeleteJob(sirius@projectId, jobId)
     } else {

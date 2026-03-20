@@ -16,6 +16,9 @@ FingerPrint/Classes&Structure for formulas candidates with reference
 spectrum similarity > \code{Sirius.minReferenceMatchScoreToInject} no
 matter which score threshold rules apply. Default is \code{FALSE}.}
 }
+\value{
+An object of class \code{predictParam} with the specified parameters.
+}
 \description{
 This function creates an object of class \code{predictParam} that can be used to
 predict molecular fingerprints and compound identifications using
@@ -42,5 +45,13 @@ param <- predictParam()
 
 }
 \references{
-reference
+Dührkop K, Shen H, Meusel M, et al. (2015).
+Searching molecular structure databases with tandem mass spectra using
+CSI:FingerID. \emph{Proceedings of the National Academy of Sciences}, 112,
+12580-12585. \doi{10.1073/pnas.1509788112}
+
+Dührkop K, Nothias L-F, Fleischauer M, et al. (2021).
+Systematic classification of unknown metabolites using high-resolution
+fragmentation mass spectra. \emph{Nature Biotechnology}, 39, 462-471.
+\doi{10.1038/s41587-020-0740-8}
 }

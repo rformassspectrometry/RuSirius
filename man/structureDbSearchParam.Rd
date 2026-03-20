@@ -57,5 +57,8 @@ param <- structureDbSearchParam(
 
 }
 \references{
-reference
+Dührkop K, Shen H, Meusel M, et al. (2015).
+Searching molecular structure databases with tandem mass spectra using
+CSI:FingerID. \emph{Proceedings of the National Academy of Sciences}, 112,
+12580-12585. \doi{10.1073/pnas.1509788112}
 }

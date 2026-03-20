@@ -3,8 +3,6 @@
 # If these tests fail after an API update, it indicates breaking changes
 
 test_that("RSirius classes exist and have expected structure", {
-    skip_if_not_installed("RSirius")
-
     # Check core RSirius classes exist
     expect_true(exists("SiriusSDK", where = asNamespace("RSirius")))
     expect_true(exists("SimplePeak", where = asNamespace("RSirius")))
@@ -15,8 +13,6 @@ test_that("RSirius classes exist and have expected structure", {
 })
 
 test_that("SimplePeak class has expected fields", {
-    skip_if_not_installed("RSirius")
-
     peak <- RSirius::SimplePeak$new(mz = 100.5, intensity = 1000)
 
     # Check fields exist
@@ -29,8 +25,6 @@ test_that("SimplePeak class has expected fields", {
 })
 
 test_that("BasicSpectrum class has expected fields", {
-    skip_if_not_installed("RSirius")
-
     peaks <- list(RSirius::SimplePeak$new(mz = 100.5, intensity = 1000))
     spectrum <- RSirius::BasicSpectrum$new(
         msLevel = 2L,
@@ -51,8 +45,6 @@ test_that("BasicSpectrum class has expected fields", {
 })
 
 test_that("FeatureImport class has expected fields", {
-    skip_if_not_installed("RSirius")
-
     feature <- RSirius::FeatureImport$new(
         externalFeatureId = "test_feature_1",
         ionMass = 500.0,
@@ -71,8 +63,6 @@ test_that("FeatureImport class has expected fields", {
 })
 
 test_that("JobSubmission class has expected fields", {
-    skip_if_not_installed("RSirius")
-
     job <- RSirius::JobSubmission$new()
 
     # Check core fields exist
@@ -84,8 +74,6 @@ test_that("JobSubmission class has expected fields", {
 })
 
 test_that("SiriusSDK can be instantiated", {
-    skip_if_not_installed("RSirius")
-
     sdk <- RSirius::SiriusSDK$new()
     expect_s3_class(sdk, "SiriusSDK")
 
@@ -95,8 +83,6 @@ test_that("SiriusSDK can be instantiated", {
 })
 
 test_that("AccountCredentials class works correctly", {
-    skip_if_not_installed("RSirius")
-
     cred <- RSirius::AccountCredentials$new(
         username = "test_user",
         password = "test_pass"
@@ -111,8 +97,6 @@ test_that("AccountCredentials class works correctly", {
 # Tests for API version compatibility
 test_that("RSirius package version is as expected",
 {
-    skip_if_not_installed("RSirius")
-
     pkg_version <- packageVersion("RSirius")
 
     # This test will fail if the API version changes unexpectedly
@@ -126,8 +110,6 @@ test_that("RSirius package version is as expected",
 
 # Tests for toSimpleType method availability
 test_that("RSirius objects have toSimpleType method", {
-    skip_if_not_installed("RSirius")
-
     peak <- RSirius::SimplePeak$new(mz = 100.5, intensity = 1000)
 
     # Check toSimpleType exists and returns expected format
@@ -140,8 +122,6 @@ test_that("RSirius objects have toSimpleType method", {
 })
 
 test_that("BasicSpectrum toSimpleType works correctly", {
-    skip_if_not_installed("RSirius")
-
     peaks <- list(RSirius::SimplePeak$new(mz = 100.5, intensity = 1000))
     spectrum <- RSirius::BasicSpectrum$new(
         msLevel = 2L,
@@ -154,8 +134,6 @@ test_that("BasicSpectrum toSimpleType works correctly", {
 })
 
 test_that("FeatureImport toJSON/fromJSON round-trip works", {
-    skip_if_not_installed("RSirius")
-
     feature <- RSirius::FeatureImport$new(
         externalFeatureId = "test_feature",
         ionMass = 500.0,

@@ -136,7 +136,11 @@
 #' For more information, see the Sirius
 #' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
-#' @references reference
+#' @references
+#' Dührkop K, Fleischauer M, Ludwig M, et al. (2019).
+#' SIRIUS 4: a rapid tool for turning tandem mass spectra into metabolite
+#' structure information. *Nature Methods*, 16, 299-302.
+#' \doi{10.1038/s41592-019-0344-8}
 #'
 #' @examples
 #' # Example of creating a formulaIdParam object
@@ -333,7 +337,18 @@ formulaIdParam <- function(
 #' For more information, see the Sirius
 #' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
-#' @references reference
+#' @references
+#' Dührkop K, Shen H, Meusel M, et al. (2015).
+#' Searching molecular structure databases with tandem mass spectra using
+#' CSI:FingerID. *Proceedings of the National Academy of Sciences*, 112,
+#' 12580-12585. \doi{10.1073/pnas.1509788112}
+#'
+#' Dührkop K, Nothias L-F, Fleischauer M, et al. (2021).
+#' Systematic classification of unknown metabolites using high-resolution
+#' fragmentation mass spectra. *Nature Biotechnology*, 39, 462-471.
+#' \doi{10.1038/s41587-020-0740-8}
+#'
+#' @return An object of class `predictParam` with the specified parameters.
 #'
 #' @examples
 #' # Example of setting up the parameters for the prediction of molecular
@@ -491,7 +506,11 @@ spectraMatchingParam <- function(
 #' For more information, see the Sirius
 #' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
-#' @references reference
+#' @references
+#' Dührkop K, Shen H, Meusel M, et al. (2015).
+#' Searching molecular structure databases with tandem mass spectra using
+#' CSI:FingerID. *Proceedings of the National Academy of Sciences*, 112,
+#' 12580-12585. \doi{10.1073/pnas.1509788112}
 #'
 #' @examples
 #' # Example of setting up the parameters for structure database search
@@ -562,7 +581,10 @@ structureDbSearchParam <- function(
 #' For more information, see the Sirius
 #' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
-#' @references reference
+#' @references
+#' Stravs MA, Dührkop K, Böcker S, Zamboni N (2022).
+#' MSNovelist: de novo structure generation from mass spectra.
+#' *Nature Methods*, 19, 865-870. \doi{10.1038/s41592-022-01486-3}
 #'
 #' @examples
 #' # Example of setting up the parameters for de novo structure annotation
@@ -636,7 +658,11 @@ deNovoStructureParam <- function(numberOfCandidateToPredict = 10) {
 #' For more information, see the Sirius
 #' [documentation](https://v6.docs.sirius-ms.io/methods-background).
 #'
-#' @references reference
+#' @references
+#' Ludwig M, Nothias L-F, Dührkop K, et al. (2020).
+#' Database-independent molecular formula annotation using Gibbs sampling
+#' through ZODIAC. *Nature Machine Intelligence*, 2, 629-641.
+#' \doi{10.1038/s42256-020-00234-6}
 #'
 #' @return An object of class `zodiacParam`.
 #'

@@ -59,13 +59,13 @@ setClass("Sirius",
 #'  will stop with an error message.
 #'
 #' @param username `character(1)`, the username to use for the connection
-#' 
+#'
 #' @param password `character(1)`, the password to use for the connection
 #'
 #' @param projectId `character(1)`, the project id to use for the connection
 #'
 #' @param path `character(1)` path where to find the existing project or where
-#'        to create a new one.By default, the porject will be opened in the
+#'        to create a new one. By default, the project will be opened in the
 #'        current `"."` directory.
 #'
 #' @param port `integer(1)` defining the port for Sirius. Allows to manually
@@ -86,55 +86,61 @@ Sirius <- function(username = character(), password = character(),
                    port = integer(), verbose = FALSE) {
     srs <- new("Sirius")
     srs@sdk <- SiriusSDK$new()
-    if (length(port))
-        srs@sdk$port <- port
-    
-    if (verbose) srs@api <- srs@sdk$attach_or_start_sirius()
-    else
-        suppressMessages(srs@api <- srs@sdk$attach_or_start_sirius())
+    if (length(port)) srs@sdk$port <- port
+    srs@api <- .sdk_connect(srs@sdk, port, verbose)
 
     max_retries <- 5
     attempts <- 0
     while (!checkConnection(srs) && attempts < max_retries) {
         attempts <- attempts + 1
-        message("Attempt: Sirius application is not starting ",
-                        "properly, attempting to re-start.", attempts, "/n")
+        message("Attempt ", attempts, ": Sirius application is not starting ",
+                "properly, attempting to re-start.\n")
         shutdown(srs, closeProject = FALSE)
+        Sys.sleep(2)
         srs@sdk <- SiriusSDK$new()
-        if (verbose) srs@api <- srs@sdk$start_sirius()
-        else
-            suppressMessages(srs@api <- srs@sdk$start_sirius())
+        srs@api <- .sdk_start(srs@sdk, port, verbose)
     }
 
     if (!checkConnection(srs)) {
         stop("Failed to establish a connection to Sirius after ", max_retries,
              " attempts.")
     }
-    message("Connection established, Sirius version in use is ",
-            srs@api$info_api$GetInfo()[["siriusVersion"]])
-    if (!srs@api$login_and_account_api$IsLoggedIn()) {
-        if (!length(username) || !length(password)) {
-            message("You are not logged in and no credentials were provided.",
-                    "Please use `logIn()` function ",
-                    "and then `openProject()` to open the project wanted")
-            return(srs)
+    info <- tryCatch(srs@api$info_api$GetInfo(), error = function(e) NULL)
+    if (!is.null(info)) {
+        message("Connection established, Sirius version in use is ",
+                info[["siriusVersion"]])
+    } else {
+        message("Connection established.")
+    }
+    logged_in <- tryCatch(
+        srs@api$login_and_account_api$IsLoggedIn(),
+        error = function(e) FALSE
+    )
+    if (!isTRUE(logged_in)) {
+        if (length(username) && length(password)) {
+            srs <- logIn(srs, username, password)
+            message("You are now logged in.")
+        } else {
+            message("You are not logged in and no credentials were provided. ",
+                    "Some features may be limited. ",
+                    "Use `logIn()` to authenticate.")
         }
-        srs <- logIn(srs, username, password)
-        message("You are now logged in.")
-    } else message("You are already logged in.")
+    } else {
+        message("You are already logged in.")
+    }
     if (length(projectId)) {
         tryCatch({
             srs <- openProject(sirius = srs,
                                projectId = projectId,
                                path = path)
-            if (projectInfo(srs)$numOfFeatures != 0)
+            if (isTRUE(projectInfo(srs)$numOfFeatures != 0))
                 srs@featureMap <- mapFeatures(srs)
             }, error = function(e) {
-                message("The project could not be loaded, please check the ",
-                        "projectId or the path.")
+                message("The project could not be loaded: ",
+                        conditionMessage(e))
                 })
         } else message("No project loaded as none was given in parameters ",
-                       "'projectId' run `openProject()` to load a project.")
+                       "'projectId'. Run `openProject()` to load a project.")
     srs
 }
 
@@ -146,29 +152,47 @@ setMethod("show", signature(object = "Sirius"),
           definition = function(object) {
               cat("Sirius object\n")
               valid <- checkConnection(object)
-              cat("Valid connection to Sirius: ", valid,
-                  "\n")
-              if (!valid) return(cat("Try to restart Sirius"))
-              cat("Logged In: ", object@api$login_and_account_api$IsLoggedIn(),
-                  "\n")
-              cat("Sirius version: ",
-                  object@api$info_api$GetInfo()[["siriusVersion"]], "\n")
-              cat("Sirius update available: ",
-                  object@api$info_api$GetInfo()[["updateAvailable"]], "\n")
+              cat("Valid connection to Sirius: ", valid, "\n")
+              if (!valid) return(cat("Try to restart Sirius\n"))
+              logged_in <- tryCatch(
+                  object@api$login_and_account_api$IsLoggedIn(),
+                  error = function(e) NA
+              )
+              cat("Logged In: ", logged_in, "\n")
+              info <- tryCatch(
+                  object@api$info_api$GetInfo(),
+                  error = function(e) NULL
+              )
+              if (!is.null(info)) {
+                  cat("Sirius version: ",
+                      info[["siriusVersion"]], "\n")
+                  cat("Sirius update available: ",
+                      info[["updateAvailable"]], "\n")
+              }
               if (length(object@projectId)) {
                   cat("Project ID: ", object@projectId, "\n")
-                  cat("Number of features in the project: ",
-                      projectInfo(object)$numOfFeatures, "\n")
-                  j <- object@api$jobs_api$GetJobs(object@projectId,
-                                                   c("command", "progress",
-                                                     "affectedIds"))
-                  if (!is.null(j)) {
+                  pinfo <- tryCatch(projectInfo(object),
+                                    error = function(e) NULL)
+                  if (!is.null(pinfo))
+                      cat("Number of features in the project: ",
+                          pinfo$numOfFeatures, "\n")
+                  j <- tryCatch(
+                      object@api$jobs_api$GetJobs(
+                          object@projectId,
+                          c("command", "progress", "affectedIds")),
+                      error = function(e) NULL
+                  )
+                  if (!is.null(j) && length(j) > 0) {
                       ids <- as.numeric(vapply(j, function(x)
                           x[["id"]], character(1)))
                       cat("Job ids available: ", ids, "\n")
                       cat("State of latest job: ",
                           j[[which.max(ids)]]$progress$state, "\n")
-                  } else cat("No job was run/is running on this project. \n")
-              } else cat("No project is currently loaded\n")
+                  } else {
+                      cat("No job was run/is running on this project.\n")
+                  }
+              } else {
+                  cat("No project is currently loaded\n")
+              }
           }
 )

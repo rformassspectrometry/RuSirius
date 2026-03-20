@@ -268,7 +268,7 @@ An important aspect of the summary table is the confidence-related columns,
 which provide insight into the reliability of the predictions.
 
 ```{r}
-summarytb <- summary(sirius = srs, result.type = "structure")
+summarytb <- summary(srs, result.type = "structure")
 head(summarytb)
 ```
 

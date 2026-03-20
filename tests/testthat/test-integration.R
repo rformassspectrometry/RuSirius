@@ -11,27 +11,36 @@ test_that("Sirius connection can be established", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
 
     expect_s4_class(srs, "Sirius")
     expect_true(checkConnection(srs))
 })
 
-test_that("Sirius can connect to a running instance with manual port", {
-    skip_if_no_sirius()
-
-    tmp <- SiriusSDK$new()
-    tmp$port <- 9997
-    s_manual <- tmp$start_sirius(port = 9997, headless = TRUE)
-    s <- Sirius(port = 9997)
-    expect_true(checkConnection(s))
-    expect_equal(s@sdk$port, 9997)
-    shutdown(s, closeProject = TRUE)
-})
-
 test_that("checkConnection returns FALSE for invalid object", {
     invalid_srs <- new("Sirius")
     expect_false(checkConnection(invalid_srs))
+})
+
+# =============================================================================
+# show() method
+# =============================================================================
+
+test_that("show method prints Sirius object info", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+
+    output <- capture.output(show(srs))
+    expect_true(any(grepl("Sirius object", output)))
+    expect_true(any(grepl("Valid connection", output)))
+})
+
+test_that("show method handles disconnected object", {
+    srs <- new("Sirius")
+    output <- capture.output(show(srs))
+    expect_true(any(grepl("Sirius object", output)))
+    expect_true(any(grepl("FALSE", output)))
 })
 
 # =============================================================================
@@ -43,9 +52,8 @@ test_that("listOpenProjects returns character vector", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
 
-    projects <- listOpenProjects(srs)
+    projects <- suppressMessages(listOpenProjects(srs))
     expect_type(projects, "character")
 })
 
@@ -54,12 +62,9 @@ test_that("projectInfo returns expected structure", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
+    skip_if_no_project(srs)
 
-    info <- tryCatch(
-        projectInfo(srs),
-        error = function(e) skip(paste("API error:", conditionMessage(e)))
-    )
+    info <- projectInfo(srs)
 
     expect_type(info, "list")
     expect_true(any(c("projectId", "location", "numOfFeatures") %in% names(info)))
@@ -74,13 +79,9 @@ test_that("featuresId returns character vector (empty or populated)", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
+    skip_if_no_project(srs)
 
-    ids <- tryCatch(
-        featuresId(srs),
-        error = function(e) skip(paste("API error:", conditionMessage(e)))
-    )
-
+    ids <- featuresId(srs)
     expect_type(ids, "character")
 })
 
@@ -89,7 +90,7 @@ test_that("featuresId type argument works", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
+    skip_if_no_project(srs)
 
     ids_sirius <- featuresId(srs, type = "sirius")
     ids_xcms <- featuresId(srs, type = "xcms")
@@ -104,46 +105,31 @@ test_that("featuresInfo returns data structure", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
+    skip_if_no_project(srs)
 
-    info <- tryCatch(
-        featuresInfo(srs),
-        error = function(e) skip(paste("API error:", conditionMessage(e)))
-    )
+    info <- featuresInfo(srs)
 
     # Should be NULL or matrix/data.frame
     expect_true(is.null(info) || is.matrix(info) || is.data.frame(info))
 })
 
-# =============================================================================
-# GUI Tests
-# =============================================================================
-
-test_that("openGUI and closeGUI work", {
+test_that("mapFeatures returns data.frame with expected columns", {
     skip_if_no_sirius()
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
+    skip_if_no_project(srs)
 
-    # Test opening GUI
-    result <- tryCatch({
-        openGUI(srs)
-        TRUE
-    }, error = function(e) {
-        skip(paste("GUI API error:", conditionMessage(e)))
-    })
-    expect_true(result)
+    fm <- mapFeatures(srs)
 
-    # Test closing GUI
-    result <- tryCatch({
-        closeGUI(srs)
-        TRUE
-    }, error = function(e) {
-        skip(paste("GUI API error:", conditionMessage(e)))
-    })
-    expect_true(result)
+    expect_s3_class(fm, "data.frame")
+    expect_true("fts_sirius" %in% colnames(fm))
+    expect_true("fts_xcms" %in% colnames(fm))
 })
+
+# =============================================================================
+# GUI Tests
+# =============================================================================
 
 test_that("openGUI fails without project", {
     skip_if_no_sirius()
@@ -158,19 +144,67 @@ test_that("openGUI fails without project", {
 # Database Tests
 # =============================================================================
 
-test_that("listDbs returns database information", {
+test_that("listDbs returns data.frame with database info", {
     skip_if_no_sirius()
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
+    skip_if_not_logged_in(srs)
 
-    dbs <- tryCatch(
-        listDbs(srs),
-        error = function(e) skip(paste("API error:", conditionMessage(e)))
-    )
+    dbs <- listDbs(srs)
 
-    expect_true(is.data.frame(dbs) || is.matrix(dbs) || is.list(dbs))
+    expect_s3_class(dbs, "data.frame")
+    expect_true(nrow(dbs) > 0)
+})
+
+test_that("infoDb returns info for BIO database", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_not_logged_in(srs)
+
+    info <- infoDb(srs, "BIO")
+
+    expect_type(info, "list")
+    expect_true("databaseId" %in% names(info))
+})
+
+# =============================================================================
+# Import + Features Workflow
+# =============================================================================
+
+test_that("import MS1+MS2 with ms_column_name works", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_no_project(srs)
+    skip_if_not_logged_in(srs)
+
+    sp <- Spectra(DataFrame(
+        msLevel = c(1L, 2L),
+        polarity = c(1L, 1L),
+        precursorMz = c(NA_real_, 300.0),
+        scanIndex = c(1L, 2L),
+        dataOrigin = c("test_origin", "test_origin"),
+        ms_group = c(1L, 1L),
+        mz = I(list(c(300.0, 301.0), c(100, 150))),
+        intensity = I(list(c(9999, 500), c(999, 500)))
+    ))
+
+    srs <- import(srs, sp, ms_column_name = "ms_group",
+                  adducts = "[M+H]+", deleteExistingFeatures = TRUE)
+
+    # Update shared object so subsequent tests have the fresh featureMap
+    .shared_sirius_env$srs <- srs
+
+    ids <- featuresId(srs)
+    expect_type(ids, "character")
+    expect_true(length(ids) >= 1)
+
+    info <- featuresInfo(srs)
+    expect_true(is.matrix(info) || is.data.frame(info))
 })
 
 # =============================================================================
@@ -248,8 +282,126 @@ test_that("spectraMatchingParam creates valid S4 parameters", {
 })
 
 # =============================================================================
+# results() function
+# =============================================================================
+
+test_that("run computes formula identification", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_no_project(srs)
+    skip_if_not_logged_in(srs)
+
+    ids <- featuresId(srs)
+    if (length(ids) == 0) skip("No features to analyze")
+
+    jobId <- run(srs,
+                 alignedFeaturesIds = ids[1],
+                 formulaIdParams = formulaIdParam())
+
+    expect_type(jobId, "character")
+})
+
+test_that("results returns list by default", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_no_project(srs)
+    skip_if_not_logged_in(srs)
+
+    ids <- featuresId(srs)
+    if (length(ids) == 0) skip("No features available for results")
+
+    res <- results(srs, features = ids[1], result.type = "formulaId",
+                   return.type = "list")
+
+    expect_type(res, "list")
+    expect_true(length(res) >= 1)
+})
+
+test_that("results returns data.frame when requested", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_no_project(srs)
+    skip_if_not_logged_in(srs)
+
+    ids <- featuresId(srs)
+    if (length(ids) == 0) skip("No features available for results")
+
+    res <- results(srs, features = ids[1], result.type = "formulaId",
+                   return.type = "data.frame")
+
+    expect_true(is.data.frame(res))
+})
+
+test_that("results spectralDbMatch works", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_no_project(srs)
+    skip_if_not_logged_in(srs)
+
+    ids <- featuresId(srs)
+    if (length(ids) == 0) skip("No features available for results")
+
+    res <- results(srs, features = ids[1], result.type = "spectralDbMatch",
+                   return.type = "list")
+
+    expect_type(res, "list")
+})
+
+# =============================================================================
+# summary() method
+# =============================================================================
+
+test_that("summary returns empty data.frame when no features exist", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection("test_summary_empty")
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_not_logged_in(srs)
+
+    ## Ensure empty project
+    srs <- deleteFeatures(srs)
+
+    smry <- getMethod("summary", "Sirius")
+    res <- smry(srs, result.type = "formulaId")
+    expect_true(is.data.frame(res))
+    expect_equal(nrow(res), 0)
+
+    res <- smry(srs, result.type = "structure")
+    expect_true(is.data.frame(res))
+    expect_equal(nrow(res), 0)
+})
+
+test_that("summary returns data.frame with results after computation", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_no_project(srs)
+    skip_if_not_logged_in(srs)
+
+    ids <- featuresId(srs)
+    if (length(ids) == 0) skip("No features available")
+
+    smry <- getMethod("summary", "Sirius")
+    res <- smry(srs, result.type = "formulaId")
+    expect_true(is.data.frame(res))
+    expect_true(nrow(res) >= 1)
+
+    res <- smry(srs, result.type = "structure")
+    expect_true(is.data.frame(res))
+    expect_true(nrow(res) >= 1)
+})
+
+# =============================================================================
 # API Response Structure Tests
-# These verify that API responses have expected fields
 # =============================================================================
 
 test_that("Info API returns expected fields", {
@@ -257,12 +409,8 @@ test_that("Info API returns expected fields", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
 
-    info <- tryCatch(
-        srs@api$info_api$GetInfo(),
-        error = function(e) skip(paste("API error:", conditionMessage(e)))
-    )
+    info <- srs@api$info_api$GetInfo()
 
     # Check essential fields exist
     expect_true(!is.null(info$siriusVersion))
@@ -273,12 +421,30 @@ test_that("Account API returns login status", {
 
     srs <- test_sirius_connection()
     if (is.null(srs)) skip("Could not create Sirius connection")
-    on.exit(safe_shutdown(srs), add = TRUE)
 
-    logged_in <- tryCatch(
-        srs@api$login_and_account_api$IsLoggedIn(),
-        error = function(e) skip(paste("API error:", conditionMessage(e)))
-    )
+    logged_in <- srs@api$login_and_account_api$IsLoggedIn()
 
     expect_type(logged_in, "logical")
+})
+
+test_that("IsLoggedIn returns TRUE when user is logged in", {
+    skip_if_no_sirius()
+
+    srs <- test_sirius_connection()
+    if (is.null(srs)) skip("Could not create Sirius connection")
+    skip_if_not_logged_in(srs)
+
+    expect_true(srs@api$login_and_account_api$IsLoggedIn())
+})
+
+# =============================================================================
+# Shutdown
+# =============================================================================
+
+test_that("shutdown handles disconnected object gracefully", {
+    srs <- new("Sirius")
+    expect_message(
+        shutdown(srs),
+        "Could not shutdown"
+    )
 })

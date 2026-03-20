@@ -50,6 +50,10 @@
 #' @noRd
 .groupMSnIndex <- function(spectra) {
     origins <- spectra$dataOrigin
+    if (anyNA(origins))
+        stop("'dataOrigin' must not contain NA values. Ensure all ",
+             "spectra have a valid dataOrigin (e.g. loaded from a file ",
+             "or set manually).")
     ms_levels <- spectra$msLevel
     precursor_mz <- spectra$precursorMz
     n <- length(spectra)
@@ -120,6 +124,11 @@
 
 .createfeatures <- function(data, idx, adduct) {
     pol <- data$polarity[1]
+    if (is.na(pol))
+        stop("'polarity' is NA for feature '", idx, "'. The Spectra ",
+             "object must have polarity set (0 = negative, 1 = positive). ",
+             "You can set it with: spectra$polarity <- 1L")
+    charge <- if (pol == 0L) -1L else as.integer(pol)
     ms1 <- data[data$msLevel == 1L]
     msn <- data[data$msLevel >= 2L]
     ## Use precursorMz from the first MSn spectrum as ionMass whenever
@@ -133,7 +142,7 @@
     RSirius::FeatureImport$new(
         externalFeatureId = as.character(idx),
         ionMass = ion_mass,
-        charge = if (pol == 0) -1 else pol,
+        charge = charge,
         detectedAdducts = list(adduct),
         mergedMs1 = .createspectraMS1(ms1),
         ms2Spectra = .createspectraMSn(msn)
@@ -144,15 +153,23 @@
 .importSpectraChunk <- function(chunk, sirius, ms_column_name, data, adducts){
     fdata <- vector("list", length(chunk))
 
-    for (i in chunk) {
-        adduct <- adducts[i]
+    for (pos in seq_along(chunk)) {
+        i <- chunk[pos]
+        adduct <- adducts[[as.character(i)]]
         bd_subset <- data[data[[ms_column_name]] == i]
-        fdata[[which(chunk == i)]] <- .createfeatures(data = bd_subset, idx = i, adduct = adduct)
+        fdata[[pos]] <- .createfeatures(data = bd_subset, idx = i,
+                                        adduct = adduct)
     }
-    sirius@api$features_api$AddAlignedFeatures(
+    result <- sirius@api$features_api$AddAlignedFeatures(
         project_id = sirius@projectId,
         fdata
     )
+    if (is.null(result) || length(result) == 0)
+        warning("Sirius API did not return any features for this chunk. ",
+                "This may indicate a mismatch between adduct and polarity ",
+                "(charge). Check that your adducts match the ionization ",
+                "mode of your data.", call. = FALSE)
+    result
 }
 
 
@@ -188,6 +205,42 @@
         "",
         sep = "\n"
     )
+}
+
+## SDK connection helpers used by the Sirius() constructor
+## to eliminate duplicated verbose / port branching.
+
+#' @noRd
+.sdk_connect <- function(sdk, port = integer(), verbose = FALSE) {
+    call_fn <- function() {
+        if (length(port)) sdk$attach_to_sirius(sirius_port = port)
+        else sdk$attach_or_start_sirius()
+    }
+    if (verbose) call_fn() else suppressMessages(call_fn())
+}
+
+#' @noRd
+.sdk_start <- function(sdk, port = integer(), verbose = FALSE) {
+    call_fn <- function() {
+        if (length(port)) sdk$start_sirius(port = port)
+        else sdk$start_sirius()
+    }
+    if (verbose) call_fn() else suppressMessages(call_fn())
+}
+
+#' Check whether the user is logged in.
+#'
+#' Calls the login API and returns \code{TRUE} / \code{FALSE}. Used internally
+#' to guard functions that require authentication.
+#'
+#' @param sirius A \code{Sirius} object.
+#' @return \code{TRUE} if the user is logged in, \code{FALSE} otherwise.
+#' @noRd
+.is_logged_in <- function(sirius) {
+    isTRUE(tryCatch(
+        sirius@api$login_and_account_api$IsLoggedIn(),
+        error = function(e) FALSE
+    ))
 }
 
 ## Developpers help

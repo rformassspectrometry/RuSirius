@@ -23,6 +23,8 @@ listDbs <- function(sirius) {
     if (!checkConnection(sirius)) {
         stop("The connection to the Sirius instance is not valid.")
     }
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to list databases. Use logIn() first.")
     db_list <- sirius@api$searchable_databases_api$GetDatabases()
     json_list <- lapply(db_list, function(x) x$toSimpleType())
     data.frame(do.call(bind_rows, json_list))
@@ -40,10 +42,13 @@ infoDb <- function(sirius, databaseId = character()) {
     if (!checkConnection(sirius)) {
         stop("The connection to the Sirius instance is not valid.")
     }
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to retrieve database info. Use logIn() first.")
     if (!nzchar(databaseId)) {
         stop("Please provide a valid database ID.")
     }
-    sirius@api$searchable_databases_api$GetDatabase(databaseId)$toSimpleType()
+    db <- sirius@api$searchable_databases_api$GetDatabase(databaseId)
+    db$toSimpleType()
 }
 
 #' @rdname siriusDbs
@@ -59,6 +64,8 @@ infoDb <- function(sirius, databaseId = character()) {
 removeDb <- function(sirius, databaseId = character()) {
     if (!checkConnection(sirius))
         stop("The connection to the Sirius instance is not valid.")
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to remove a database. Use logIn() first.")
     if (!nzchar(databaseId)) {
         stop("Please provide a valid database ID.")
     }
@@ -81,6 +88,8 @@ createDb <- function(sirius, databaseId = character(), files = character(),
                      location = getwd()) {
     if (!checkConnection(sirius))
         stop("The connection to the Sirius instance is not valid.")
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to create a database. Use logIn() first.")
     if (!length(databaseId) || length(databaseId) > 1 ||
         !is.character(databaseId))
         stop("Please provide a single valid database ID.")

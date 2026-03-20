@@ -15,20 +15,45 @@ get_shared_sirius <- function(projectId = "test_ruSirius") {
         srs <- .shared_sirius_env$srs
         if (!identical(srs@projectId, projectId)) {
             srs <- tryCatch(
-                suppressMessages(openProject(srs, projectId, path = tempdir())),
+                suppressWarnings(suppressMessages(
+                    openProject(srs, projectId, path = tempdir())
+                )),
                 error = function(e) srs
             )
             .shared_sirius_env$srs <- srs
         }
         return(srs)
     }
+
+    ## Connection died or never existed — clean up before retrying.
+    if (!is.null(.shared_sirius_env$srs)) {
+        tryCatch(
+            .shared_sirius_env$srs@sdk$shutdown_sirius(),
+            error = function(e) NULL
+        )
+        .shared_sirius_env$srs <- NULL
+        Sys.sleep(3)
+    }
+
     srs <- tryCatch(
-        suppressMessages(Sirius(projectId = projectId, path = tempdir())),
+        suppressMessages(
+            suppressWarnings(Sirius(projectId = projectId, path = tempdir()))
+        ),
         error = function(e) NULL
     )
     if (is.null(srs) || !checkConnection(srs)) {
         .shared_sirius_env$available <- FALSE
         return(NULL)
+    }
+    ## If projectId wasn't set during construction (e.g. API error during
+    ## project creation), try to open the project explicitly now.
+    if (!length(srs@projectId)) {
+        srs <- tryCatch(
+            suppressWarnings(suppressMessages(
+                openProject(srs, projectId, path = tempdir())
+            )),
+            error = function(e) srs
+        )
     }
     .shared_sirius_env$available <- TRUE
     .shared_sirius_env$srs <- srs
@@ -43,8 +68,18 @@ skip_if_no_sirius <- function() {
 
 #' @noRd
 skip_if_not_logged_in <- function(sirius) {
-    if (!sirius@api$login_and_account_api$IsLoggedIn())
+    logged_in <- tryCatch(
+        sirius@api$login_and_account_api$IsLoggedIn(),
+        error = function(e) FALSE
+    )
+    if (!isTRUE(logged_in))
         testthat::skip("Not logged in to Sirius")
+}
+
+#' @noRd
+skip_if_no_project <- function(sirius) {
+    if (!length(sirius@projectId))
+        testthat::skip("No project loaded")
 }
 
 #' Returns the shared connection. Used by individual tests.

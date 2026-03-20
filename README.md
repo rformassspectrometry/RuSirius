@@ -1,10 +1,8 @@
 # RuSirius
 
-[![Project Status: WIP – Initial development is in progress, but there has not
-yet been a stable, usable release suitable for the
-public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
-
-IMPORTANT: THIS IS ACTIVELY DEVELOPED.
+[![Project Status: Active – The project has reached a stable, usable
+state and is being actively
+developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
 **RuSirius** (spelled R-U-Sirius (*are you serious*)) is an R package that
 provides an interface to the Sirius software, enabling seamless integration of
@@ -83,42 +81,44 @@ RuSirius comes with five vignettes to help you get started:
 
 --------------------------------------------------------------------------------
 
-## Testers Needed
+## Contributing
 
-We’re looking for testers to help refine and enhance the functionality of this
-package, focusing on what users need most. Your feedback is crucial to ensuring
-the package meets user expectations and operates smoothly.
+We welcome contributions and bug reports! If you encounter issues, have
+suggestions, or want to contribute code, please open an issue or pull request
+on the [GitHub repository](https://github.com/RforMassSpectrometry/RuSirius).
 
-### Key Areas for Testing:
+Before submitting a PR, please ensure:
 
-1.  **Ease of Installation**
-    Start by testing the installation process. Let us know if you encounter any
-    issues, especially with package dependencies.
+1.  **Tests pass locally**: Run tests **one file at a time** to avoid API
+    conflicts. Running all tests together with `devtools::test()` can cause
+    SIRIUS startup issues due to port conflicts:
 
-2.  **Exploring Basic Functionalities**
-    Run the first two vignettes to familiarize yourself with connecting to Sirius
-    and importing spectra data. This will give you a solid foundation for
-    understanding how the package works.
+    ```r
+    testthat::test_file("tests/testthat/test-api-responses.R")
+    testthat::test_file("tests/testthat/test-helpers.R")
+    testthat::test_file("tests/testthat/test-import-helpers.R")
+    testthat::test_file("tests/testthat/test-input-validation.R")
+    testthat::test_file("tests/testthat/test-integration.R")
+    testthat::test_file("tests/testthat/test-msn-import.R")
+    testthat::test_file("tests/testthat/test-param-classes.R")
+    ```
+2.  **Pre-rendered vignettes are up to date**: Three vignettes
+    (ImportSpectra, CustomDatabases, Chromatographic peak annotation) are
+    pre-rendered from `.Rmd.orig` sources. If your changes affect package
+    output or vignette content, re-run the pre-render script from the package
+    root with Sirius running on port 9999:
 
-3.  **Adapting to Your Dataset**
-    If you're working with custom datasets or want to import chromatographic peaks
-    from xcms, try the third vignette. It provides the necessary code and steps
-    for more advanced use cases.
+    ```r
+    source("vignettes/pre-render.R")
+    ```
 
-### Why Your Feedback Matters
+    Commit the updated `.Rmd` files alongside your changes.
 
-The current implementation is in its early stages, focusing on basic
-functionality. Your input is essential to making the integration between
-**xcms** and Sirius seamless and user-friendly. Whether you have suggestions,
-encounter issues, or need additional features, don’t hesitate to reach out. Your
-insights will directly shape future updates.
+Note that CI runs `R CMD check` with `--no-vignettes` since vignettes require a
+running Sirius instance with authentication.
 
 --------------------------------------------------------------------------------
-
 ## Known Issues
-
-This is the early stage of integrating Sirius with **RforMassSpectrometry**, and
-there's ongoing development to enhance the implementation.
 
 ### Current Issues:
 
@@ -129,8 +129,6 @@ there's ongoing development to enhance the implementation.
 -   Importing features can be time-consuming. To speed up testing, import only a
     few features at first and limit the process to one MS1 spectrum per feature.
     Further details are provided in the vignettes.
-
-If you encounter other issues, please let us know so we can improve the package!
 
 --------------------------------------------------------------------------------
 

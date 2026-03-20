@@ -24,7 +24,7 @@ Sirius(
 \item{projectId}{\code{character(1)}, the project id to use for the connection}
 
 \item{path}{\code{character(1)} path where to find the existing project or where
-to create a new one.By default, the porject will be opened in the
+to create a new one. By default, the project will be opened in the
 current \code{"."} directory.}
 
 \item{port}{\code{integer(1)} defining the port for Sirius. Allows to manually

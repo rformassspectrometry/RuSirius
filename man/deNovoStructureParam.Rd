@@ -37,5 +37,7 @@ param <- deNovoStructureParam(numberOfCandidateToPredict = 10)
 
 }
 \references{
-reference
+Stravs MA, Dührkop K, Böcker S, Zamboni N (2022).
+MSNovelist: de novo structure generation from mass spectra.
+\emph{Nature Methods}, 19, 865-870. \doi{10.1038/s41592-022-01486-3}
 }
