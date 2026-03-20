@@ -179,5 +179,8 @@ param <- formulaIdParam(instrument = "QTOF",
 param_known <- formulaIdParam(candidateFormulas = "C10H12N2O")
 }
 \references{
-reference
+Dührkop K, Fleischauer M, Ludwig M, et al. (2019).
+SIRIUS 4: a rapid tool for turning tandem mass spectra into metabolite
+structure information. \emph{Nature Methods}, 16, 299-302.
+\doi{10.1038/s41592-019-0344-8}
 }

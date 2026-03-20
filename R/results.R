@@ -32,35 +32,48 @@ NULL
 #'              of results to fetch with the *result.type* parameter.
 #'              "structure" and "deNovo" will both also give information on
 #'              the formula.
-#' @return a data.frame with the summary of the results.
-#'         Important column is the *ApproximateConfidence* column, which give a
+#' @param object A `Sirius` object.
+#' @param result.type `character(1)` specifying the type of results to fetch
+#'        for the summary. Options are "formulaId", "structure", "deNovo",
+#'        and "spectralDbMatch". Defaults to "formulaId".
+#' @param ... Additional arguments (currently ignored).
+#' @return A `data.frame` with the summary of the results.
+#'         Important column is the *ApproximateConfidence* column, which gives a
 #'         score of how possible all the identifications for this feature are.
 #'         The *exactConfidence* column is a score of how possible the top
 #'         identification is.
-#' @export
+#' @exportMethod summary
 #' @importFrom dplyr bind_rows
-summary <- function(sirius, result.type = c("formulaId", "structure", "deNovo",
-                                            "spectralDbMatch")) {
+setMethod("summary", "Sirius", function(object,
+                                        result.type = c("formulaId",
+                                                        "structure",
+                                                        "deNovo",
+                                                        "spectralDbMatch"),
+                                        ...) {
     result.type <- match.arg(result.type)
     res <- switch(result.type,
-      formulaId = .fetch_aligned_features(sirius,
+      formulaId = .fetch_aligned_features(object,
                                         opt_fields = c("topAnnotations")),
-      structure = .fetch_aligned_features(sirius,
+      structure = .fetch_aligned_features(object,
                                           opt_fields = c("topAnnotations")),
-      deNovo = .fetch_aligned_features(sirius,
+      deNovo = .fetch_aligned_features(object,
                                        opt_fields = c("topAnnotationsDeNovo")),
-      spectralDbMatch = .fetch_spectral_db_best_match(sirius))
-}
+      spectralDbMatch = .fetch_spectral_db_best_match(object))
+    if (!is.data.frame(res) || nrow(res) == 0)
+        return(data.frame())
+    res
+})
 
 #Helper for summary
 # Generic fetcher for aligned features
 .fetch_aligned_features <- function(sirius, opt_fields) {
     res <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId,
                                                       opt_fields = opt_fields)
+    if (length(res) == 0) return(data.frame())
     flattened <- lapply(res, function(x)
         as.data.frame(.flatten_list(x$toSimpleType()),
                       stringsAsFactors = FALSE))
-    return(dplyr::bind_rows(flattened))
+    dplyr::bind_rows(flattened)
 }
 
 # Flatten JSON list
@@ -77,18 +90,20 @@ summary <- function(sirius, result.type = c("formulaId", "structure", "deNovo",
 }
 
 .fetch_spectral_db_best_match <- function(sirius) {
-    df <- data.frame(alignedFeatureId = featuresId(sirius))
-    res <- lapply(featuresId(sirius),
-    function(fts_id) {
-      sirius@api$features_api$GetSpectralLibraryMatchesSummary(sirius@projectId,
-                                                               fts_id)
+    ids <- featuresId(sirius)
+    if (length(ids) == 0) return(data.frame())
+    df <- data.frame(alignedFeatureId = ids)
+    res <- lapply(ids, function(fts_id) {
+        sirius@api$features_api$GetSpectralLibraryMatchesSummary(
+            sirius@projectId, fts_id)
     })
     flattened <- lapply(res,
                         function(x)
                             as.data.frame(.flatten_list(x$toSimpleType()),
                                           stringsAsFactors = FALSE))
-    res <-dplyr::bind_rows(flattened)
-    return(cbind(df, res))
+    res <- dplyr::bind_rows(flattened)
+    if (nrow(res) == 0) return(df)
+    cbind(df, res)
 }
 
 #' @rdname results
@@ -262,8 +277,8 @@ results <- function(sirius,
         df$formulaId <- formula_id
         return(df)
     }, error = function(e) {
-        warning("Formula:", formula_id, "for feature:", fts_id, "does ",
-                      "not have compound classes information.")
+        warning("Formula: ", formula_id, " for feature: ", fts_id,
+                " does not have compound classes information.")
         return(data.frame(formulaId = formula_id, stringsAsFactors = FALSE))
     })
 }
@@ -355,9 +370,21 @@ results <- function(sirius,
     if (nrow(sirius@featureMap) == 0)
         sirius@featureMap <- mapFeatures(sirius)
     matching_xcms <- sirius@featureMap$fts_xcms[sirius_id == sirius@featureMap$fts_sirius]
-    if (length(matching_xcms) == 0)
+    # If no match, try rebuilding the map (features may have changed)
+    if (length(matching_xcms) == 0) {
+        rebuilt <- tryCatch(mapFeatures(sirius), error = function(e) NULL)
+        if (!is.null(rebuilt) && nrow(rebuilt) > 0) {
+            sirius@featureMap <- rebuilt
+            matching_xcms <- sirius@featureMap$fts_xcms[
+                sirius_id == sirius@featureMap$fts_sirius
+            ]
+        }
+    }
+    if (length(matching_xcms) == 0) {
         warning("No matching XCMS ID found for the given Sirius ID: ",
                 sirius_id)
+        return(NA_character_)
+    }
     return(matching_xcms)
 }
 

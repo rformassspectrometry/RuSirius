@@ -33,8 +33,8 @@
 #'
 #' @param deleteExistingFeatures `logical(1)`. If `TRUE`, all existing features
 #'        will be deleted before importing the new ones.
-
 #'
+#' @return A `Sirius` object with the imported features and updated feature map.
 #'
 #' @importFrom methods setClass new
 #' @importClassesFrom ProtGenerics Param
@@ -51,6 +51,16 @@ NULL
 import <- function(sirius, spectra, ms_column_name = character(),
                    adducts = character(),
                    chunkSize = 500, deleteExistingFeatures = TRUE) {
+
+    ## ── Validate required spectra variables ──────────────────────────
+    if (anyNA(spectra$polarity))
+        stop("'polarity' must not contain NA values. Ensure all spectra ",
+             "have polarity set (0 = negative, 1 = positive). You can ",
+             "set it with: spectra$polarity <- 1L")
+    if (anyNA(spectra$dataOrigin))
+        stop("'dataOrigin' must not contain NA values. Ensure all spectra ",
+             "have a valid dataOrigin (e.g. loaded from a file or set ",
+             "manually with: spectra$dataOrigin <- \"my_origin\")")
 
     has_ms1 <- 1L %in% unique(spectra$msLevel)
     if (length(unique(spectra$msLevel)) > 1) { ## need to improve these checks
@@ -95,8 +105,19 @@ import <- function(sirius, spectra, ms_column_name = character(),
     }
     ## import data
     idxs <- spectra[[ms_column_name]]
-    l <- length(unique(idxs))
-    if (!length(adducts)) adducts <- rep("[M+?]+", l)
+    uidxs <- unique(idxs)
+    l <- length(uidxs)
+    if (!length(adducts)) {
+        ## Choose a polarity-aware default adduct.  When all spectra
+        ## share the same polarity we use the appropriate unknown adduct;
+        ## otherwise fall back to the positive-mode placeholder.
+        pols <- unique(spectra$polarity)
+        pols <- pols[!is.na(pols)]
+        if (length(pols) == 1L && pols == 0L)
+            adducts <- rep("[M-H]-", l)
+        else
+            adducts <- rep("[M+?]+", l)
+    }
     la <- length(adducts)
     if (la != l) {
         if (la == 1) adducts <- rep(adducts, l)
@@ -105,7 +126,10 @@ import <- function(sirius, spectra, ms_column_name = character(),
                  "number of spectra being imported.")
     }
     adducts <- .normalize_adducts(adducts)
-    chunks <- split(unique(idxs), ceiling(seq_along(unique(idxs))/chunkSize))
+    ## Name adducts by group index so .importSpectraChunk can look them up
+    ## regardless of whether group indices are sequential from 1.
+    names(adducts) <- as.character(uidxs)
+    chunks <- split(uidxs, ceiling(seq_along(uidxs)/chunkSize))
     if (deleteExistingFeatures) sirius <- deleteFeatures(sirius)
     lapply(chunks, .importSpectraChunk, sirius = sirius, data = spectra,
                  ms_column_name = ms_column_name,

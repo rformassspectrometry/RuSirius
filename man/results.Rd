@@ -2,12 +2,13 @@
 % Please edit documentation in R/results.R
 \name{results}
 \alias{results}
-\alias{summary}
+\alias{summary,Sirius-method}
 \title{Fetch Results from Sirius}
 \usage{
-summary(
-  sirius,
-  result.type = c("formulaId", "structure", "deNovo", "spectralDbMatch")
+\S4method{summary}{Sirius}(
+  object,
+  result.type = c("formulaId", "structure", "deNovo", "spectralDbMatch"),
+  ...
 )
 
 results(
@@ -22,11 +23,15 @@ results(
 )
 }
 \arguments{
-\item{sirius}{A \code{Sirius} object.}
+\item{object}{A \code{Sirius} object.}
 
-\item{result.type}{\code{character(1)} specifying the type of results to fetch.
-Options are "formulaId", "structureDb", "compoundClass", "deNovo",
-"spectralDbMatch", and "fragTree". Defaults to "formulaId".}
+\item{result.type}{\code{character(1)} specifying the type of results to fetch
+for the summary. Options are "formulaId", "structure", "deNovo",
+and "spectralDbMatch". Defaults to "formulaId".}
+
+\item{...}{Additional arguments (currently ignored).}
+
+\item{sirius}{A \code{Sirius} object.}
 
 \item{features}{\code{character()} vector specifying feature IDs to retrieve
 results for. Defaults to all available features.}
@@ -46,8 +51,8 @@ per feature. Defaults to 5.}
 \value{
 A data.frame or list of results, depending on \code{return.type}.
 
-a data.frame with the summary of the results.
-Important column is the \emph{ApproximateConfidence} column, which give a
+A \code{data.frame} with the summary of the results.
+Important column is the \emph{ApproximateConfidence} column, which gives a
 score of how possible all the identifications for this feature are.
 The \emph{exactConfidence} column is a score of how possible the top
 identification is.

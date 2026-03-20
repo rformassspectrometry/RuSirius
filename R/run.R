@@ -228,7 +228,9 @@ setClass(
         if (length(object@compoundsIds) == 0 &&
             length(object@alignedFeaturesIds) == 0) {
             stop("Either 'compoundsIds' or 'alignedFeaturesIds' must ",
-                   "be provided.")
+                 "be provided. If you just ran import() and see 0 ",
+                 "features, check that the adduct matches the ",
+                 "ionization mode (polarity) of your data.")
         }
         TRUE
     }

@@ -88,5 +88,8 @@ param <- zodiacParam(consideredCandidatesAt300Mz = 10,
 
 }
 \references{
-reference
+Ludwig M, Nothias L-F, Dührkop K, et al. (2020).
+Database-independent molecular formula annotation using Gibbs sampling
+through ZODIAC. \emph{Nature Machine Intelligence}, 2, 629-641.
+\doi{10.1038/s42256-020-00234-6}
 }

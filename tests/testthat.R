@@ -8,5 +8,6 @@
 
 library(testthat)
 library(RuSirius)
-
+library(RSirius)
+library(Spectra)
 test_check("RuSirius")

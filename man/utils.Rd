@@ -67,7 +67,7 @@ information to retrieve. Possible values are \code{"compatibilityInfo"} and
 can be an already existing project or a new one.}
 
 \item{path}{\code{character(1)} path where to find the existing project or where
-to create a new one.By default, the porject will be opened in the
+to create a new one. By default, the project will be opened in the
 current \code{"."} directory.}
 
 \item{type}{\code{character} vector of length 1, specifying the type of features

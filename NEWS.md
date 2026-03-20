@@ -1,3 +1,22 @@
+# Version 1.0
+
+## Changes in 1.0.0
+
+- Publication-ready release.
+- Fixed `summary()` masking `base::summary()`: now registered as a proper S4
+  method for the `Sirius` class.
+- Fixed bug in `saveConfig()` using `@` instead of `$` for API access.
+- Fixed newline escape in `Sirius()` retry message.
+- Moved `jsonlite` from Depends to Imports.
+- Lowered minimum R version to >= 4.4.0.
+- Added `biocViews` to DESCRIPTION.
+- Replaced placeholder `@references` with real citations in all parameter
+  documentation.
+- Added missing `@return` tags for `import()` and `predictParam()`.
+- Added `inst/CITATION` file.
+- Updated README for release (Active badge, Contributing section).
+- Added some sanity check for spectra object used to import features.
+
 # Version 0.2
 
 ## Changes in 0.2.6
@@ -29,7 +48,6 @@
   restricting SIRIUS to specific molecular formulas instead of de novo
   generation. The formulas are passed via `JobSubmission$configMap` since
   SIRIUS does not accept them as a standard `formulaIdParams` field.
-- Add parameter `host` to `Sirius()`.
 
 ## Changes in 0.2.3
 

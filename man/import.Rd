@@ -45,6 +45,9 @@ very large number of spectra.}
 \item{deleteExistingFeatures}{\code{logical(1)}. If \code{TRUE}, all existing features
 will be deleted before importing the new ones.}
 }
+\value{
+A \code{Sirius} object with the imported features and updated feature map.
+}
 \description{
 Import Data into Sirius
 }

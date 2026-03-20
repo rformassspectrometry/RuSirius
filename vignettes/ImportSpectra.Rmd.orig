@@ -161,7 +161,7 @@ To get a summary of all results—including top formulas, structures, and compou
 class predictions—use the following:
 
 ```{r}
-summarytb <- summary(sirius = srs, result.type = "structure")
+summarytb <- summary(srs, result.type = "structure")
 ```
 
 This summary table offers a quick overview for checking whether the predictions
