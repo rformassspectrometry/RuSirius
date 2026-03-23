@@ -1,0 +1,189 @@
+---
+title: "Getting Started with RuSirius"
+output:
+    BiocStyle::html_document:
+        toc_float: true
+vignette: >
+    %\VignetteIndexEntry{Getting Started with RuSirius}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+    %\VignettePackage{RuSirius}
+    %\VignetteDepends{RSirius, RuSirius}
+---
+
+<!--
+# Pre-render with (in the vignettes folder)
+knitr::knit("GettingStarted.Rmd.orig", output = "GettingStarted.Rmd")
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    message = FALSE,
+    fig.path = "figures/getstarted-"
+)
+```
+
+```{r load-packages, message = FALSE}
+library(RuSirius)
+```
+
+## Introduction
+
+**Note**: this vignette is
+[**pre-computed**](https://ropensci.org/blog/2019/12/08/precompute-vignettes/).
+See the session info for information on packages used and the date the vignette
+was rendered. The vignette requires a running
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
+reproduce this analysis, you will need Sirius 6.3 installed and running.
+
+**RuSirius** provides an R interface to the
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) mass spectrometry
+software for metabolite identification. This vignette covers the basics of
+connecting to Sirius and managing projects.
+
+## Prerequisites
+
+Before using RuSirius, you need:
+
+1. **Sirius 6.3** installed on your system. Download from the
+   [official releases page](https://github.com/sirius-ms/sirius/releases).
+2. A **Sirius account** (free registration at
+   [bright-giant.com](https://bright-giant.com/))
+
+## Connecting to Sirius
+
+The `Sirius()` function creates a connection to the Sirius application. If
+Sirius is not running, it will attempt to start it automatically. The `port`
+parameter allows to configure the Sirius application to use a particular port;
+this is required when using the Docker container (where Sirius is pre-started on
+port 9999), but generally the function can be used without specifying a port.
+
+```{r connect}
+# Basic connection - Sirius will start if not running
+srs <- Sirius(port = 9999)
+srs
+```
+
+If you have credentials, you can log in during connection:
+
+```{r connect-with-login, eval = FALSE}
+srs <- Sirius(
+    username = "your_email@example.com",
+    password = "your_password",
+    port = 9999
+)
+```
+
+## Checking Connection Status
+
+You can verify your connection is valid with `checkConnection(srs)`:
+
+```{r check-connection}
+# Check if connected
+checkConnection(srs)
+
+# View connection details
+srs
+```
+
+## Managing Projects
+
+Sirius organizes data and results into projects. You can create new projects or
+open existing ones during connection, or later using the `openProject()`
+function. Parameters `projectId` and `path` allow to set the name (ID) of the
+project and the path to the directory where the project file should be stored
+in.
+
+### Creating/Opening a Project
+
+```{r open-project}
+# Open a project on the existing connection
+srs <- openProject(srs, projectId = "my_analysis", path = getwd())
+```
+
+The project file will be saved as `my_analysis.sirius` in the specified path.
+
+### Project Information
+
+```{r project-info}
+# Get project details
+projectInfo(srs)
+
+# List all open projects
+listOpenProjects(srs)
+```
+
+## Working with Features
+
+After importing data (see the "Importing Spectra" vignette), you can manage
+features:
+
+```{r features}
+# List feature IDs
+featuresId(srs)
+
+# Get feature information
+featuresInfo(srs)
+
+# Get the mapping between your IDs and Sirius IDs
+srs@featureMap
+```
+
+## Logging In
+
+If you didn't provide credentials at connection time:
+
+```{r login, eval = FALSE}
+srs <- logIn(srs, username = "your_email@example.com",
+             password = "your_password")
+```
+
+## Using the GUI
+
+You can open the Sirius graphical interface for visual exploration:
+
+```{r gui}
+# Open the GUI
+openGUI(srs)
+
+# Close the GUI when done
+closeGUI(srs)
+```
+
+## Shutting Down
+
+Always properly close your connection when finished:
+
+```{r shutdown}
+# Close project and shutdown
+shutdown(srs, closeProject = TRUE)
+```
+
+## Utility Functions
+
+*RuSirius* provides several utility functions. See `?utils` for the full list:
+
+- `checkConnection()` - Verify connection status
+- `logIn()` - Log in to Sirius
+- `openProject()` / `listOpenProjects()` - Project management
+- `projectInfo()` - Get project details
+- `featuresId()` / `featuresInfo()` - Feature management
+- `deleteFeatures()` - Remove features
+- `mapFeatures()` - Get ID mappings
+- `openGUI()` / `closeGUI()` - GUI control
+- `shutdown()` - Clean shutdown
+
+## Next Steps
+
+- See the **"Importing Spectra into Sirius"** vignette for importing MS data
+- See `?run` for running Sirius computations (formula ID, structure search,
+  etc.)
+- See `?results` for retrieving annotation results
+
+## Session Info
+
+```{r session-info, eval=TRUE}
+sessionInfo()
+```

@@ -11,16 +11,27 @@ vignette: >
     %\VignetteDepends{RSirius, RuSirius}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-```
+<!--
+# Pre-render with (in the vignettes folder)
+knitr::knit("RetrievingResults.Rmd.orig", output = "RetrievingResults.Rmd")
+-->
 
-```{r load-packages, message = FALSE}
+
+
+
+``` r
 library(RSirius)
 library(RuSirius)
 ```
 
 ## Introduction
+
+**Note**: this vignette is
+[**pre-computed**](https://ropensci.org/blog/2019/12/08/precompute-vignettes/).
+See the session info for information on packages used and the date the vignette
+was rendered. The vignette requires a running
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
+reproduce this analysis, you will need Sirius 6.3 installed and running.
 
 After running Sirius computations (see the "Importing Spectra" vignette), you
 can retrieve various types of results. RuSirius provides two main functions:
@@ -32,8 +43,11 @@ can retrieve various types of results. RuSirius provides two main functions:
 
 First, connect to an existing Sirius project that has completed computations:
 
-```{r}
+
+``` r
 srs <- Sirius(projectId = "my_analysis", path = getwd(), port = 9999)
+#> Error in `Sirius()`:
+#> ! unused argument (port = 9999)
 ```
 
 ## Quick Summary with `summary()`
@@ -43,10 +57,15 @@ useful for a quick overview of your results.
 
 ### Formula Identification Summary
 
-```{r}
+
+``` r
 # Top formula candidates
 summary_formula <- summary(srs, result.type = "formulaId")
+#> Error:
+#> ! object 'srs' not found
 head(summary_formula)
+#> Error in `h()`:
+#> ! error in evaluating the argument 'x' in selecting a method for function 'head': object 'summary_formula' not found
 ```
 
 Key columns include `confidenceApproxMatch` (overall confidence for the feature)
@@ -54,23 +73,32 @@ and `confidenceExactMatch` (confidence for the top hit).
 
 ### Structure Database Summary
 
-```{r}
+
+``` r
 # Top structure hits
 summary_structure <- summary(srs, result.type = "structure")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ### De Novo Structure Summary
 
-```{r}
+
+``` r
 # Top MSNovelist predictions
 summary_denovo <- summary(srs, result.type = "deNovo")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ### Spectral Library Match Summary
 
-```{r}
+
+``` r
 # Best spectral matches
 summary_spectral <- summary(srs, result.type = "spectralDbMatch")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ## Detailed Results with `results()`
@@ -80,96 +108,129 @@ more options to explore.
 
 ### Formula Candidates
 
-```{r}
+
+``` r
 # Get top 5 formula candidates per feature
 formulas <- results(srs,
                     result.type = "formulaId",
                     topFormula = 5,
                     return.type = "data.frame")
+#> Error:
+#> ! object 'srs' not found
 head(formulas)
+#> Error in `h()`:
+#> ! error in evaluating the argument 'x' in selecting a method for function 'head': object 'formulas' not found
 ```
 
 ### Structure Database Results
 
-```{r}
+
+``` r
 # Get structure candidates for each formula
 structures <- results(srs,
                       result.type = "structureDb",
                       topFormula = 3,
                       topStructure = 5,
                       return.type = "data.frame")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 Key columns: `inchiKey`, `smiles`, `structureName`, `csiScore`.
 
 ### Compound Class Predictions (CANOPUS)
 
-```{r}
+
+``` r
 # Get predicted compound classes
 classes <- results(srs,
                    result.type = "compoundClass",
                    topFormula = 1,
                    return.type = "data.frame")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 Returns ClassyFire and NPC classifications with confidence scores.
 
 ### De Novo Structures (MSNovelist)
 
-```{r}
+
+``` r
 # Get de novo predicted structures
 denovo <- results(srs,
                   result.type = "deNovo",
                   topFormula = 1,
                   topStructure = 5,
                   return.type = "data.frame")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ### Spectral Library Matches
 
-```{r}
+
+``` r
 # Get spectral library matches
 spectral <- results(srs,
                     result.type = "spectralDbMatch",
                     topSpectralMatches = 5,
                     return.type = "data.frame")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ### Fragmentation Trees
 
-```{r}
+
+``` r
 # Get fragmentation tree data
 fragtrees <- results(srs,
                      result.type = "fragTree",
                      topFormula = 1,
                      return.type = "data.frame")
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ## Filtering by Feature
 
 You can retrieve results for specific features only:
 
-```{r}
+
+``` r
 # Get feature IDs
 feature_ids <- featuresId(srs)
+#> Error:
+#> ! object 'srs' not found
 
 # Get results for first two features only
 subset_results <- results(srs,
                           features = feature_ids[1:2],
                           result.type = "structureDb",
                           return.type = "data.frame")
+#> Error:
+#> ! object 'feature_ids' not found
 ```
 
 ## Return Types
 
 Results can be returned as a data.frame (default) or as a list:
 
-```{r}
+
+``` r
 # As list - useful for per-feature processing
 results_list <- results(srs,
                         result.type = "formulaId",
                         return.type = "list")
+#> Error:
+#> ! object 'srs' not found
+```
 
+Access individual features by name:
+
+
+``` r
 # Access results for a specific feature
 results_list[["feature_id_here"]]
 ```
@@ -179,13 +240,84 @@ results_list[["feature_id_here"]]
 If you imported data from xcms, results include the original xcms feature IDs
 in the `xcms_fts` column for easy mapping back to your original data.
 
-```{r}
+
+``` r
 # Get the feature mapping
 mapFeatures(srs)
+#> Error:
+#> ! object 'srs' not found
 ```
 
 ## Session Info
 
-```{r session-info, eval=TRUE}
+
+``` r
 sessionInfo()
+#> R version 4.5.2 (2025-10-31 ucrt)
+#> Platform: x86_64-w64-mingw32/x64
+#> Running under: Windows 11 x64 (build 26100)
+#> 
+#> Matrix products: default
+#>   LAPACK version 3.12.1
+#> 
+#> locale:
+#> [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8   
+#> [3] LC_MONETARY=English_United States.utf8 LC_NUMERIC=C                          
+#> [5] LC_TIME=English_United States.utf8    
+#> 
+#> time zone: Europe/Rome
+#> tzcode source: internal
+#> 
+#> attached base packages:
+#> [1] stats4    stats     graphics  grDevices utils     datasets  methods   base     
+#> 
+#> other attached packages:
+#>  [1] MsDataHub_1.10.0        dplyr_1.2.0             RuSirius_0.2.0         
+#>  [4] jsonlite_2.0.0          MetaboAnnotation_1.14.0 RSirius_6.3.3          
+#>  [7] xcms_4.8.0              MsExperiment_1.12.0     ProtGenerics_1.42.0    
+#> [10] Spectra_1.20.1          BiocParallel_1.44.0     S4Vectors_0.48.0       
+#> [13] BiocGenerics_0.56.0     generics_0.1.4         
+#> 
+#> loaded via a namespace (and not attached):
+#>   [1] RColorBrewer_1.1-3          MultiAssayExperiment_1.36.1 magrittr_2.0.4             
+#>   [4] farver_2.1.2                MALDIquant_1.22.3           fs_1.6.6                   
+#>   [7] vctrs_0.7.1                 memoise_2.0.1               RCurl_1.98-1.17            
+#>  [10] base64enc_0.1-6             htmltools_0.5.9             S4Arrays_1.10.1            
+#>  [13] BiocBaseUtils_1.12.0        progress_1.2.3              curl_7.0.0                 
+#>  [16] AnnotationHub_4.0.0         SparseArray_1.10.8          mzID_1.48.0                
+#>  [19] htmlwidgets_1.6.4           plyr_1.8.9                  httr2_1.2.2                
+#>  [22] impute_1.84.0               cachem_1.1.0                igraph_2.2.1               
+#>  [25] lifecycle_1.0.5             iterators_1.0.14            pkgconfig_2.0.3            
+#>  [28] Matrix_1.7-4                R6_2.6.1                    fastmap_1.2.0              
+#>  [31] MatrixGenerics_1.22.0       clue_0.3-66                 digest_0.6.39              
+#>  [34] pcaMethods_2.2.0            rsvg_2.7.0                  AnnotationDbi_1.72.0       
+#>  [37] ExperimentHub_3.0.0         GenomicRanges_1.62.1        RSQLite_2.4.5              
+#>  [40] filelock_1.0.3              httr_1.4.7                  abind_1.4-8                
+#>  [43] compiler_4.5.2              withr_3.0.2                 bit64_4.6.0-1              
+#>  [46] doParallel_1.0.17           S7_0.2.1                    DBI_1.2.3                  
+#>  [49] MASS_7.3-65                 ChemmineR_3.62.0            rappdirs_0.3.4             
+#>  [52] DelayedArray_0.36.0         rjson_0.2.23                mzR_2.44.0                 
+#>  [55] tools_4.5.2                 PSMatch_1.14.0              otel_0.2.0                 
+#>  [58] CompoundDb_1.14.2           glue_1.8.0                  QFeatures_1.20.0           
+#>  [61] grid_4.5.2                  cluster_2.1.8.1             reshape2_1.4.5             
+#>  [64] snow_0.4-4                  gtable_0.3.6                preprocessCore_1.72.0      
+#>  [67] tidyr_1.3.2                 data.table_1.18.2.1         hms_1.1.4                  
+#>  [70] MetaboCoreUtils_1.19.2      xml2_1.5.2                  XVector_0.50.0             
+#>  [73] BiocVersion_3.22.0          foreach_1.5.2               pillar_1.11.1              
+#>  [76] stringr_1.6.0               limma_3.66.0                BiocFileCache_3.0.0        
+#>  [79] lattice_0.22-7              bit_4.6.0                   tidyselect_1.2.1           
+#>  [82] Biostrings_2.78.0           knitr_1.51                  gridExtra_2.3              
+#>  [85] IRanges_2.44.0              Seqinfo_1.0.0               SummarizedExperiment_1.40.0
+#>  [88] xfun_0.56                   Biobase_2.70.0              statmod_1.5.1              
+#>  [91] MSnbase_2.36.0              matrixStats_1.5.0           DT_0.34.0                  
+#>  [94] stringi_1.8.7               yaml_2.3.12                 lazyeval_0.2.2             
+#>  [97] evaluate_1.0.5              codetools_0.2-20            MsCoreUtils_1.22.1         
+#> [100] tibble_3.3.1                BiocManager_1.30.27         cli_3.6.5                  
+#> [103] affyio_1.80.0               Rcpp_1.1.1                  MassSpecWavelet_1.76.0     
+#> [106] dbplyr_2.5.1                png_0.1-8                   XML_3.99-0.20              
+#> [109] parallel_4.5.2              ggplot2_4.0.2               blob_1.3.0                 
+#> [112] prettyunits_1.2.0           AnnotationFilter_1.34.0     bitops_1.0-9               
+#> [115] MsFeatures_1.18.0           scales_1.4.0                affy_1.88.0                
+#> [118] ncdf4_1.24                  purrr_1.2.1                 crayon_1.5.3               
+#> [121] rlang_1.1.7                 KEGGREST_1.50.0             vsn_3.78.1
 ```

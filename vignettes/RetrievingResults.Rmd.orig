@@ -1,0 +1,212 @@
+---
+title: "Retrieving Results from Sirius"
+output:
+    BiocStyle::html_document:
+        toc_float: true
+vignette: >
+    %\VignetteIndexEntry{Retrieving Results from Sirius}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+    %\VignettePackage{RuSirius}
+    %\VignetteDepends{RSirius, RuSirius}
+---
+
+<!--
+# Pre-render with (in the vignettes folder)
+knitr::knit("RetrievingResults.Rmd.orig", output = "RetrievingResults.Rmd")
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    message = FALSE,
+    fig.path = "figures/results-"
+)
+```
+
+```{r load-packages, message = FALSE}
+library(RSirius)
+library(RuSirius)
+```
+
+## Introduction
+
+**Note**: this vignette is
+[**pre-computed**](https://ropensci.org/blog/2019/12/08/precompute-vignettes/).
+See the session info for information on packages used and the date the vignette
+was rendered. The vignette requires a running
+[Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
+reproduce this analysis, you will need Sirius 6.3 installed and running.
+
+After running Sirius computations (see the "Importing Spectra" vignette), you
+can retrieve various types of results. RuSirius provides two main functions:
+
+- `summary()` - Quick overview of top results per feature
+- `results()` - Detailed results with multiple candidates
+
+## Connecting to a Project
+
+First, connect to an existing Sirius project that has completed computations:
+
+```{r}
+srs <- Sirius(projectId = "my_analysis", path = getwd(), port = 9999)
+```
+
+## Quick Summary with `summary()`
+
+The `summary()` function provides the top annotation for each feature. This is
+useful for a quick overview of your results.
+
+### Formula Identification Summary
+
+```{r}
+# Top formula candidates
+summary_formula <- summary(srs, result.type = "formulaId")
+head(summary_formula)
+```
+
+Key columns include `confidenceApproxMatch` (overall confidence for the feature)
+and `confidenceExactMatch` (confidence for the top hit).
+
+### Structure Database Summary
+
+```{r}
+# Top structure hits
+summary_structure <- summary(srs, result.type = "structure")
+```
+
+### De Novo Structure Summary
+
+```{r}
+# Top MSNovelist predictions
+summary_denovo <- summary(srs, result.type = "deNovo")
+```
+
+### Spectral Library Match Summary
+
+```{r}
+# Best spectral matches
+summary_spectral <- summary(srs, result.type = "spectralDbMatch")
+```
+
+## Detailed Results with `results()`
+
+The `results()` function returns multiple candidates per feature, giving you
+more options to explore.
+
+### Formula Candidates
+
+```{r}
+# Get top 5 formula candidates per feature
+formulas <- results(srs,
+                    result.type = "formulaId",
+                    topFormula = 5,
+                    return.type = "data.frame")
+head(formulas)
+```
+
+### Structure Database Results
+
+```{r}
+# Get structure candidates for each formula
+structures <- results(srs,
+                      result.type = "structureDb",
+                      topFormula = 3,
+                      topStructure = 5,
+                      return.type = "data.frame")
+```
+
+Key columns: `inchiKey`, `smiles`, `structureName`, `csiScore`.
+
+### Compound Class Predictions (CANOPUS)
+
+```{r}
+# Get predicted compound classes
+classes <- results(srs,
+                   result.type = "compoundClass",
+                   topFormula = 1,
+                   return.type = "data.frame")
+```
+
+Returns ClassyFire and NPC classifications with confidence scores.
+
+### De Novo Structures (MSNovelist)
+
+```{r}
+# Get de novo predicted structures
+denovo <- results(srs,
+                  result.type = "deNovo",
+                  topFormula = 1,
+                  topStructure = 5,
+                  return.type = "data.frame")
+```
+
+### Spectral Library Matches
+
+```{r}
+# Get spectral library matches
+spectral <- results(srs,
+                    result.type = "spectralDbMatch",
+                    topSpectralMatches = 5,
+                    return.type = "data.frame")
+```
+
+### Fragmentation Trees
+
+```{r}
+# Get fragmentation tree data
+fragtrees <- results(srs,
+                     result.type = "fragTree",
+                     topFormula = 1,
+                     return.type = "data.frame")
+```
+
+## Filtering by Feature
+
+You can retrieve results for specific features only:
+
+```{r}
+# Get feature IDs
+feature_ids <- featuresId(srs)
+
+# Get results for first two features only
+subset_results <- results(srs,
+                          features = feature_ids[1:2],
+                          result.type = "structureDb",
+                          return.type = "data.frame")
+```
+
+## Return Types
+
+Results can be returned as a data.frame (default) or as a list:
+
+```{r}
+# As list - useful for per-feature processing
+results_list <- results(srs,
+                        result.type = "formulaId",
+                        return.type = "list")
+```
+
+Access individual features by name:
+
+```{r, eval = FALSE}
+# Access results for a specific feature
+results_list[["feature_id_here"]]
+```
+
+## Mapping to Original IDs
+
+If you imported data from xcms, results include the original xcms feature IDs
+in the `xcms_fts` column for easy mapping back to your original data.
+
+```{r}
+# Get the feature mapping
+mapFeatures(srs)
+```
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
