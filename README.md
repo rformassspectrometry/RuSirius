@@ -102,8 +102,7 @@ Before submitting a PR, please ensure:
     testthat::test_file("tests/testthat/test-msn-import.R")
     testthat::test_file("tests/testthat/test-param-classes.R")
     ```
-2.  **Pre-rendered vignettes are up to date**: Three vignettes
-    (ImportSpectra, CustomDatabases, Chromatographic peak annotation) are
+2.  **Pre-rendered vignettes are up to date**: All five vignettes are
     pre-rendered from `.Rmd.orig` sources. If your changes affect package
     output or vignette content, re-run the pre-render script from the package
     root with Sirius running on port 9999:
