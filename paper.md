@@ -9,7 +9,7 @@ tags:
   - LC-MS/MS
 authors:
   - name: Philippine Louail
-  - # Add co-authors in alphabetical order.
+    # Add co-authors in alphabetical order.
   - name: Johannes Rainer
 affiliations:
 date: 19 March 2026
