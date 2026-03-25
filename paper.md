@@ -9,31 +9,9 @@ tags:
   - LC-MS/MS
 authors:
   - name: Philippine Louail
-    orcid: 0009-0007-5429-6846
-    affiliation: 1
-    corresponding: true
-  - name: Jonas Emmert (?)
-    orcid: # TODO: add ORCID
-    affiliation: 2
-  - name: Markus Fleischauer (?)
-    orcid: # TODO: add ORCID
-    affiliation: 2
-  - name: Adriano Rutz
-    orcid: # TODO: add ORCID
-    affiliation: 3
-  - name: Nils (?)
-  - name: Mar
+  - # Add co-authors in alphabetical order.
   - name: Johannes Rainer
 affiliations:
-  - name: Institute for Biomedicine, Eurac Research, Bolzano, Italy
-    index: 1
-    ror: # TODO: add ROR
-  - name: # TODO: add affiliation for Emmert and Fleischauer (e.g. Friedrich Schiller University Jena / Bright Giant GmbH)
-    index: 2
-    ror: # TODO: add ROR
-  - name: # TODO: add affiliation for Rutz
-    index: 3
-    ror: # TODO: add ROR
 date: 19 March 2026
 bibliography: paper.bib
 ---
@@ -51,14 +29,8 @@ provides the main infrastructure for handling and analyzing MS data in
 R/Bioconductor.  *RuSirius* connects to SIRIUS through its REST API via the
 *RSirius* client library <!-- TODO: add RSirius reference -->, enabling users to
 control the full SIRIUS annotation pipeline from within R. By directly working
-on `Spectra` [@noauthor_open_2025] objects, the main data containers for MS data
-in RforMassSpectrometry, and supporting direct import of chromatographic peak
-data from *xcms* [@louail_xcms_2025], *RuSirius* bridges R with SIRIUS allowing
-researchers to build end-to-end metabolomics workflows entirely within R, from
-raw data preprocessing through compound identification. *RuSirius* represents,
-next to *SpectriPy* [@graeve_spectripy_2025], is another result from the efforts
-to improve integration and interoperability between software for MS data
-analysis.
+on common R MS objects with SIRIUS, the package allows users to build
+end-to-end metabolomics workflows entirely within R.
 
 # Statement of Need
 
@@ -69,8 +41,9 @@ features. SIRIUS [@duhrkop_sirius_2019] is one of the most comprehensive
 open-source frameworks for this task, integrating several annotation
 tools: SIRIUS for molecular formula identification via fragmentation
 tree computation [@bocker_sirius_2009], ZODIAC for network-based formula
-re-ranking [@ludwig_database-independent_2020], CSI:FingerID for molecular fingerprint
-prediction and structure database search [@duhrkop_searching_2015], CANOPUS for
+re-ranking [@ludwig_database-independent_2020], CSI:FingerID for molecular
+fingerprint prediction and structure database search
+[@duhrkop_searching_2015], CANOPUS for
 compound class prediction [@duhrkop_systematic_2021], MSNovelist for de novo
 structure generation [@stravs_msnovelist_2022], and spectral library matching.
 
@@ -79,81 +52,49 @@ command-line interface in Java, neither integrates well into scripted,
 reproducible data analysis workflows common in the R ecosystem. The R
 programming language is widely used in metabolomics, with established
 packages for data preprocessing (*xcms*), a powerful infrastructure for
-efficient and scalable MS data handling (*Spectra*, *MsExperiment*), and 
-annotation (*MetaboAnnotation*, *CompoundDb*) all available as part of the 
+efficient and scalable MS data handling (*Spectra*, *MsExperiment*), and
+annotation (*MetaboAnnotation*, *CompoundDb*) all available as part of the
 RforMassSpectrometry initiative [@rainer_modular_2022] and Bioconductor
 [@huber_orchestrating_2015].
 
-Recognizing the need for integration with other language platforms, the SIRIUS
-developers provide *RSirius*, an auto-generated R client library that wraps the
-SIRIUS REST API. While *RSirius* exposes the full API, it is built on R6 classes
-and follows the structure of the underlying REST endpoints rather than
-conventional R idioms. While powerful, its usage, in particular reformatting and
-importing the MS data in the expected format, can be cumbersome for data
-analysts.
-
-*RuSirius* fills this gap by providing a native R interface to the SIRIUS
-REST API and directly supporting established MS data structures in R. Users can:
-
-- **Connect** to a running SIRIUS instance and manage projects
-  programmatically.
-- **Import** MS data directly as `Spectra` objects, including MS1,
-  MS2, and MSn data, with support for grouped chromatographic peaks from
-  *xcms*.
-- **Configure and run** annotation jobs covering formula identification,
-  fingerprint prediction, structure search, de novo annotation, spectral
-  matching, and compound class prediction.
-- **Retrieve results** as R data frames, enabling downstream statistical
-  analysis and visualization directly within R.
-- **Manage custom databases** for structure search.
-
-By bridging SIRIUS and the RforMassSpectrometry software ecosystem,
-*RuSirius* enables fully scripted and reproducible metabolomics
-annotation pipelines. A Docker image is provided to simplify
-deployment and ensure reproducibility in computational environments.
-
-The package includes comprehensive documentation for all exported
-functions and five educational vignettes covering the main workflows,
-available on the package website. Its use within a larger end-to-end
-analysis is demonstrated in the `metabonaut` tutorial
-<!-- TODO: add Zenodo reference for metabonaut -->.
+*RuSirius* addresses this gap by letting users import MS data as `Spectra`
+objects, run the full SIRIUS annotation pipeline, and retrieve results as R
+data frames — all from within a scripted R session. The target audience is
+metabolomics researchers who already use *xcms* and the RforMassSpectrometry
+ecosystem for data preprocessing and need to integrate SIRIUS annotations
+into reproducible, end-to-end workflows.
 
 # State of the Field
 
 Several tools exist for computational annotation of LC-MS/MS data, but few
-offer direct R integration. The *metfrag* R package [@ruttkies_metfrag_2016] provides
-in silico fragmentation-based annotation but does not cover formula
-identification, compound classification, or de novo structure generation.
-GNPS [@wang_sharing_2016] offers web-based spectral library matching and molecular
-networking, but interaction from R requires manual file handling. The
-*RMassBank* package [@stravs_automatic_2013] focuses on building spectral libraries
-from reference standards rather than annotating unknowns. SIRIUS itself has
-been accessible via the command line, but scripting against CLI output is
-fragile and version-dependent.
+offer direct R integration. The *metfrag* R package
+[@ruttkies_metfrag_2016] provides in silico fragmentation-based
+annotation but does not cover formula identification, compound
+classification, or de novo structure generation. GNPS
+[@wang_sharing_2016] offers web-based spectral library matching and
+molecular networking, but interaction from R requires manual file
+handling. The *RMassBank* package [@stravs_automatic_2013] focuses on
+building spectral libraries from reference standards rather than
+annotating unknowns. SIRIUS itself has been accessible via the command
+line, but scripting against CLI output is fragile and
+version-dependent.
 
-More recently, the SIRIUS developers introduced *RSirius*, an auto-generated R
-client for the SIRIUS REST API. While *RSirius* provides comprehensive API
-coverage, it operates at a low level and does not integrate with the MS data
-structures in R, such as the ones used by the packages of the
-RforMassSpectrometry initiative. These packages (anchored by *xcms*
+More recently, the SIRIUS developers introduced *RSirius*, an R client
+library for the SIRIUS REST API built on R6 classes. *RSirius* provides
+comprehensive API coverage, but it does not integrate with the MS data
+structures used by the RforMassSpectrometry initiative. These packages
+(anchored by *xcms*
 [@louail_xcms_2025] and *Spectra* [@noauthor_open_2025; @rainer_modular_2022])
-follows a modular design in which independent packages interoperate between
-them, as well as with other R packages from Bioconductor, through common data
-structures such as the `Spectra` object. Unlike monolithic software that bundle
-all processing steps into a single application, this modular architecture lets
-researchers freely combine preprocessing, annotation, and statistical analysis
-tools into highly customizable and reproducible workflows. Connecting SIRIUS to
-this ecosystem therefore opens up a wide range of analytical pipelines that
-would otherwise require manual data export and re-import between disconnected
-software.
-
-*RuSirius* builds on *RSirius* to provide a higher-level, user-facing R
-package that gives programmatic access to the full SIRIUS tool suite — formula
-identification, ZODIAC re-ranking, fingerprint prediction, CSI:FingerID
-structure search, CANOPUS classification, MSNovelist de novo generation, and
-spectral library matching — through a stable REST API. By accepting `Spectra`
-objects and integrating with *xcms* and *MetaboAnnotation*, *RuSirius* slots
-directly into the larger RforMassSpectrometry software ecosystem.
+follow a modular design in which independent packages interoperate through
+common data structures such as the `Spectra` object, enabling researchers to
+freely combine preprocessing, annotation, and statistical analysis tools into
+customizable and reproducible workflows. Rather than duplicating the API
+bindings already provided by *RSirius*, *RuSirius* builds on top of it,
+adding the higher-level, idiomatic R interface and data-structure integration
+that are needed to connect SIRIUS with this ecosystem. Together with
+*SpectriPy* [@graeve_spectripy_2025], *RuSirius* is part of ongoing
+RforMassSpectrometry efforts to improve integration and interoperability
+between MS data analysis tools across language platforms.
 
 # Software Design
 
@@ -194,24 +135,22 @@ server, enabling reproducible deployment without manual installation.
 
 # Research Impact Statement
 
-<!-- TODO: Add evidence of research use, e.g., publications that used
-     RuSirius, external adopters, workshop materials, or integration
-     into other pipelines. Maybe also Mar can provide some - even if it is
-	 just mentioning they are using it internally in their workflows. -->
-
 *RuSirius* has been developed as part of the RforMassSpectrometry initiative
-and is hosted under the *RforMassSpectrometry* GitHub organization. The
+and is hosted under the *RforMassSpectrometry* GitHub organization.
+The package was developed in close collaboration with the current SIRIUS
+developers, who recognized the need for an interoperable bridge between
+*RSirius* and the RforMassSpectrometry software ecosystem. As documented
+by the issue tracker on the GitHub repository, end-user feedback has
+guided the implementation throughout development. The
 package has been used internally for metabolomics annotation
 workflows at Eurac Research and applied in a ring trial analysis
-<!-- TODO: add ring trial repo reference -->. Its integration with
-*xcms* and *Spectra* positions it as a seamless annotation step for
-the thousands of researchers already using these packages for
-LC-MS/MS data processing.
-
-As documented by the issue tracker on the GitHub repository, *RuSirius* was
-developed in close collaboration with end users as well as with the current
-SIRIUS developers, who recognized the need for an interoperable bridge
-between *RSirius* and the RforMassSpectrometry software ecosystem.
+<!-- TODO: add ring trial repo reference (zenodo) -->. Its use within a
+complete end-to-end metabolomics workflow is demonstrated in the `metabonaut`
+website <!-- TODO: add Zenodo reference for metabonaut -->, which applies
+*RuSirius* to real-world data analysis alongside *xcms* and other
+RforMassSpectrometry packages. Its integration with *xcms* and *Spectra*
+positions it as a seamless annotation step for the thousands of researchers
+already using these packages for LC-MS/MS data processing.
 
 # AI Usage Disclosure
 
@@ -225,21 +164,15 @@ phrasing and correcting typos.
 
 *RuSirius* is available on GitHub at
 <https://github.com/RforMassSpectrometry/RuSirius> under the Artistic-2.0
-license. Documentation, including five vignettes covering all major
-workflows, is available at
-<https://rformassspectrometry.github.io/RuSirius/>. A Docker image with
+license. Documentation for all exported functions and five vignettes
+covering the main workflows are available at
+<https://rformassspectrometry.github.io/RuSirius/>. The `metabonaut`
+website <!-- TODO: add Zenodo reference for metabonaut --> demonstrates
+its use within a complete end-to-end workflow. A Docker image with
 SIRIUS and all dependencies pre-installed is available on Docker Hub at
 *rformassspectrometry/rusirius*.
 
 # Acknowledgements
-
-We thank Marcus Ludwig, Markus Fleischauer, Jonas Emmert, and Nils
-<!-- TODO: add Nils' surname --> for their support during the
-development of *RuSirius* and their original work on the API and
-*RSirius*. This work builds on the SIRIUS software developed at
-Friedrich Schiller University Jena and Bright Giant GmbH, and on the
-RforMassSpectrometry infrastructure maintained by Johannes Rainer and
-Laurent Gatto.
 
 <!-- TODO: add HUMAN doctoral network funding information -->
 
