@@ -71,7 +71,7 @@ networking, but interaction from R requires manual file handling. The
 libraries from reference standards rather than annotating unknowns. SIRIUS
 provides the most comprehensive set of annotation tools available which include
 SIRIUS for molecular formula identification via fragmentation tree computation
-[@bocker_sirius_2009], ZODIAC for network-based formula re-ranking
+[@bocker_fragmentation_2016], ZODIAC for network-based formula re-ranking
 [@ludwig_database-independent_2020], CSI:FingerID for molecular fingerprint
 prediction and structure database search [@duhrkop_searching_2015], CANOPUS for
 compound class prediction [@duhrkop_systematic_2021], and MSNovelist for de novo
