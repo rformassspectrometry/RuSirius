@@ -9,9 +9,42 @@ tags:
   - LC-MS/MS
 authors:
   - name: Philippine Louail
-    # Add co-authors in alphabetical order.
+    orcid: 0009-0007-5429-6846
+    affiliation: "1, 2"
+  - name: Sebastian Böcker
+    orcid: 0000-0002-9304-8091
+    affiliation: 2
+  - name: Nicola Dalla Valle
+    orcid: 0009-0001-6696-8108
+    affiliation: 3
+  - name: Jonas A. Emmert
+    orcid: 0009-0008-0632-7211
+    affiliation: "2, 4"
+  - name: Markus Fleischauer
+    orcid: 0000-0001-7557-0831
+    affiliation: "2, 5"
+  - name: Mar Garcia-Aloy
+    orcid: 0000-0002-1330-6610
+    affiliation: 6
+  - name: Marcus Ludwig
+    orcid: 0000-0001-9981-2153
+    affiliation: 5
   - name: Johannes Rainer
+    orcid: 0000-0002-6977-7147
+    affiliation: 1
 affiliations:
+  - name: Institute for Biomedicine, Eurac Research, 39100 Bolzano, Italy
+    index: 1
+  - name: Chair for Bioinformatics, Institute for Computer Science, Friedrich Schiller University Jena, Jena, Germany
+    index: 2
+  - name: University of Trento, 38100 Trento, TN, Italy
+    index: 3
+  - name: International Max Planck Research School "Chemical Communication in Ecological Systems", Max Planck Institute for Chemical Ecology, Jena, Germany
+    index: 4
+  - name: Bright Giant GmbH
+    index: 5
+  - name: Metabolomics Unit, Research and Innovation Centre, Fondazione Edmund Mach, 38098 San Michele all'Adige (TN), Italy
+    index: 6
 date: 19 March 2026
 bibliography: paper.bib
 ---
@@ -27,9 +60,9 @@ structure database search, de novo structure generation, and spectral library
 matching. The RforMassSpectrometry software ecosystem [@rainer_modular_2022]
 provides the main infrastructure for handling and analyzing MS data in
 R/Bioconductor.  *RuSirius* connects to SIRIUS through its REST API via the
-*RSirius* client library <!-- TODO: add RSirius reference -->, enabling users to
+[*RSirius* client library](https://github.com/sirius-ms/sirius-client-openAPI), enabling users to
 control the full SIRIUS annotation pipeline from within R. By directly working
-on common R MS objects and translating {converting?} them to SIRIUS-specific
+on common R MS objects and converting them to SIRIUS-specific
 data structures, the package allows users to build end-to-end metabolomics
 workflows entirely within R.
 
@@ -81,7 +114,7 @@ More recently, the SIRIUS developers introduced *RSirius*, an R client library
 for the SIRIUS REST API built on R6 classes. *RSirius* provides comprehensive
 API coverage, but it does not integrate with the MS data structures used by the
 RforMassSpectrometry initiative. These packages (anchored by *xcms*
-[@louail_xcms_2025] and *Spectra* [@noauthor_open_2025; @rainer_modular_2022])
+[@louail_xcms_2025] and *Spectra* [@rainer_open_2026; @rainer_modular_2022])
 follow a modular design in which independent packages interoperate through
 common data structures such as the `Spectra` object, enabling researchers to
 freely combine preprocessing, annotation, and statistical analysis tools into
@@ -125,7 +158,7 @@ The main user-facing functions follow the typical annotation workflow:
 Throughout this workflow, *RuSirius* maintains a mapping between user-facing
 feature identifiers and SIRIUS-internal feature IDs, allowing seamless
 round-tripping between the R session and the SIRIUS project. 
-<!-- NOTE: the previous paragraph could be dropped if text needs to be short -->
+
 
 A Docker image based on the official Bioconductor image is provided, bundling
 SIRIUS, *RSirius*, and *RuSirius* with an automatically started REST API
@@ -141,10 +174,10 @@ developers, who recognized the need for an interoperable bridge between
 by the issue tracker on the GitHub repository, end-user feedback has
 guided the implementation throughout development. The
 package has been used internally for metabolomics annotation
-workflows at Eurac Research and applied in a ring trial analysis
-<!-- TODO: add ring trial repo reference (zenodo) -->. Its use within a
+workflows at Eurac Research and Fondazione Edmund Mach, and applied in a ring trial analysis
+[@philippine_louail_philouailhuman_ring_trial_2026]. Its use within a
 complete end-to-end metabolomics workflow is demonstrated in the `metabonaut`
-website <!-- TODO: add Zenodo reference for metabonaut -->, which applies
+website [@philippine_louail_rformassspectrometrymetabonaut_2026], which applies
 *RuSirius* to real-world data analysis alongside *xcms* and other
 RforMassSpectrometry packages. Its integration with *xcms* and *Spectra*
 positions it as a seamless annotation step for the thousands of researchers
@@ -165,13 +198,17 @@ phrasing and correcting typos.
 license. Documentation for all exported functions and five vignettes
 covering the main workflows are available at
 <https://rformassspectrometry.github.io/RuSirius/>. The `metabonaut`
-website <!-- TODO: add Zenodo reference for metabonaut --> demonstrates
+website [@philippine_louail_rformassspectrometrymetabonaut_2026] demonstrates
 its use within a complete end-to-end workflow. A Docker image with
 SIRIUS and all dependencies pre-installed is available on Docker Hub at
 *rformassspectrometry/rusirius*.
 
 # Acknowledgements
 
-<!-- TODO: add HUMAN doctoral network funding information -->
+This work is funded by the European Union under the HORIZON-MSCA-2021 project 101073062: HUMAN – Harmonising and Unifying Blood Metabolic Analysis Networks.
+
+# Conflicts of Interest
+
+M.F. and M.L. are co-founders of Bright Giant GmbH.
 
 # References

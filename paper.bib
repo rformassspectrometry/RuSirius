@@ -1,15 +1,4 @@
 
-@article{noauthor_open_2025,
-	title = {An Open Infrastructure for Mass Spectrometry Data in R},
-	url = {https://osf.io/cwt2v_v2},
-	abstract = {We present the Spectra software, an R/Bioconductor package defining an efficient infrastructure for storing, handling and visualising mass spectrometry data. We describe how Spectra adapts to different data types, sizes, and use cases,addressing scalability while keeping a consistent user interface. We also demonstrate how it can integrate with third party Python tools and follows modern tidyomics principles,seamlessly integrating with more general tidy data science tools.},
-	publisher = {{OSF}},
-	urldate = {2025-10-20},
-	date = {2025-07-22},
-	langid = {american},
-	file = {Snapshot:C\:\\Users\\plouail\\Zotero\\storage\\LMZBSNGB\\cwt2v_v2.html:text/html},
-}
-
 @article{duhrkop_sirius_2019,
 	title = {{SIRIUS} 4: a rapid tool for turning tandem mass spectra into metabolite structure information},
 	volume = {16},
@@ -24,20 +13,6 @@
 	author = {Dührkop, Kai and Fleischauer, Markus and Ludwig, Marcus and Aksenov, Alexander A. and Melnik, Alexey V. and Meusel, Marvin and Dorrestein, Pieter C. and Rousu, Juho and Böcker, Sebastian},
 	urldate = {2026-03-23},
 	date = {2019-04},
-	langid = {english},
-}
-
-@article{bocker_fragmentation_2016,
-	title = {Fragmentation trees reloaded},
-	volume = {8},
-	issn = {1758-2946},
-	url = {https://jcheminf.biomedcentral.com/articles/10.1186/s13321-016-0116-8},
-	doi = {10.1186/s13321-016-0116-8},
-	number = {1},
-	journaltitle = {Journal of Cheminformatics},
-	shortjournal = {J Cheminform},
-	author = {Böcker, Sebastian and Dührkop, Kai},
-	date = {2016-02-01},
 	langid = {english},
 }
 
@@ -293,38 +268,185 @@
 	file = {Full Text PDF:C\:\\Users\\plouail\\Zotero\\storage\\TRIQK429\\Louail et al. - 2025 - xcms in Peak Form Now Anchoring a Complete Metabolomics Data Preprocessing and Analysis Soft.pdf:application/pdf},
 }
 
-@article{rainer_modular_2022-1,
-	title = {A Modular and Expandable Ecosystem for Metabolomics Data Annotation in R},
-	volume = {12},
-	issn = {2218-1989},
-	url = {https://www.mdpi.com/2218-1989/12/2/173},
-	doi = {10.3390/metabo12020173},
-	abstract = {Liquid chromatography-mass spectrometry ({LC}-{MS})-based untargeted metabolomics experiments have become increasingly popular because of the wide range of metabolites that can be analyzed and the possibility to measure novel compounds. {LC}-{MS} instrumentation and analysis conditions can differ substantially among laboratories and experiments, thus resulting in non-standardized datasets demanding customized annotation workflows. We present an ecosystem of R packages, centered around the {MetaboCoreUtils}, {MetaboAnnotation} and {CompoundDb} packages that together provide a modular infrastructure for the annotation of untargeted metabolomics data. Initial annotation can be performed based on {MS}1 properties such as m/z and retention times, followed by an {MS}2-based annotation in which experimental fragment spectra are compared against a reference library. Such reference databases can be created and managed with the {CompoundDb} package. The ecosystem supports data from a variety of formats, including, but not limited to, {MSP}, {MGF}, {mzML}, {mzXML}, {netCDF} as well as {MassBank} text files and {SQL} databases. Through its highly customizable functionality, the presented infrastructure allows to build reproducible annotation workflows tailored for and adapted to most untargeted {LC}-{MS}-based datasets. All core functionality, which supports base R data types, is exported, also facilitating its re-use in other R packages. Finally, all packages are thoroughly unit-tested and documented and are available on {GitHub} and through Bioconductor.},
-	pages = {173},
-	number = {2},
-	journaltitle = {Metabolites},
-	shortjournal = {Metabolites},
-	author = {Rainer, Johannes and Vicini, Andrea and Salzer, Liesa and Stanstrup, Jan and Badia, Josep M. and Neumann, Steffen and Stravs, Michael A. and Verri Hernandes, Vinicius and Gatto, Laurent and Gibb, Sebastian and Witting, Michael},
-	urldate = {2026-03-23},
-	date = {2022-02-11},
+@article{bocker_fragmentation_2016,
+	title = {Fragmentation trees reloaded},
+	volume = {8},
+	issn = {1758-2946},
+	url = {https://jcheminf.biomedcentral.com/articles/10.1186/s13321-016-0116-8},
+	doi = {10.1186/s13321-016-0116-8},
+	pages = {5},
+	number = {1},
+	journaltitle = {Journal of Cheminformatics},
+	shortjournal = {J Cheminform},
+	author = {Böcker, Sebastian and Dührkop, Kai},
+	urldate = {2026-04-07},
+	date = {2016-12},
 	langid = {english},
-	file = {Full Text:C\:\\Users\\plouail\\Zotero\\storage\\JDXAYBWW\\Rainer et al. - 2022 - A Modular and Expandable Ecosystem for Metabolomics Data Annotation in R.pdf:application/pdf},
+	file = {Full Text:C\:\\Users\\plouail\\Zotero\\storage\\9IJKIZ5D\\Böcker and Dührkop - 2016 - Fragmentation trees reloaded.pdf:application/pdf},
+}
+
+@software{philippine_louail_rformassspectrometrymetabonaut_2026,
+	title = {rformassspectrometry/Metabonaut: v1.5.0},
+	rights = {Creative Commons Attribution 4.0 International},
+	url = {https://zenodo.org/doi/10.5281/zenodo.19450619},
+	doi = {10.5281/ZENODO.19450619},
+	shorttitle = {rformassspectrometry/Metabonaut},
+	abstract = {Metabonaut v1.5.0 🧑‍🚀
+
+Welcome to the latest release of Metabonaut! This version expands the annotation toolkit with two new vignettes — one for working with public mass spectral libraries and one for advanced feature annotation using {SIRIUS} — bringing the total to eight comprehensive workflows for untargeted metabolomics analysis.
+
+🚀 What's New in v1.5.0?
+
+🧪 New Vignettes \& Workflow Enhancements
+
+
+
+Using and Creating Metabolomics Data Annotation Resources : A new vignette demonstrating how to build and use custom annotation databases in R, including downloading data from {GNPS} and {MassBank} libraries.
+
+Advanced Feature Annotation using {RuSirius} : A pre-computed vignette showcasing the {RuSirius} package for {SIRIUS}-powered prediction, including formula identification, structure database search, and de novo structure generation via {MSNovelist} for low-confidence database matches.
+
+
+⚙️ Technical Updates \& Stability
+
+
+
+Website Reorganization : Vignettes have been restructured into clearer thematic sections (End-to-End Workflow, Data Preprocessing, Annotation, and Other) for easier navigation.
+
+
+📚 Updated Vignette Overview
+
+
+
+Complete End-to-End {LC}-{MS}/{MS} Analysis : From raw data preprocessing to statistical analysis and final metabolite annotation.
+
+Dataset Investigation : Critical first steps to examine your data and prevent downstream troubleshooting.
+
+{QC} \& Feature Selection (using notame) : Robust normalization, quality control, and feature selection for clean, analysis-ready data.
+
+Large Scale Processing (using xcms) : Practical guide to handling {\textgreater}4,000 files on standard hardware.
+
+Using and Creating Annotation Resources ⭐ New : Build and integrate custom annotation databases from {GNPS} and {MassBank}.
+
+{LC}-{MS}/{MS} Data Annotation (R \& Python) : Leveraging the {SpectriPy} package to combine Python and R {MS} libraries for comprehensive annotation.
+
+Advanced Feature Annotation using {RuSirius} ⭐ New : {SIRIUS}-powered annotation including de novo structure generation.
+
+Seamless Alignment : Integrating new datasets with existing preprocessed data using a flexible alignment algorithm.
+
+
+🤝 Community \& Contributions
+
+A huge thank you to all contributors for this release!
+
+Full Changelog: [v1.4.0...v1.5.0](https://github.com/rformassspectrometry/Metabonaut/compare/v1.4.0...v1.5.0)
+
+Acknowledgment
+
+Funded by the European Union under the {HORIZON}-{MSCA}-2021 project 101073062: {HUMAN} — Harmonising and Unifying Blood Metabolic Analysis Networks.},
+	version = {v1.5.0},
+	publisher = {Zenodo},
+	author = {Philippine Louail and Suksi, Vilhelm and Nishida, Kozo and Marilyn De Graeve and Rainer, Johannes},
+	urldate = {2026-04-07},
+	date = {2026-04-07},
+}
+
+@software{philippine_louail_philouailhuman_ring_trial_2026,
+	title = {philouail/{HUMAN}\_Ring\_Trial: pre-release ringtrial {HUMAN} {DN}},
+	rights = {Creative Commons Attribution 4.0 International},
+	url = {https://zenodo.org/doi/10.5281/zenodo.19454163},
+	doi = {10.5281/ZENODO.19454163},
+	shorttitle = {philouail/{HUMAN}\_Ring\_Trial},
+	abstract = {{HUMAN} Ring Trial — v1.0.0
+
+Part of the {HUMAN} Doctoral Network · Labs: Afekta, Cembio, {HMGU}, {ICL}
+
+This is the first public release of the {HUMAN} Ring Trial analysis pipeline and supporting data, created to obtain a citable {DOI} for use in associated publications.
+
+What is included
+
+This release captures the complete, peer-reviewed analysis pipeline used to assess inter-laboratory variability in {LC}-{MS}-based metabolomics across four participating laboratories, covering all five workflow stages:
+
+
+
+Preprocessing — {XCMS} peak picking and {NAPS} alignment scripts, per-lab and per-mixture
+
+Automatic annotation — {MS}1 adduct/isotope matching and {MS}2 {GNPS} spectral matching
+
+Manual curation — lab reports, consensus merging, and refinement loop outputs
+
+Library generation — final .csv library tables and .mgf {MS}/{MS} spectral files for the {HE} (Human Extract) mixture set
+
+Downstream analysis — comparative metrics including {TIC}/{BPC} similarity, peak feature analysis, and {PCA} across labs (work in progress; partially included)
+
+
+Study design
+
+
+
+83 mixtures from the {MetaSci} metabolite standard library (ground truth known)
+
+Each lab contributed both a lab-specific method and a {HUMAN} reference method (common column and gradient)
+
+Participating institutions: Afekta, Cembio, {HMGU}, {ICL}
+
+
+Key outputs
+
+
+
+4\_library\_generation/ring\_trial\_library\_HE.csv — final annotated metabolite library
+
+4\_library\_generation/std\_spectra\_HE.mgf — curated {MS}/{MS} spectra
+
+3\_annotation\_manual/2\_combine\_annotation/consensus\_summary.xlsx — final consensus annotation table
+
+
+How to cite
+
+If you use this repository or its outputs in your work, please cite it using the {DOI} assigned to this release.
+
+Notes
+
+
+
+Intermediate files (e.g. peak\_evidence.csv in 2\_annotation\_auto/) are not final results — refer to 4\_library\_generation/ for citable outputs
+
+The downstream analysis in 5\_downstream\_analysis/ is a work in progress and will be updated in a future release
+
+To reproduce the analysis, follow the numbered folders in order and refer to the {README} for per-lab instructions},
+	version = {v0.99.0},
+	publisher = {Zenodo},
+	author = {Philippine Louail and Johannes Rainer},
+	urldate = {2026-04-07},
+	date = {2026-04-07},
+}
+
+@misc{rainer_open_2026,
+	title = {An Open Infrastructure for Mass Spectrometry Data in R},
+	rights = {https://creativecommons.org/licenses/by/4.0/legalcode},
+	url = {https://osf.io/cwt2v_v3},
+	doi = {10.31219/osf.io/cwt2v_v3},
+	abstract = {We present the Spectra software, an R/Bioconductor package defining an efficient infrastructure for storing, handling and visualising mass spectrometry data. We describe how Spectra adapts to different data types, sizes, and use cases,addressing scalability while keeping a consistent user interface. We also demonstrate how it can integrate with third party Python tools and follows modern tidyomics principles,seamlessly integrating with more general tidy data science tools.},
+	publisher = {Open Science Framework},
+	author = {Rainer, Johannes and De Graeve, Marilyn and Louail, Philippine and Gibb, Sebastian and Gatto, Laurent},
+	urldate = {2026-04-07},
+	date = {2026-02-10},
 }
 
 @article{graeve_spectripy_2025,
-	title = {{SpectriPy}: {Enhancing} {Cross}-{Language} {Mass} {Spectrometry} {Data} {Analysis} with {R} and {Python}},
+	title = {{SpectriPy}: Enhancing Cross-Language Mass Spectrometry Data Analysis with R and Python},
 	volume = {10},
+	rights = {http://creativecommons.org/licenses/by/4.0/},
 	issn = {2475-9066},
-	shorttitle = {{SpectriPy}},
 	url = {https://joss.theoj.org/papers/10.21105/joss.08070},
 	doi = {10.21105/joss.08070},
-	abstract = {De Graeve et al., (2025). SpectriPy: Enhancing Cross-Language Mass Spectrometry Data Analysis with R and Python. Journal of Open Source Software, 10(109), 8070, https://doi.org/10.21105/joss.08070},
-	language = {en},
+	shorttitle = {{SpectriPy}},
+	pages = {8070},
 	number = {109},
-	urldate = {2025-05-29},
-	journal = {Journal of Open Source Software},
+	journaltitle = {Journal of Open Source Software},
+	shortjournal = {{JOSS}},
 	author = {Graeve, Marilyn De and Bittremieux, Wout and Naake, Thomas and Huber, Carolin and Anagho-Mattanovich, Matthias and Hoffmann, Nils and Marchal, Pierre and Chrone, Victor and Louail, Philippine and Hecht, Helge and Witting, Michael and Rainer, Johannes},
-	month = may,
-	year = {2025},
-	pages = {8070}
+	urldate = {2026-04-07},
+	date = {2025-05-19},
+	file = {Full Text:C\:\\Users\\plouail\\Zotero\\storage\\4W8J7F4Y\\Graeve et al. - 2025 - SpectriPy Enhancing Cross-Language Mass Spectrometry Data Analysis with R and Python.pdf:application/pdf},
 }
