@@ -41,7 +41,7 @@ affiliations:
     index: 3
   - name: International Max Planck Research School "Chemical Communication in Ecological Systems", Max Planck Institute for Chemical Ecology, Jena, Germany
     index: 4
-  - name: Bright Giant GmbH
+  - name: Bright Giant GmbH, Jena, Germany
     index: 5
   - name: Metabolomics Unit, Research and Innovation Centre, Fondazione Edmund Mach, 38098 San Michele all'Adige (TN), Italy
     index: 6
