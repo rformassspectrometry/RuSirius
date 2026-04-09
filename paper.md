@@ -26,6 +26,9 @@ authors:
   - name: Marcus Ludwig
     orcid: 0000-0001-9981-2153
     affiliation: 5
+  - name: Adriano Rutz
+    orcid: 0000-0003-0443-9902
+    affiliation: 7
   - name: Sebastian Böcker
     orcid: 0000-0002-9304-8091
     affiliation: 2
@@ -45,6 +48,8 @@ affiliations:
     index: 5
   - name: Metabolomics Unit, Research and Innovation Centre, Fondazione Edmund Mach, 38098 San Michele all'Adige (TN), Italy
     index: 6
+  - name: Institute for Molecular Systems Biology, ETH Zürich, Otto-Stern-Weg 3, 8093 Zürich, Switzerland
+    index: 7
 date: 19 March 2026
 bibliography: paper.bib
 ---
