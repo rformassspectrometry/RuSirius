@@ -155,151 +155,151 @@ NULL
 setClassUnion("listOrLogical", c("list", "logical"))
 
 #' @noRd
-setClass("formulaIdParam",
-         slots = c(
-             instrument = "character",
-             numberOfCandidates = "numeric",
-             numberOfCandidatesPerIonization = "numeric",
-             massAccuracyMS2ppm = "numeric",
-             isotopeMs2Settings = "character",
-             filterByIsotopePattern = "logical",
-             enforceElGordoFormula = "logical",
-             performBottomUpSearch = "logical",
-             performDeNovoBelowMz = "numeric",
-             formulaSearchDBs = "character",
-             applyFormulaConstraintsToDBAndBottomUpSearch = "logical",
-             enforcedFormulaConstraints = "character",
-             fallbackFormulaConstraints = "character",
-             detectableElements = "character",
-             ilpTimeout = "listOrLogical",
-             numberOfSecondsPerDecomposition = "numeric",
-             numberOfSecondsPerInstance = "numeric",
-             useHeuristic = "listOrLogical",
-             useHeuristicAboveMz = "numeric",
-             useOnlyHeuristicAboveMz = "numeric",
-             injectSpecLibMatchFormulas = "logical",
-             minScoreToInjectSpecLibMatch = "numeric",
-             minPeaksToInjectSpecLibMatch = "numeric",
-             candidateFormulas = "character"
-         ),
-         contains = "Param",
-         prototype = prototype(
-             instrument = "QTOF",
-             numberOfCandidates = 10,
-             numberOfCandidatesPerIonization = 0,
-             massAccuracyMS2ppm = 10,
-             isotopeMs2Settings = "IGNORE",
-             filterByIsotopePattern = TRUE,
-             enforceElGordoFormula = TRUE,
-             performBottomUpSearch = TRUE,
-             performDeNovoBelowMz = 400,
-             formulaSearchDBs = c("CHEBI", "HMDB", "LIPIDMAPS",
-                                  "PUBCHEM", "KEGG"),
-             applyFormulaConstraintsToDBAndBottomUpSearch = FALSE,
-             enforcedFormulaConstraints = c("H", "C", "N", "O", "P"),
-             fallbackFormulaConstraints = c("B", "S", "Cl", "Se", "Br"),
-             detectableElements = c("B", "S", "Cl", "Se", "Br"),
-             ilpTimeout = FALSE,
-             numberOfSecondsPerDecomposition = 0,
-             numberOfSecondsPerInstance = 0,
-             useHeuristic = TRUE,
-             useHeuristicAboveMz = 300,
-             useOnlyHeuristicAboveMz = 650,
-             injectSpecLibMatchFormulas = TRUE,
-             minScoreToInjectSpecLibMatch = 0.7,
-             minPeaksToInjectSpecLibMatch = 6,
-             candidateFormulas = character(0)),
-         validity = function(object) {
-             if (!is.character(object@enforcedFormulaConstraints)) {
-                 return("enforcedFormulaConstraints must be a single string.")
-             }
-             if (!is.character(object@fallbackFormulaConstraints)) {
-                 return("fallbackFormulaConstraints must be a single string.")
-             }
-             TRUE
-         }
+setClass(
+  "formulaIdParam",
+  slots = c(
+    instrument = "character",
+    numberOfCandidates = "numeric",
+    numberOfCandidatesPerIonization = "numeric",
+    massAccuracyMS2ppm = "numeric",
+    isotopeMs2Settings = "character",
+    filterByIsotopePattern = "logical",
+    enforceElGordoFormula = "logical",
+    performBottomUpSearch = "logical",
+    performDeNovoBelowMz = "numeric",
+    formulaSearchDBs = "character",
+    applyFormulaConstraintsToDBAndBottomUpSearch = "logical",
+    enforcedFormulaConstraints = "character",
+    fallbackFormulaConstraints = "character",
+    detectableElements = "character",
+    ilpTimeout = "listOrLogical",
+    numberOfSecondsPerDecomposition = "numeric",
+    numberOfSecondsPerInstance = "numeric",
+    useHeuristic = "listOrLogical",
+    useHeuristicAboveMz = "numeric",
+    useOnlyHeuristicAboveMz = "numeric",
+    injectSpecLibMatchFormulas = "logical",
+    minScoreToInjectSpecLibMatch = "numeric",
+    minPeaksToInjectSpecLibMatch = "numeric",
+    candidateFormulas = "character"
+  ),
+  contains = "Param",
+  prototype = prototype(
+    instrument = "QTOF",
+    numberOfCandidates = 10,
+    numberOfCandidatesPerIonization = 0,
+    massAccuracyMS2ppm = 10,
+    isotopeMs2Settings = "IGNORE",
+    filterByIsotopePattern = TRUE,
+    enforceElGordoFormula = TRUE,
+    performBottomUpSearch = TRUE,
+    performDeNovoBelowMz = 400,
+    formulaSearchDBs = c("CHEBI", "HMDB", "LIPIDMAPS", "PUBCHEM", "KEGG"),
+    applyFormulaConstraintsToDBAndBottomUpSearch = FALSE,
+    enforcedFormulaConstraints = c("H", "C", "N", "O", "P"),
+    fallbackFormulaConstraints = c("B", "S", "Cl", "Se", "Br"),
+    detectableElements = c("B", "S", "Cl", "Se", "Br"),
+    ilpTimeout = FALSE,
+    numberOfSecondsPerDecomposition = 0,
+    numberOfSecondsPerInstance = 0,
+    useHeuristic = TRUE,
+    useHeuristicAboveMz = 300,
+    useOnlyHeuristicAboveMz = 650,
+    injectSpecLibMatchFormulas = TRUE,
+    minScoreToInjectSpecLibMatch = 0.7,
+    minPeaksToInjectSpecLibMatch = 6,
+    candidateFormulas = character(0)
+  ),
+  validity = function(object) {
+    if (!is.character(object@enforcedFormulaConstraints)) {
+      return("enforcedFormulaConstraints must be a single string.")
+    }
+    if (!is.character(object@fallbackFormulaConstraints)) {
+      return("fallbackFormulaConstraints must be a single string.")
+    }
+    TRUE
+  }
 )
 
 
 #' @rdname formulaIdParam
 #' @export
 formulaIdParam <- function(
-        instrument = c("QTOF", "ORBITRAP", "FTICR"),
-        numberOfCandidates = 10,
-        numberOfCandidatesPerIonization = 1,
-        massAccuracyMS2ppm = 10.,
-        isotopeMs2Settings = c("IGNORE", "FILTER", "SCORE"),
-        filterByIsotopePattern = TRUE,
-        enforceElGordoFormula = TRUE,
-        performBottomUpSearch = TRUE,
-        performDeNovoBelowMz = 400,
-        formulaSearchDBs = character(0),
-        applyFormulaConstraintsToDBAndBottomUpSearch = FALSE,
-        enforcedFormulaConstraints = c("H", "C", "N", "O", "P"),
-        fallbackFormulaConstraints = c("S"),
-        detectableElements = c("B", "S", "Cl", "Se", "Br"),
-        ilpTimeout = FALSE,
-        numberOfSecondsPerDecomposition = 0,
-        numberOfSecondsPerInstance = 0,
-        useHeuristic = TRUE,
-        useHeuristicAboveMz = 300,
-        useOnlyHeuristicAboveMz = 650,
-        injectSpecLibMatchFormulas = TRUE,
-        minScoreToInjectSpecLibMatch = 0.7,
-        minPeaksToInjectSpecLibMatch = 6,
-        candidateFormulas = character(0)
+  instrument = c("QTOF", "ORBITRAP", "FTICR"),
+  numberOfCandidates = 10,
+  numberOfCandidatesPerIonization = 1,
+  massAccuracyMS2ppm = 10.,
+  isotopeMs2Settings = c("IGNORE", "FILTER", "SCORE"),
+  filterByIsotopePattern = TRUE,
+  enforceElGordoFormula = TRUE,
+  performBottomUpSearch = TRUE,
+  performDeNovoBelowMz = 400,
+  formulaSearchDBs = character(0),
+  applyFormulaConstraintsToDBAndBottomUpSearch = FALSE,
+  enforcedFormulaConstraints = c("H", "C", "N", "O", "P"),
+  fallbackFormulaConstraints = c("S"),
+  detectableElements = c("B", "S", "Cl", "Se", "Br"),
+  ilpTimeout = FALSE,
+  numberOfSecondsPerDecomposition = 0,
+  numberOfSecondsPerInstance = 0,
+  useHeuristic = TRUE,
+  useHeuristicAboveMz = 300,
+  useOnlyHeuristicAboveMz = 650,
+  injectSpecLibMatchFormulas = TRUE,
+  minScoreToInjectSpecLibMatch = 0.7,
+  minPeaksToInjectSpecLibMatch = 6,
+  candidateFormulas = character(0)
 ) {
+  # Match argument values
+  instrument <- match.arg(instrument)
+  isotopeMs2Settings <- match.arg(isotopeMs2Settings)
 
-    # Match argument values
-    instrument <- match.arg(instrument)
-    isotopeMs2Settings <- match.arg(isotopeMs2Settings)
+  enforcedFormulaConstraints <- paste(enforcedFormulaConstraints, collapse = "")
+  fallbackFormulaConstraints <- paste(fallbackFormulaConstraints, collapse = "")
 
-    enforcedFormulaConstraints <- paste(enforcedFormulaConstraints,
-                                        collapse = "")
-    fallbackFormulaConstraints <- paste(fallbackFormulaConstraints,
-                                        collapse = "")
+  if (useHeuristic) {
+    useHeuristic <- list(
+      useHeuristicAboveMz = useHeuristicAboveMz,
+      useOnlyHeuristicAboveMz = useOnlyHeuristicAboveMz
+    )
+  } else {
+    useHeuristic <- NA
+  }
 
-    if (useHeuristic == TRUE) {
-        useHeuristic <- list(
-            useHeuristicAboveMz = useHeuristicAboveMz,
-            useOnlyHeuristicAboveMz = useOnlyHeuristicAboveMz
-        )
-    } else {
-        useHeuristic <- NA
-    }
+  if (ilpTimeout) {
+    ilpTimeout <- list(
+      numberOfSecondsPerDecomposition = numberOfSecondsPerDecomposition,
+      numberOfSecondsPerInstance = numberOfSecondsPerInstance
+    )
+  } else {
+    ilpTimeout <- NA
+  }
 
-    if (ilpTimeout == TRUE) {
-        ilpTimeout <- list(
-            numberOfSecondsPerDecomposition = numberOfSecondsPerDecomposition,
-            numberOfSecondsPerInstance = numberOfSecondsPerInstance
-        )
-    } else {
-        ilpTimeout <- NA
-    }
-
-    # Create a new object
-    param <- new("formulaIdParam",
-                 instrument = instrument,
-                 numberOfCandidates = numberOfCandidates,
-                 numberOfCandidatesPerIonization = numberOfCandidatesPerIonization,
-                 massAccuracyMS2ppm = massAccuracyMS2ppm,
-                 isotopeMs2Settings = isotopeMs2Settings,
-                 filterByIsotopePattern = filterByIsotopePattern,
-                 enforceElGordoFormula = enforceElGordoFormula,
-                 performBottomUpSearch = performBottomUpSearch,
-                 performDeNovoBelowMz = performDeNovoBelowMz,
-                 formulaSearchDBs = formulaSearchDBs,
-                 applyFormulaConstraintsToDBAndBottomUpSearch = applyFormulaConstraintsToDBAndBottomUpSearch,
-                 enforcedFormulaConstraints = enforcedFormulaConstraints,
-                 fallbackFormulaConstraints = fallbackFormulaConstraints,
-                 detectableElements = detectableElements,
-                 ilpTimeout = ilpTimeout,
-                 useHeuristic = useHeuristic,
-                 injectSpecLibMatchFormulas = injectSpecLibMatchFormulas,
-                 minScoreToInjectSpecLibMatch = minScoreToInjectSpecLibMatch,
-                 minPeaksToInjectSpecLibMatch = minPeaksToInjectSpecLibMatch,
-                 candidateFormulas = candidateFormulas)
-    param
+  # Create a new object
+  param <- new(
+    "formulaIdParam",
+    instrument = instrument,
+    numberOfCandidates = numberOfCandidates,
+    numberOfCandidatesPerIonization = numberOfCandidatesPerIonization,
+    massAccuracyMS2ppm = massAccuracyMS2ppm,
+    isotopeMs2Settings = isotopeMs2Settings,
+    filterByIsotopePattern = filterByIsotopePattern,
+    enforceElGordoFormula = enforceElGordoFormula,
+    performBottomUpSearch = performBottomUpSearch,
+    performDeNovoBelowMz = performDeNovoBelowMz,
+    formulaSearchDBs = formulaSearchDBs,
+    applyFormulaConstraintsToDBAndBottomUpSearch = applyFormulaConstraintsToDBAndBottomUpSearch,
+    enforcedFormulaConstraints = enforcedFormulaConstraints,
+    fallbackFormulaConstraints = fallbackFormulaConstraints,
+    detectableElements = detectableElements,
+    ilpTimeout = ilpTimeout,
+    useHeuristic = useHeuristic,
+    injectSpecLibMatchFormulas = injectSpecLibMatchFormulas,
+    minScoreToInjectSpecLibMatch = minScoreToInjectSpecLibMatch,
+    minPeaksToInjectSpecLibMatch = minPeaksToInjectSpecLibMatch,
+    candidateFormulas = candidateFormulas
+  )
+  param
 }
 
 #' @title Predicting FingerPrint and compounds Identifications
@@ -358,22 +358,30 @@ formulaIdParam <- function(
 NULL
 
 #' @noRd
-setClass("predictParam",
-         slots =
-             c(useScoreThreshold = "logical",
-               alwaysPredictHighRefMatches = "logical"),
-         contains = "Param",
-         prototype = prototype(useScoreThreshold = TRUE,
-                               alwaysPredictHighRefMatches = FALSE)
+setClass(
+  "predictParam",
+  slots = c(
+    useScoreThreshold = "logical",
+    alwaysPredictHighRefMatches = "logical"
+  ),
+  contains = "Param",
+  prototype = prototype(
+    useScoreThreshold = TRUE,
+    alwaysPredictHighRefMatches = FALSE
+  )
 )
 
 #' @rdname predictParam
 #' @export
-predictParam <- function(useScoreThreshold = TRUE,
-                         alwaysPredictHighRefMatches = FALSE) {
-    new("predictParam",
-        useScoreThreshold = useScoreThreshold,
-        alwaysPredictHighRefMatches = alwaysPredictHighRefMatches)
+predictParam <- function(
+  useScoreThreshold = TRUE,
+  alwaysPredictHighRefMatches = FALSE
+) {
+  new(
+    "predictParam",
+    useScoreThreshold = useScoreThreshold,
+    alwaysPredictHighRefMatches = alwaysPredictHighRefMatches
+  )
 }
 
 #' @title Spectra database matching
@@ -421,47 +429,54 @@ predictParam <- function(useScoreThreshold = TRUE,
 NULL
 
 #' @noRd
-spectraMatchingParam <- setClass("spectraMatchingParam",
-                                 slots = c(
-                                     spectraSearchDBs = "character",
-                                     peakDeviationPpm = "numeric",
-                                     precursorDeviationPpm = "numeric",
-                                     scoring = "character"),
-                                 contains = "Param",
-                                 prototype = prototype(
-                                     spectraSearchDBs = c("BIO", "massbank"),
-                                     peakDeviationPpm = 10,
-                                     precursorDeviationPpm = 10,
-                                     scoring = c("MODIFIED_COSINE", "GAUSSIAN", "INTENSITY")
-                                 ),
-                                 validity = function(object) {
-                                     if (object@peakDeviationPpm < 0) {
-                                         return("peakDeviationPpm must be a positive number")
-                                     }
-                                     if (object@precursorDeviationPpm < 0) {
-                                         return("precursorDeviationPpm must be a positive number")
-                                     }
-                                     if (!object@scoring %in% c("MODIFIED_COSINE", "INTENSITY", "GAUSSIAN")) {
-                                         return("scoring must be one of 'MODIFIED_COSINE', 'INTENSITY', ",
-                                                "'GAUSSIAN'")
-                                     }
-                                     return(TRUE)
-                                 }
+spectraMatchingParam <- setClass(
+  "spectraMatchingParam",
+  slots = c(
+    spectraSearchDBs = "character",
+    peakDeviationPpm = "numeric",
+    precursorDeviationPpm = "numeric",
+    scoring = "character"
+  ),
+  contains = "Param",
+  prototype = prototype(
+    spectraSearchDBs = c("BIO", "massbank"),
+    peakDeviationPpm = 10,
+    precursorDeviationPpm = 10,
+    scoring = c("MODIFIED_COSINE", "GAUSSIAN", "INTENSITY")
+  ),
+  validity = function(object) {
+    if (object@peakDeviationPpm < 0) {
+      return("peakDeviationPpm must be a positive number")
+    }
+    if (object@precursorDeviationPpm < 0) {
+      return("precursorDeviationPpm must be a positive number")
+    }
+    if (!object@scoring %in% c("MODIFIED_COSINE", "INTENSITY", "GAUSSIAN")) {
+      return(
+        "scoring must be one of 'MODIFIED_COSINE', 'INTENSITY', ",
+        "'GAUSSIAN'"
+      )
+    }
+    return(TRUE)
+  }
 )
 
 #' @rdname spectraMatchingParam
 #' @export
 spectraMatchingParam <- function(
-        spectraSearchDBs = c("BIO", "massbank"),
-        peakDeviationPpm = 10,
-        precursorDeviationPpm = 10,
-        scoring = c("MODIFIED_COSINE", "INTENSITY", "GAUSSIAN")) {
-    scoring <- match.arg(scoring)
-    new("spectraMatchingParam",
-        spectraSearchDBs = spectraSearchDBs,
-        peakDeviationPpm = peakDeviationPpm,
-        precursorDeviationPpm = precursorDeviationPpm,
-        scoring = scoring)
+  spectraSearchDBs = c("BIO", "massbank"),
+  peakDeviationPpm = 10,
+  precursorDeviationPpm = 10,
+  scoring = c("MODIFIED_COSINE", "INTENSITY", "GAUSSIAN")
+) {
+  scoring <- match.arg(scoring)
+  new(
+    "spectraMatchingParam",
+    spectraSearchDBs = spectraSearchDBs,
+    peakDeviationPpm = peakDeviationPpm,
+    precursorDeviationPpm = precursorDeviationPpm,
+    scoring = scoring
+  )
 }
 
 #' @title Structure Database Search
@@ -523,31 +538,36 @@ spectraMatchingParam <- function(
 NULL
 
 #' @noRd
-setClass("structureDbSearchParam", slots = c(
+setClass(
+  "structureDbSearchParam",
+  slots = c(
     structureSearchDbs = "character",
     tagStructuresWithLipidClass = "logical",
-    expansiveSearchConfidenceMode = "character"),
-    contains = "Param",
-    prototype = prototype(
-        structureSearchDbs = c("BIO", "massbank"),
-        tagStructuresWithLipidClass = FALSE,
-        expansiveSearchConfidenceMode = c("APPROXIMATE","EXACT")),
-    validity = function(object) {
-
-    })
+    expansiveSearchConfidenceMode = "character"
+  ),
+  contains = "Param",
+  prototype = prototype(
+    structureSearchDbs = c("BIO", "massbank"),
+    tagStructuresWithLipidClass = FALSE,
+    expansiveSearchConfidenceMode = c("APPROXIMATE", "EXACT")
+  ),
+  validity = function(object) {}
+)
 
 #' @rdname structureDbSearchParam
 #' @export
 structureDbSearchParam <- function(
-        structureSearchDbs = c("BIO", "massbank"),
-        tagStructuresWithLipidClass = TRUE,
-        expansiveSearchConfidenceMode = c("APPROXIMATE", "EXACT", "OFF")
+  structureSearchDbs = c("BIO", "massbank"),
+  tagStructuresWithLipidClass = TRUE,
+  expansiveSearchConfidenceMode = c("APPROXIMATE", "EXACT", "OFF")
 ) {
-    expansiveSearchConfidenceMode <- match.arg(expansiveSearchConfidenceMode)
-    new("structureDbSearchParam",
-        structureSearchDbs = structureSearchDbs,
-        tagStructuresWithLipidClass = tagStructuresWithLipidClass,
-        expansiveSearchConfidenceMode = expansiveSearchConfidenceMode)
+  expansiveSearchConfidenceMode <- match.arg(expansiveSearchConfidenceMode)
+  new(
+    "structureDbSearchParam",
+    structureSearchDbs = structureSearchDbs,
+    tagStructuresWithLipidClass = tagStructuresWithLipidClass,
+    expansiveSearchConfidenceMode = expansiveSearchConfidenceMode
+  )
 }
 
 #' @title de novo structure annotation
@@ -593,23 +613,29 @@ structureDbSearchParam <- function(
 NULL
 
 #' @noRd
-setClass("deNovoStructureParam",
-         slots = c(numberOfCandidateToPredict = "numeric"),
-         contains = "Param",
-         prototype = prototype(c(numberOfCandidateToPredict = 10)),
-         validity = function(object) {
-             if (object@numberOfCandidateToPredict < 1 ||
-                 object@numberOfCandidateToPredict > 128)
-                 stop("numberOfCandidateToPredict must be between 1 and 128.")
-             TRUE
-         }
+setClass(
+  "deNovoStructureParam",
+  slots = c(numberOfCandidateToPredict = "numeric"),
+  contains = "Param",
+  prototype = prototype(c(numberOfCandidateToPredict = 10)),
+  validity = function(object) {
+    if (
+      object@numberOfCandidateToPredict < 1 ||
+        object@numberOfCandidateToPredict > 128
+    ) {
+      stop("numberOfCandidateToPredict must be between 1 and 128.")
+    }
+    TRUE
+  }
 )
 
 #' @rdname deNovoStructureParam
 #' @export
 deNovoStructureParam <- function(numberOfCandidateToPredict = 10) {
-    new("deNovoStructureParam",
-        numberOfCandidateToPredict = numberOfCandidateToPredict)
+  new(
+    "deNovoStructureParam",
+    numberOfCandidateToPredict = numberOfCandidateToPredict
+  )
 }
 #' @title Configuration fr re-ranking of Molecular Formula Annotation
 #'
@@ -685,70 +711,79 @@ NULL
 setClassUnion("listOrLogical", c("list", "logical"))
 
 #' @noRd
-setClass("zodiacParam",
-         slots = c(consideredCandidatesAt300Mz = "numeric",
-                   consideredCandidatesAt800Mz = "numeric",
-                   runInTwoSteps = "logical",
-                   edgeFilterThreshold = "listOrLogical",
-                   thresholdFilter = "numeric",
-                   minLocalCandidates = "numeric",
-                   minLocalConnections = "numeric",
-                   gibbsSamplerParameters = "listOrLogical",
-                   iterations = "numeric",
-                   burnInPeriod = "numeric",
-                   numberOfMarkovChains = "numeric"
-         ),
-         contains = "Param",
-         prototype = prototype(
-             consideredCandidatesAt300Mz = 10,
-             consideredCandidatesAt800Mz = 50,
-             runInTwoSteps = TRUE,
-             edgeFilterThreshold = TRUE,
-             thresholdFilter = 0.1,
-             minLocalCandidates = 1,
-             minLocalConnections = 1,
-             gibbsSamplerParameters = TRUE,
-             iterations = 1000,
-             burnInPeriod = 100,
-             numberOfMarkovChains = 1),
-         validity = function(object) {
-             TRUE
-         }
+setClass(
+  "zodiacParam",
+  slots = c(
+    consideredCandidatesAt300Mz = "numeric",
+    consideredCandidatesAt800Mz = "numeric",
+    runInTwoSteps = "logical",
+    edgeFilterThreshold = "listOrLogical",
+    thresholdFilter = "numeric",
+    minLocalCandidates = "numeric",
+    minLocalConnections = "numeric",
+    gibbsSamplerParameters = "listOrLogical",
+    iterations = "numeric",
+    burnInPeriod = "numeric",
+    numberOfMarkovChains = "numeric"
+  ),
+  contains = "Param",
+  prototype = prototype(
+    consideredCandidatesAt300Mz = 10,
+    consideredCandidatesAt800Mz = 50,
+    runInTwoSteps = TRUE,
+    edgeFilterThreshold = TRUE,
+    thresholdFilter = 0.1,
+    minLocalCandidates = 1,
+    minLocalConnections = 1,
+    gibbsSamplerParameters = TRUE,
+    iterations = 1000,
+    burnInPeriod = 100,
+    numberOfMarkovChains = 1
+  ),
+  validity = function(object) {
+    TRUE
+  }
 )
 
 #' @rdname zodiacParam
 #' @export
-zodiacParam <- function(consideredCandidatesAt300Mz = 10,
-                        consideredCandidatesAt800Mz = 50,
-                        runInTwoSteps = TRUE,
-                        edgeFilterThreshold = TRUE,
-                        thresholdFilter = 0.95,
-                        minLocalCandidates = 1,
-                        minLocalConnections = 10,
-                        gibbsSamplerParameters = TRUE,
-                        iterations = 20000,
-                        burnInPeriod = 2000,
-                        numberOfMarkovChains = 10){
-    if (edgeFilterThreshold == TRUE)
-        edgeFilterThreshold <- list(
-            thresholdFilter = thresholdFilter,
-            minLocalCandidates = minLocalCandidates,
-            minLocalConnections = minLocalConnections
-        )
-    else edgeFilterThreshold <- NA
-    if (gibbsSamplerParameters == TRUE)
-        gibbsSamplerParameters <- list(
-            iterations = iterations,
-            burnInPeriod = burnInPeriod,
-            numberOfMarkovChains = numberOfMarkovChains
-        )
-    else gibbsSamplerParameters <- NA
-    new("zodiacParam",
-        consideredCandidatesAt300Mz = consideredCandidatesAt300Mz,
-        consideredCandidatesAt800Mz = consideredCandidatesAt800Mz,
-        runInTwoSteps = runInTwoSteps,
-        edgeFilterThreshold = edgeFilterThreshold,
-        gibbsSamplerParameters = gibbsSamplerParameters)
+zodiacParam <- function(
+  consideredCandidatesAt300Mz = 10,
+  consideredCandidatesAt800Mz = 50,
+  runInTwoSteps = TRUE,
+  edgeFilterThreshold = TRUE,
+  thresholdFilter = 0.95,
+  minLocalCandidates = 1,
+  minLocalConnections = 10,
+  gibbsSamplerParameters = TRUE,
+  iterations = 20000,
+  burnInPeriod = 2000,
+  numberOfMarkovChains = 10
+) {
+  if (edgeFilterThreshold) {
+    edgeFilterThreshold <- list(
+      thresholdFilter = thresholdFilter,
+      minLocalCandidates = minLocalCandidates,
+      minLocalConnections = minLocalConnections
+    )
+  } else {
+    edgeFilterThreshold <- NA
+  }
+  if (gibbsSamplerParameters) {
+    gibbsSamplerParameters <- list(
+      iterations = iterations,
+      burnInPeriod = burnInPeriod,
+      numberOfMarkovChains = numberOfMarkovChains
+    )
+  } else {
+    gibbsSamplerParameters <- NA
+  }
+  new(
+    "zodiacParam",
+    consideredCandidatesAt300Mz = consideredCandidatesAt300Mz,
+    consideredCandidatesAt800Mz = consideredCandidatesAt800Mz,
+    runInTwoSteps = runInTwoSteps,
+    edgeFilterThreshold = edgeFilterThreshold,
+    gibbsSamplerParameters = gibbsSamplerParameters
+  )
 }
-
-

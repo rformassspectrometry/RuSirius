@@ -45,95 +45,121 @@
 NULL
 
 
-
 #' @rdname import
 #' @export
-import <- function(sirius, spectra, ms_column_name = character(),
-                   adducts = character(),
-                   chunkSize = 500, deleteExistingFeatures = TRUE) {
+import <- function(
+  sirius,
+  spectra,
+  ms_column_name = character(),
+  adducts = character(),
+  chunkSize = 500,
+  deleteExistingFeatures = TRUE
+) {
+  ## ── Validate required spectra variables ──────────────────────────
+  if (anyNA(spectra$polarity)) {
+    stop(
+      "'polarity' must not contain NA values. Ensure all spectra ",
+      "have polarity set (0 = negative, 1 = positive). You can ",
+      "set it with: spectra$polarity <- 1L"
+    )
+  }
+  if (anyNA(spectra$dataOrigin)) {
+    stop(
+      "'dataOrigin' must not contain NA values. Ensure all spectra ",
+      "have a valid dataOrigin (e.g. loaded from a file or set ",
+      "manually with: spectra$dataOrigin <- \"my_origin\")"
+    )
+  }
 
-    ## ── Validate required spectra variables ──────────────────────────
-    if (anyNA(spectra$polarity))
-        stop("'polarity' must not contain NA values. Ensure all spectra ",
-             "have polarity set (0 = negative, 1 = positive). You can ",
-             "set it with: spectra$polarity <- 1L")
-    if (anyNA(spectra$dataOrigin))
-        stop("'dataOrigin' must not contain NA values. Ensure all spectra ",
-             "have a valid dataOrigin (e.g. loaded from a file or set ",
-             "manually with: spectra$dataOrigin <- \"my_origin\")")
+  has_ms1 <- 1L %in% unique(spectra$msLevel)
+  if (length(unique(spectra$msLevel)) > 1) {
+    ## need to improve these checks
+    if (!length(ms_column_name)) {
+      if (!has_ms1) {
+        ## Group MSn-only spectra by acquisition order, inspired
+        ## by fragmentGroupIndex(). Within each dataOrigin, a new
+        ## group starts whenever a new MS2 precursorMz is
+        ## encountered. Subsequent higher-level scans (MS3+) are
+        ## assigned to the same group as their preceding MS2.
+        message(
+          "No MS1 data found. Auto-grouping MSn spectra by ",
+          "acquisition order and precursorMz."
+        )
+        spectra$ms_column_name <- .groupMSnIndex(spectra)
+        ms_column_name <- "ms_column_name"
+      } else {
+        stop(
+          "If spectra have more than one MS level, a column to ",
+          "group the spectra must be provided in ",
+          "'ms_column_name'."
+        )
+      }
+    }
 
-    has_ms1 <- 1L %in% unique(spectra$msLevel)
-    if (length(unique(spectra$msLevel)) > 1) { ## need to improve these checks
-        if (!length(ms_column_name)) {
-            if (!has_ms1) {
-                ## Group MSn-only spectra by acquisition order, inspired
-                ## by fragmentGroupIndex(). Within each dataOrigin, a new
-                ## group starts whenever a new MS2 precursorMz is
-                ## encountered. Subsequent higher-level scans (MS3+) are
-                ## assigned to the same group as their preceding MS2.
-                message("No MS1 data found. Auto-grouping MSn spectra by ",
-                        "acquisition order and precursorMz.")
-                spectra$ms_column_name <- .groupMSnIndex(spectra)
-                ms_column_name <- "ms_column_name"
-            } else {
-                stop("If spectra have more than one MS level, a column to ",
-                     "group the spectra must be provided in ",
-                     "'ms_column_name'.")
-            }
-        }
-
-        if (anyNA(spectra[[ms_column_name]])) {
-            stop("The column used to group the spectra cannot contain ",
-                 "NA values.")
-        }
+    if (anyNA(spectra[[ms_column_name]])) {
+      stop("The column used to group the spectra cannot contain ", "NA values.")
+    }
+  } else {
+    if (!length(ms_column_name)) {
+      ms_column_name <- "ms_column_name"
+      if (!has_ms1) {
+        ## Single-level MSn (e.g. only MS2): group by
+        ## precursorMz within each dataOrigin so that each
+        ## unique precursor becomes a separate feature.
+        spectra$ms_column_name <- .groupMSnIndex(spectra)
+      } else {
+        ## MS1-only: each spectrum is its own feature.
+        spectra[[ms_column_name]] <- lapply(
+          split(spectra, spectra$dataOrigin),
+          function(x) seq_len(length(x))
+        ) |>
+          unlist(use.names = FALSE)
+      }
+    }
+  }
+  ## import data
+  idxs <- spectra[[ms_column_name]]
+  uidxs <- unique(idxs)
+  l <- length(uidxs)
+  if (!length(adducts)) {
+    ## Choose a polarity-aware default adduct.  When all spectra
+    ## share the same polarity we use the appropriate unknown adduct;
+    ## otherwise fall back to the positive-mode placeholder.
+    pols <- unique(spectra$polarity)
+    pols <- pols[!is.na(pols)]
+    if (length(pols) == 1L && pols == 0L) {
+      adducts <- rep("[M-H]-", l)
     } else {
-        if (!length(ms_column_name)) {
-            ms_column_name <- "ms_column_name"
-            if (!has_ms1) {
-                ## Single-level MSn (e.g. only MS2): group by
-                ## precursorMz within each dataOrigin so that each
-                ## unique precursor becomes a separate feature.
-                spectra$ms_column_name <- .groupMSnIndex(spectra)
-            } else {
-                ## MS1-only: each spectrum is its own feature.
-                spectra[[ms_column_name]] <- lapply(
-                    split(spectra, spectra$dataOrigin),
-                    function(x) seq_len(length(x))) |>
-                    unlist(use.names = FALSE)
-            }
-        }
+      adducts <- rep("[M+?]+", l)
     }
-    ## import data
-    idxs <- spectra[[ms_column_name]]
-    uidxs <- unique(idxs)
-    l <- length(uidxs)
-    if (!length(adducts)) {
-        ## Choose a polarity-aware default adduct.  When all spectra
-        ## share the same polarity we use the appropriate unknown adduct;
-        ## otherwise fall back to the positive-mode placeholder.
-        pols <- unique(spectra$polarity)
-        pols <- pols[!is.na(pols)]
-        if (length(pols) == 1L && pols == 0L)
-            adducts <- rep("[M-H]-", l)
-        else
-            adducts <- rep("[M+?]+", l)
+  }
+  la <- length(adducts)
+  if (la != l) {
+    if (la == 1) {
+      adducts <- rep(adducts, l)
+    } else {
+      stop(
+        "The number of adducts must be either 1 or the same as the ",
+        "number of spectra being imported."
+      )
     }
-    la <- length(adducts)
-    if (la != l) {
-        if (la == 1) adducts <- rep(adducts, l)
-        else
-            stop("The number of adducts must be either 1 or the same as the ",
-                 "number of spectra being imported.")
-    }
-    adducts <- .normalize_adducts(adducts)
-    ## Name adducts by group index so .importSpectraChunk can look them up
-    ## regardless of whether group indices are sequential from 1.
-    names(adducts) <- as.character(uidxs)
-    chunks <- split(uidxs, ceiling(seq_along(uidxs)/chunkSize))
-    if (deleteExistingFeatures) sirius <- deleteFeatures(sirius)
-    lapply(chunks, .importSpectraChunk, sirius = sirius, data = spectra,
-                 ms_column_name = ms_column_name,
-                 adducts = adducts)
-    sirius@featureMap <- mapFeatures(sirius = sirius)
-    sirius
+  }
+  adducts <- .normalize_adducts(adducts)
+  ## Name adducts by group index so .importSpectraChunk can look them up
+  ## regardless of whether group indices are sequential from 1.
+  names(adducts) <- as.character(uidxs)
+  chunks <- split(uidxs, ceiling(seq_along(uidxs) / chunkSize))
+  if (deleteExistingFeatures) {
+    sirius <- deleteFeatures(sirius)
+  }
+  lapply(
+    chunks,
+    .importSpectraChunk,
+    sirius = sirius,
+    data = spectra,
+    ms_column_name = ms_column_name,
+    adducts = adducts
+  )
+  sirius@featureMap <- mapFeatures(sirius = sirius)
+  sirius
 }
