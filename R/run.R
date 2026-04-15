@@ -107,256 +107,221 @@ NULL
 #'        `TRUE`
 #'
 #' @export
-run <- function(
-  sirius,
-  compoundsIds = character(),
-  alignedFeaturesIds = featuresId(sirius),
-  fallbackAdducts = c("[M + H]+", "[M - H]-", "[M + Na]+", "[M + K]+"),
-  enforceAdducts = character(),
-  detectableAdducts = c(
-    "[M + H3N + H]+",
-    "[M - H4O2 + H]+",
-    "[M - H2O - H]-",
-    "[M - H3N - H]-",
-    "[M + Cl]-",
-    "[2M + K]+",
-    "[M + K]+",
-    "[2M + Cl]-",
-    "[M + C2H4O2 - H]-",
-    "[M + H]+",
-    "[2M + H]+",
-    "[M - CH3 - H]-",
-    "[M - H]-",
-    "[M + Na]+",
-    "[M - H2O + H]+"
-  ),
-  spectraSearchParams = NA,
-  formulaIdParams = NA,
-  zodiacParams = NA,
-  predictParams = NA,
-  structureDbSearchParams = NA,
-  msNovelistParams = NA,
-  recompute = FALSE,
-  configFile = character(),
-  wait = TRUE
-) {
-  fallbackAdducts <- .normalize_adducts(fallbackAdducts)
-  if (length(enforceAdducts)) {
-    enforceAdducts <- .normalize_adducts(enforceAdducts)
-  }
-  detectableAdducts <- .normalize_adducts(detectableAdducts)
-  if (length(configFile)) {
-    configfile <- sirius@api$jobs_api$GetJobConfig(configFile)
-    job <- sirius@api$jobs_api$StartJobFromConfig(
-      sirius@projectId,
-      configfile,
-      recompute
-    )
-  } else {
-    config <- config(
-      compoundsIds = compoundsIds,
-      alignedFeaturesIds = alignedFeaturesIds,
-      fallbackAdducts = fallbackAdducts,
-      enforceAdducts = enforceAdducts,
-      detectableAdducts = detectableAdducts,
-      spectraSearchParams = spectraSearchParams,
-      formulaIdParams = formulaIdParams,
-      zodiacParams = zodiacParams,
-      predictParams = predictParams,
-      structureDbSearchParams = structureDbSearchParams,
-      msNovelistParams = msNovelistParams,
-      recompute = recompute
-    )
-    ## Extract candidateFormulas before serialising: they go into
-    ## JobSubmission$configMap, not into formulaIdParams.
-    candidate_formulas <- character(0)
-    if (
-      is(formulaIdParams, "formulaIdParam") &&
-        length(formulaIdParams@candidateFormulas) > 0
-    ) {
-      candidate_formulas <- formulaIdParams@candidateFormulas
+run <- function(sirius,
+                compoundsIds = character(),
+                alignedFeaturesIds = featuresId(sirius),
+                fallbackAdducts = c("[M + H]+", "[M - H]-",
+                                    "[M + Na]+", "[M + K]+"),
+                enforceAdducts = character(),
+                detectableAdducts = c(
+                    "[M + H3N + H]+", "[M - H4O2 + H]+",
+                    "[M - H2O - H]-",
+                    "[M - H3N - H]-", "[M + Cl]-", "[2M + K]+",
+                    "[M + K]+",
+                    "[2M + Cl]-", "[M + C2H4O2 - H]-", "[M + H]+",
+                    "[2M + H]+",
+                    "[M - CH3 - H]-", "[M - H]-", "[M + Na]+",
+                    "[M - H2O + H]+" ),
+                spectraSearchParams = NA,
+                formulaIdParams = NA,
+                zodiacParams = NA,
+                predictParams = NA,
+                structureDbSearchParams = NA,
+                msNovelistParams = NA,
+                recompute = FALSE,
+                configFile = character(),
+                wait = TRUE) {
+    fallbackAdducts <- .normalize_adducts(fallbackAdducts)
+    if (length(enforceAdducts))
+        enforceAdducts <- .normalize_adducts(enforceAdducts)
+    detectableAdducts <- .normalize_adducts(detectableAdducts)
+    if (length(configFile)) {
+        configfile <- sirius@api$jobs_api$GetJobConfig(configFile)
+        job <- sirius@api$jobs_api$StartJobFromConfig(sirius@projectId,
+                                                        configfile,
+                                                        recompute)
+    } else {
+        config <- config(
+            compoundsIds = compoundsIds,
+            alignedFeaturesIds = alignedFeaturesIds,
+            fallbackAdducts = fallbackAdducts,
+            enforceAdducts = enforceAdducts,
+            detectableAdducts = detectableAdducts,
+            spectraSearchParams = spectraSearchParams,
+            formulaIdParams = formulaIdParams,
+            zodiacParams = zodiacParams,
+            predictParams = predictParams,
+            structureDbSearchParams = structureDbSearchParams,
+            msNovelistParams = msNovelistParams,
+            recompute = recompute
+        )
+        ## Extract candidateFormulas before serialising: they go into
+        ## JobSubmission$configMap, not into formulaIdParams.
+        candidate_formulas <- character(0)
+        if (is(formulaIdParams, "formulaIdParam") &&
+            length(formulaIdParams@candidateFormulas) > 0) {
+            candidate_formulas <- formulaIdParams@candidateFormulas
+        }
+        l_config <- as.list(config)
+        ## Remove candidateFormulas from the formulaIdParams list – Sirius
+        ## does not recognise it as a Sirius (formulaIdParams) field.
+        l_config$formulaIdParams$candidateFormulas <- NULL
+        configjson <- toJSON(l_config, auto_unbox = TRUE)
+        js <- JobSubmission$new()
+        js$fromJSON(configjson)
+        ## Pass candidate formulas via the generic configMap
+        if (length(candidate_formulas) > 0) {
+            js$configMap <- list(
+                CandidateFormulas = paste(candidate_formulas,
+                                          collapse = ",")
+            )
+        }
+        job <- sirius@api$jobs_api$StartJob(sirius@projectId, js)
     }
-    l_config <- as.list(config)
-    ## Remove candidateFormulas from the formulaIdParams list – Sirius
-    ## does not recognise it as a Sirius (formulaIdParams) field.
-    l_config$formulaIdParams$candidateFormulas <- NULL
-    configjson <- toJSON(l_config, auto_unbox = TRUE)
-    js <- JobSubmission$new()
-    js$fromJSON(configjson)
-    ## Pass candidate formulas via the generic configMap
-    if (length(candidate_formulas) > 0) {
-      js$configMap <- list(
-        CandidateFormulas = paste(candidate_formulas, collapse = ",")
-      )
+    if (wait) {
+        while (sirius@api$jobs_api$GetJob(sirius@projectId,
+                                          job$id)$progress$state != "DONE")
+            Sys.sleep(1)
     }
-    job <- sirius@api$jobs_api$StartJob(sirius@projectId, js)
-  }
-  if (wait) {
-    while (
-      sirius@api$jobs_api$GetJob(sirius@projectId, job$id)$progress$state !=
-        "DONE"
-    ) {
-      Sys.sleep(1)
-    }
-  }
-  return(job$id)
+    return(job$id)
 }
 
 setClassUnion("ListOrLogical", c("list", "logical"))
 
 #' @noRd
 setClass(
-  "config",
-  slots = c(
-    compoundsIds = "character",
-    alignedFeaturesIds = "character",
-    fallbackAdducts = "character",
-    enforceAdducts = "character",
-    detectableAdducts = "character",
-    formulaIdParams = "ListOrLogical",
-    zodiacParams = "ListOrLogical",
-    predictParams = "ListOrLogical",
-    structureDbSearchParams = "ListOrLogical",
-    msNovelistParams = "ListOrLogical",
-    canopusParams = "ListOrLogical",
-    fingerprintPredictionParams = "ListOrLogical",
-    spectraSearchParams = "ListOrLogical",
-    recompute = "logical"
-  ),
-  contains = "Param",
-  prototype = prototype(
-    compoundsIds = character(),
-    alignedFeaturesIds = character(),
-    fallbackAdducts = character(),
-    enforceAdducts = character(),
-    detectableAdducts = character(),
-    formulaIdParams = list(),
-    zodiacParams = NA,
-    predictParams = NA,
-    structureDbSearchParams = NA,
-    msNovelistParams = NA,
-    canopusParams = list(enabled = FALSE),
-    fingerprintPredictionParams = list(enabled = FALSE),
-    spectraSearchParams = NA,
-    recompute = FALSE
-  ),
-  validity = function(object) {
-    if (
-      length(object@compoundsIds) == 0 &&
-        length(object@alignedFeaturesIds) == 0
-    ) {
-      stop(
-        "Either 'compoundsIds' or 'alignedFeaturesIds' must ",
-        "be provided. If you just ran import() and see 0 ",
-        "features, check that the adduct matches the ",
-        "ionization mode (polarity) of your data."
-      )
+    "config",
+    slots = c(
+        compoundsIds = "character",
+        alignedFeaturesIds = "character",
+        fallbackAdducts = "character",
+        enforceAdducts = "character",
+        detectableAdducts = "character",
+        formulaIdParams = "ListOrLogical",
+        zodiacParams = "ListOrLogical",
+        predictParams = "ListOrLogical",
+        structureDbSearchParams = "ListOrLogical",
+        msNovelistParams = "ListOrLogical",
+        canopusParams = "ListOrLogical",
+        fingerprintPredictionParams = "ListOrLogical",
+        spectraSearchParams = "ListOrLogical",
+        recompute = "logical"
+    ),
+    contains = "Param",
+    prototype = prototype(
+        compoundsIds = character(),
+        alignedFeaturesIds = character(),
+        fallbackAdducts = character(),
+        enforceAdducts = character(),
+        detectableAdducts = character(),
+        formulaIdParams = list(),
+        zodiacParams = NA,
+        predictParams = NA,
+        structureDbSearchParams = NA,
+        msNovelistParams = NA,
+        canopusParams = list(enabled = FALSE),
+        fingerprintPredictionParams = list(enabled = FALSE),
+        spectraSearchParams = NA,
+        recompute = FALSE
+    ),
+    validity = function(object) {
+        if (length(object@compoundsIds) == 0 &&
+            length(object@alignedFeaturesIds) == 0) {
+            stop("Either 'compoundsIds' or 'alignedFeaturesIds' must ",
+                 "be provided. If you just ran import() and see 0 ",
+                 "features, check that the adduct matches the ",
+                 "ionization mode (polarity) of your data.")
+        }
+        TRUE
     }
-    TRUE
-  }
 )
 
 #' @rdname run
 #' @export
-config <- function(
-  compoundsIds = character(),
-  alignedFeaturesIds = character(),
-  fallbackAdducts = c("[M + H]+", "[M - H]-", "[M + Na]+", "[M + K]+"),
-  enforceAdducts = character(),
-  detectableAdducts = c(
-    "[M + H3N + H]+",
-    "[M - H4O2 + H]+",
-    "[M - H2O - H]-",
-    "[M - H3N - H]-",
-    "[M + Cl]-",
-    "[2M + K]+",
-    "[M + K]+",
-    "[2M + Cl]-",
-    "[M + C2H4O2 - H]-",
-    "[M + H]+",
-    "[2M + H]+",
-    "[M - CH3 - H]-",
-    "[M - H]-",
-    "[M + Na]+",
-    "[M - H2O + H]+"
-  ),
-  formulaIdParams = formulaIdParam(),
-  zodiacParams = NA,
-  predictParams = NA,
-  structureDbSearchParams = NA,
-  msNovelistParams = NA,
-  spectraSearchParams = NA,
-  recompute = FALSE
-) {
-  fallbackAdducts <- .normalize_adducts(fallbackAdducts)
-  if (length(enforceAdducts)) {
-    enforceAdducts <- .normalize_adducts(enforceAdducts)
-  }
-  detectableAdducts <- .normalize_adducts(detectableAdducts)
-  ## ── Auto-enable prerequisite parameters ──────────────────────────
-  ## MSNovelist (de novo) needs fingerprint prediction + formula id.
-  ## Structure DB search needs fingerprint prediction + formula id.
-  ## Fingerprint prediction needs formula id.
-  if (
-    is(msNovelistParams, "deNovoStructureParam") ||
-      is(structureDbSearchParams, "structureDbSearchParam")
-  ) {
-    if (identical(predictParams, NA)) {
-      predictParams <- predictParam()
+config <- function(compoundsIds = character(),
+                     alignedFeaturesIds = character(),
+                     fallbackAdducts = c("[M + H]+", "[M - H]-",
+                                         "[M + Na]+", "[M + K]+"),
+                     enforceAdducts = character(),
+                     detectableAdducts = c(
+                         "[M + H3N + H]+", "[M - H4O2 + H]+",
+                         "[M - H2O - H]-",
+                         "[M - H3N - H]-", "[M + Cl]-", "[2M + K]+",
+                         "[M + K]+",
+                         "[2M + Cl]-", "[M + C2H4O2 - H]-", "[M + H]+",
+                         "[2M + H]+",
+                         "[M - CH3 - H]-", "[M - H]-", "[M + Na]+",
+                         "[M - H2O + H]+"
+                     ),
+                     formulaIdParams = formulaIdParam(),
+                     zodiacParams = NA,
+                     predictParams = NA,
+                     structureDbSearchParams = NA,
+                     msNovelistParams = NA,
+                     spectraSearchParams = NA,
+                     recompute = FALSE) {
+    fallbackAdducts <- .normalize_adducts(fallbackAdducts)
+    if (length(enforceAdducts))
+        enforceAdducts <- .normalize_adducts(enforceAdducts)
+    detectableAdducts <- .normalize_adducts(detectableAdducts)
+    ## ── Auto-enable prerequisite parameters ──────────────────────────
+    ## MSNovelist (de novo) needs fingerprint prediction + formula id.
+    ## Structure DB search needs fingerprint prediction + formula id.
+    ## Fingerprint prediction needs formula id.
+    if (is(msNovelistParams, "deNovoStructureParam") ||
+        is(structureDbSearchParams, "structureDbSearchParam")) {
+        if (identical(predictParams, NA))
+            predictParams <- predictParam()
     }
-  }
-  if (
-    is(msNovelistParams, "deNovoStructureParam") ||
-      is(structureDbSearchParams, "structureDbSearchParam") ||
-      is(predictParams, "predictParam")
-  ) {
-    if (identical(formulaIdParams, NA)) {
-      formulaIdParams <- formulaIdParam()
+    if (is(msNovelistParams, "deNovoStructureParam") ||
+        is(structureDbSearchParams, "structureDbSearchParam") ||
+        is(predictParams, "predictParam")) {
+        if (identical(formulaIdParams, NA))
+            formulaIdParams <- formulaIdParam()
     }
-  }
-  if (is(spectraSearchParams, "spectraMatchingParam")) {
-    spectraSearchParams <- as.list(spectraSearchParams)
-    spectraSearchParams$enabled <- TRUE
-  }
-  if (is(formulaIdParams, "formulaIdParam")) {
-    formulaIdParams <- as.list(formulaIdParams)
-    formulaIdParams$enabled <- TRUE
-  }
-  if (is(zodiacParams, "zodiacParam")) {
-    zodiacParams <- as.list(zodiacParams)
-    zodiacParams$enabled <- TRUE
-  }
-  if (is(predictParams, "predictParam")) {
-    fingerprintPredictionParams <- as.list(predictParams)
-    fingerprintPredictionParams$enabled <- TRUE
-    canopusParams <- list(enabled = TRUE)
-  } else {
-    canopusParams <- NA
-    fingerprintPredictionParams <- NA
-  }
+    if (is(spectraSearchParams, "spectraMatchingParam")) {
+        spectraSearchParams <- as.list(spectraSearchParams)
+        spectraSearchParams$enabled <- TRUE
+    }
+    if (is(formulaIdParams, "formulaIdParam")) {
+        formulaIdParams <- as.list(formulaIdParams)
+        formulaIdParams$enabled <- TRUE
+    }
+    if (is(zodiacParams, "zodiacParam")) {
+        zodiacParams <- as.list(zodiacParams)
+        zodiacParams$enabled <- TRUE
+    }
+    if (is(predictParams, "predictParam")) {
+        fingerprintPredictionParams <- as.list(predictParams)
+        fingerprintPredictionParams$enabled <- TRUE
+        canopusParams <- list(enabled = TRUE)
+    } else {
+        canopusParams <- NA
+        fingerprintPredictionParams <- NA
+    }
 
-  if (is(structureDbSearchParams, "structureDbSearchParam")) {
-    structureDbSearchParams <- as.list(structureDbSearchParams)
-    structureDbSearchParams$enabled <- TRUE
-  }
-  if (is(msNovelistParams, "deNovoStructureParam")) {
-    msNovelistParams <- as.list(msNovelistParams)
-    msNovelistParams$enabled <- TRUE
-  }
-  new(
-    "config",
-    compoundsIds = compoundsIds,
-    alignedFeaturesIds = alignedFeaturesIds,
-    fallbackAdducts = fallbackAdducts,
-    enforceAdducts = enforceAdducts,
-    detectableAdducts = detectableAdducts,
-    formulaIdParams = formulaIdParams,
-    zodiacParams = zodiacParams,
-    structureDbSearchParams = structureDbSearchParams,
-    msNovelistParams = msNovelistParams,
-    canopusParams = canopusParams,
-    fingerprintPredictionParams = fingerprintPredictionParams,
-    spectraSearchParams = spectraSearchParams,
-    recompute = recompute
-  )
+    if (is(structureDbSearchParams, "structureDbSearchParam")) {
+        structureDbSearchParams <- as.list(structureDbSearchParams)
+        structureDbSearchParams$enabled <- TRUE
+    }
+    if (is(msNovelistParams, "deNovoStructureParam")) {
+        msNovelistParams <- as.list(msNovelistParams)
+        msNovelistParams$enabled <- TRUE
+    }
+    new(
+        "config",
+        compoundsIds = compoundsIds,
+        alignedFeaturesIds = alignedFeaturesIds,
+        fallbackAdducts = fallbackAdducts,
+        enforceAdducts = enforceAdducts,
+        detectableAdducts = detectableAdducts,
+        formulaIdParams = formulaIdParams,
+        zodiacParams = zodiacParams,
+        structureDbSearchParams = structureDbSearchParams,
+        msNovelistParams = msNovelistParams,
+        canopusParams = canopusParams,
+        fingerprintPredictionParams = fingerprintPredictionParams,
+        spectraSearchParams = spectraSearchParams,
+        recompute = recompute
+    )
 }

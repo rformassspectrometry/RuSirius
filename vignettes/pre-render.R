@@ -15,30 +15,22 @@
 ##   - All package dependencies installed
 ##   - A valid Sirius login (for structure database searches)
 
-orig_files <- list.files(
-  "vignettes",
-  pattern = "\\.Rmd\\.orig$",
-  full.names = TRUE
-)
+orig_files <- list.files("vignettes", pattern = "\\.Rmd\\.orig$",
+                         full.names = TRUE)
 
-if (length(orig_files) == 0L) {
-  stop(
-    "No .Rmd.orig files found in vignettes/. ",
-    "Run this script from the package root directory."
-  )
-}
+if (length(orig_files) == 0L)
+    stop("No .Rmd.orig files found in vignettes/. ",
+         "Run this script from the package root directory.")
 
 message("Found ", length(orig_files), " vignette(s) to pre-render:")
 message(paste(" -", basename(orig_files), collapse = "\n"))
 
 for (orig in orig_files) {
-  out <- sub("\\.Rmd\\.orig$", ".Rmd", orig)
-  message("\n>>> Knitting ", basename(orig), " -> ", basename(out))
-  knitr::knit(orig, output = out)
-  message("    Done.")
+    out <- sub("\\.Rmd\\.orig$", ".Rmd", orig)
+    message("\n>>> Knitting ", basename(orig), " -> ", basename(out))
+    knitr::knit(orig, output = out)
+    message("    Done.")
 }
 
-message(
-  "\nAll vignettes pre-rendered. ",
-  "Build the pkgdown site with pkgdown::build_site()."
-)
+message("\nAll vignettes pre-rendered. ",
+        "Build the pkgdown site with pkgdown::build_site().")

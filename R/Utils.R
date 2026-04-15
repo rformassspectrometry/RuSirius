@@ -12,24 +12,20 @@ NULL
 #'
 #' @export
 logIn <- function(sirius, username, password) {
-  if (!length(username) && !length(password)) {
-    stop("Please provide a username and a password.")
-  }
-  if (!checkConnection(sirius)) {
-    stop("The connection to the Sirius instance is not valid.")
-  }
-  cred <- AccountCredentials$new(username = username, password = password)
-  tryCatch(
-    sirius@api$login_and_account_api$Login(
-      accept_terms = TRUE,
-      account_credentials = cred
-    ),
-    error = function(e) {
-      stop("We could not log you in. Please check the provided ", "credential")
-    }
-  )
-  message("You are now logged in.")
-  sirius
+    if (!length(username) && !length(password))
+        stop("Please provide a username and a password.")
+    if (!checkConnection(sirius))
+        stop("The connection to the Sirius instance is not valid.")
+    cred <- AccountCredentials$new(username = username,
+                                   password = password)
+    tryCatch(sirius@api$login_and_account_api$Login(accept_terms = TRUE,
+                                                    account_credentials = cred),
+             error = function(e) {
+                 stop("We could not log you in. Please check the provided ",
+                         "credential")
+             })
+    message("You are now logged in.")
+    sirius
 }
 
 #' @rdname utils
@@ -41,15 +37,12 @@ logIn <- function(sirius, username, password) {
 #'
 #' @export
 checkConnection <- function(sirius) {
-  tryCatch(
-    {
-      sirius@api$info_api$GetInfo()
-      TRUE
-    },
-    error = function(e) {
-      FALSE
-    }
-  )
+    tryCatch({
+        sirius@api$info_api$GetInfo()
+        TRUE
+    }, error = function(e) {
+        FALSE
+    })
 }
 
 
@@ -64,22 +57,21 @@ checkConnection <- function(sirius) {
 #'
 #' @export
 shutdown <- function(sirius, closeProject = TRUE) {
-  if (closeProject) {
-    projects <- tryCatch(listOpenProjects(sirius), error = function(e) NULL)
-    for (p in projects) {
-      tryCatch(
-        sirius@api$projects_api$CloseProject(project_id = p),
-        error = function(e) NULL
-      )
+    if (closeProject) {
+        projects <- tryCatch(listOpenProjects(sirius), error = function(e) NULL)
+        for (p in projects) {
+            tryCatch(
+                sirius@api$projects_api$CloseProject(project_id = p),
+                error = function(e) NULL
+            )
+        }
     }
-  }
-  tryCatch(
-    sirius@sdk$shutdown_sirius(),
-    error = function(e) {
-      message("Could not shutdown Sirius. You may need to close it manually.")
-    }
-  )
-  invisible(NULL)
+    tryCatch(
+        sirius@sdk$shutdown_sirius(),
+        error = function(e)
+            message("Could not shutdown Sirius. You may need to close it manually.")
+    )
+    invisible(NULL)
 }
 
 #' @rdname utils
@@ -87,12 +79,11 @@ shutdown <- function(sirius, closeProject = TRUE) {
 #' @return Invisible `TRUE` if successful.
 #' @export
 openGUI <- function(sirius) {
-  if (!length(sirius@projectId)) {
-    stop("No project is currently open. Use openProject() first.")
-  }
-  sirius@api$gui_api$OpenGui(sirius@projectId)
-  message("GUI opened for project: ", sirius@projectId)
-  invisible(TRUE)
+    if (!length(sirius@projectId))
+        stop("No project is currently open. Use openProject() first.")
+    sirius@api$gui_api$OpenGui(sirius@projectId)
+    message("GUI opened for project: ", sirius@projectId)
+    invisible(TRUE)
 }
 
 #' @rdname utils
@@ -102,13 +93,13 @@ openGUI <- function(sirius) {
 #' @return Invisible `TRUE` if successful.
 #' @export
 closeGUI <- function(sirius, closeProject = FALSE) {
-  if (!length(sirius@projectId)) {
-    stop("No project is currently open.")
-  }
-  close_arg <- if (closeProject) "true" else NULL
-  sirius@api$gui_api$CloseGui(sirius@projectId, close_project = close_arg)
-  message("GUI closed for project: ", sirius@projectId)
-  invisible(TRUE)
+    if (!length(sirius@projectId))
+        stop("No project is currently open.")
+    close_arg <- if (closeProject) "true" else NULL
+    sirius@api$gui_api$CloseGui(sirius@projectId,
+                                     close_project = close_arg)
+    message("GUI closed for project: ", sirius@projectId)
+    invisible(TRUE)
 }
 
 #' @rdname utils
@@ -118,21 +109,15 @@ closeGUI <- function(sirius, closeProject = FALSE) {
 #'`"sizeInformation"`.
 #' @return a `list` with the information requested.
 #' @export
-projectInfo <- function(
-  sirius,
-  infoType = c("compatibilityInfo", "sizeInformation")
-) {
-  if (!checkConnection(sirius)) {
-    stop("The connection to the Sirius instance is not valid.")
-  }
-  if (!.is_logged_in(sirius)) {
-    stop("You must be logged in to retrieve project info. Use logIn() first.")
-  }
-  info <- sirius@api$projects_api$GetProject(
-    project_id = sirius@projectId,
-    opt_fields = infoType
-  )
-  info$toSimpleType()
+projectInfo <- function(sirius,
+                        infoType = c("compatibilityInfo", "sizeInformation")) {
+    if (!checkConnection(sirius))
+        stop("The connection to the Sirius instance is not valid.")
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to retrieve project info. Use logIn() first.")
+    info <- sirius@api$projects_api$GetProject(project_id = sirius@projectId,
+                                           opt_fields = infoType)
+    info$toSimpleType()
 }
 
 #' @rdname utils
@@ -140,26 +125,20 @@ projectInfo <- function(
 #' @return a `character` vector with the open projects.
 #' @export
 listOpenProjects <- function(sirius) {
-  if (!checkConnection(sirius)) {
-    stop(
-      "The connection to the Sirius instance is not valid. ",
-      "Cannot retrieve open projects."
+    if (!checkConnection(sirius))
+        stop("The connection to the Sirius instance is not valid. ",
+             "Cannot retrieve open projects.")
+    if (!.is_logged_in(sirius))
+        return(character(0))
+    tst <- tryCatch(
+        sirius@api$projects_api$GetProjects(),
+        error = function(e) {
+            warning("Could not retrieve open projects: ", conditionMessage(e))
+            return(list())
+        }
     )
-  }
-  if (!.is_logged_in(sirius)) {
-    return(character(0))
-  }
-  tst <- tryCatch(
-    sirius@api$projects_api$GetProjects(),
-    error = function(e) {
-      warning("Could not retrieve open projects: ", conditionMessage(e))
-      return(list())
-    }
-  )
-  if (length(tst) == 0) {
-    return(character(0))
-  }
-  unlist(lapply(tst, function(x) x$projectId))
+    if (length(tst) == 0) return(character(0))
+    unlist(lapply(tst, function(x) x$projectId))
 }
 
 #' @rdname utils
@@ -172,52 +151,35 @@ listOpenProjects <- function(sirius) {
 #' @return a `Sirius` object with the project opened.
 #' @export
 openProject <- function(sirius, projectId, path = character()) {
-  if (!checkConnection(sirius)) {
-    stop("The connection to the Sirius instance is not valid.")
-  }
-  if (!.is_logged_in(sirius)) {
-    stop("You must be logged in to open a project. Use logIn() first.")
-  }
-  l <- listOpenProjects(sirius)
-  if (!is.null(l) && length(l) > 0) {
-    for (project in l) {
-      tryCatch(
-        {
-          sirius@api$projects_api$CloseProject(project_id = project)
-          message("Closed project ", project)
-        },
-        error = function(e) {
-          message(
-            "Could not close project ",
-            project,
-            ": ",
-            conditionMessage(e)
-          )
+    if (!checkConnection(sirius))
+        stop("The connection to the Sirius instance is not valid.")
+    if (!.is_logged_in(sirius))
+        stop("You must be logged in to open a project. Use logIn() first.")
+    l <- listOpenProjects(sirius)
+    if (!is.null(l) && length(l) > 0) {
+        for (project in l) {
+            tryCatch({
+                sirius@api$projects_api$CloseProject(project_id = project)
+                message("Closed project ", project)
+            }, error = function(e) {
+                message("Could not close project ", project, ": ",
+                        conditionMessage(e))
+            })
         }
-      )
     }
-  }
-  if (length(path) > 0) {
-    if (!file.exists(path)) {
-      stop("The provided 'path' does not exist.")
-    }
-  } else {
-    path <- getwd()
-  }
-  f <- file.path(path, paste0(projectId, ".sirius"))
-  if (file.exists(f)) {
-    sirius@api$projects_api$OpenProject(
-      project_id = projectId,
-      path_to_project = f
-    )
-  } else {
-    sirius@api$projects_api$CreateProject(
-      project_id = projectId,
-      path_to_project = f
-    )
-  }
-  sirius@projectId <- projectId
-  sirius
+    if (length(path) > 0) {
+        if (!file.exists(path))
+            stop("The provided 'path' does not exist.")
+    } else path <- getwd()
+    f <- file.path(path, paste0(projectId, ".sirius"))
+    if (file.exists(f))
+        sirius@api$projects_api$OpenProject(project_id = projectId,
+                                                path_to_project = f)
+    else
+        sirius@api$projects_api$CreateProject(project_id = projectId,
+                                                  path_to_project = f)
+    sirius@projectId <- projectId
+    sirius
 }
 
 #' @rdname utils
@@ -228,13 +190,11 @@ openProject <- function(sirius, projectId, path = character()) {
 #' @return a `character` vector with the features ID (empty if no features).
 #' @export
 featuresId <- function(sirius, type = c("sirius", "xcms")) {
-  type <- match.arg(type)
-  fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
-  if (length(fts) == 0) {
-    return(character(0))
-  }
-  field <- if (type == "sirius") "alignedFeatureId" else "externalFeatureId"
-  as.character(vapply(fts, function(x) x[[field]], character(1)))
+    type <- match.arg(type)
+    fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
+    if (length(fts) == 0) return(character(0))
+    field <- if (type == "sirius") "alignedFeatureId" else "externalFeatureId"
+    as.character(vapply(fts, function(x) x[[field]], character(1)))
 }
 
 #' @rdname utils
@@ -242,9 +202,9 @@ featuresId <- function(sirius, type = c("sirius", "xcms")) {
 #' @return a `data.frame` with the features information.
 #' @export
 featuresInfo <- function(sirius) {
-  fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
-  l <- lapply(fts, function(x) x$toSimpleType())
-  do.call(rbind, l)
+    fts <- sirius@api$features_api$GetAlignedFeatures(sirius@projectId)
+    l <- lapply(fts, function(x) x$toSimpleType())
+    do.call(rbind, l)
 }
 
 #' @rdname utils
@@ -254,16 +214,14 @@ featuresInfo <- function(sirius) {
 #' @return A `Sirius` object with the features removed.
 #' @export
 deleteFeatures <- function(sirius, featureId = featuresId(sirius)) {
-  if (!all(featureId %in% featuresId(sirius))) {
-    stop("Some of the featureId provided are not in the project.")
-  }
-  for (ft in featureId) {
-    sirius@api$features_api$DeleteAlignedFeature(sirius@projectId, ft)
-    sirius@featureMap <- sirius@featureMap[
-      !sirius@featureMap$fts_sirius %in% ft,
-    ]
-  }
-  sirius
+    if (!all(featureId %in% featuresId(sirius)))
+        stop("Some of the featureId provided are not in the project.")
+    for (ft in featureId) {
+        sirius@api$features_api$DeleteAlignedFeature(sirius@projectId, ft)
+        sirius@featureMap <- sirius@featureMap[!sirius@featureMap$fts_sirius
+                                               %in% ft, ]
+    }
+    sirius
 }
 
 #' @rdname utils
@@ -271,12 +229,11 @@ deleteFeatures <- function(sirius, featureId = featuresId(sirius)) {
 #' @return a `data.frame` with the features mapping.
 #' @export
 mapFeatures <- function(sirius) {
-  fts_sirius <- featuresId(sirius, type = "sirius")
-  fts_xcms <- featuresId(sirius, type = "xcms")
-  data.frame(
-    fts_sirius = fts_sirius,
-    fts_xcms = fts_xcms
-  )
+    fts_sirius <- featuresId(sirius, type = "sirius")
+    fts_xcms <- featuresId(sirius, type = "xcms")
+    data.frame(
+        fts_sirius = fts_sirius,
+        fts_xcms = fts_xcms)
 }
 
 #' @rdname utils
@@ -287,10 +244,9 @@ mapFeatures <- function(sirius) {
 #' @return nothing, will save the configuration locally.
 #' @export
 saveConfig <- function(sirius, config, name) {
-  if (!length(name)) {
-    stop("Please provide a name for the configuration.")
-  }
-  sirius@api$jobs_api$SaveJobConfig(name, config)
+    if (!length(name))
+        stop("Please provide a name for the configuration.")
+    sirius@api$jobs_api$SaveJobConfig(name, config)
 }
 
 #' @rdname utils
@@ -299,15 +255,11 @@ saveConfig <- function(sirius, config, name) {
 #' @return a `character` vector with the job information.
 #' @export
 jobInfo <- function(sirius, jobId = character()) {
-  if (!length(jobId)) {
-    stop("Please provide a jobId that you wish to retrieve")
-  }
-  j <- sirius@api$jobs_api$GetJob(
-    sirius@projectId,
-    jobId,
-    c("command", "progress", "affectedIds")
-  )
-  .clean_output(j)
+    if (!length(jobId))
+        stop("Please provide a jobId that you wish to retrieve")
+    j <- sirius@api$jobs_api$GetJob(sirius@projectId, jobId,
+                                    c("command", "progress", "affectedIds"))
+    .clean_output(j)
 }
 
 #' @rdname utils
@@ -317,15 +269,12 @@ jobInfo <- function(sirius, jobId = character()) {
 #' @return nothing, will delete the job from Sirius.
 #' @export
 deleteJob <- function(sirius, jobId = character(), all = FALSE) {
-  if (!all) {
-    if (!length(jobId)) {
-      stop(
-        "Please provide a jobId that you wish to delete or set ",
-        "all = TRUE to delete all jobs."
-      )
+    if (!all) {
+        if (!length(jobId))
+            stop("Please provide a jobId that you wish to delete or set ",
+                 "all = TRUE to delete all jobs.")
+        sirius@api$jobs_api$DeleteJob(sirius@projectId, jobId)
+    } else {
+        sirius@api$jobs_api$DeleteJob(sirius@projectId)
     }
-    sirius@api$jobs_api$DeleteJob(sirius@projectId, jobId)
-  } else {
-    sirius@api$jobs_api$DeleteJob(sirius@projectId)
-  }
 }
