@@ -28,7 +28,7 @@ authors:
     affiliation: 5
   - name: Sebastian Böcker
     orcid: 0000-0002-9304-8091
-    affiliation: 2
+    affiliation: "2, 5"
   - name: Johannes Rainer
     orcid: 0000-0002-6977-7147
     affiliation: 1
@@ -212,6 +212,6 @@ This work is funded by the European Union under the HORIZON-MSCA-2021 project
 
 # Conflicts of Interest
 
-M.F. and M.L. are co-founders of Bright Giant GmbH.
+M.F., M.L., and S.B. are co-founders of Bright Giant GmbH.
 
 # References
