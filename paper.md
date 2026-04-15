@@ -31,7 +31,7 @@ authors:
     affiliation: 7
   - name: Sebastian Böcker
     orcid: 0000-0002-9304-8091
-    affiliation: "2, 5"
+    affiliation: 2
   - name: Johannes Rainer
     orcid: 0000-0002-6977-7147
     affiliation: 1
