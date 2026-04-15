@@ -21,8 +21,8 @@ USER root
 ## Clean up
 RUN rm -rf /tmp/*
 
-## Install Sirius 6.3.3
-RUN wget -nv https://github.com/sirius-ms/sirius/releases/download/v6.3.3/sirius-6.3.3-linux-x64.zip && \
+## Install Sirius 6.3.4
+RUN wget -nv https://github.com/sirius-ms/sirius/releases/download/v6.3.4/sirius-6.3.4-linux-x64.zip && \
     unzip sirius-*.zip && \
     rm sirius-*.zip && \
     chown -R rstudio:rstudio sirius && \

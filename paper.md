@@ -26,6 +26,9 @@ authors:
   - name: Marcus Ludwig
     orcid: 0000-0001-9981-2153
     affiliation: 5
+  - name: Adriano Rutz
+    orcid: 0000-0003-0443-9902
+    affiliation: 7
   - name: Sebastian Böcker
     orcid: 0000-0002-9304-8091
     affiliation: 2
@@ -45,6 +48,8 @@ affiliations:
     index: 5
   - name: Metabolomics Unit, Research and Innovation Centre, Fondazione Edmund Mach, 38098 San Michele all'Adige (TN), Italy
     index: 6
+  - name: Institute for Molecular Systems Biology, ETH Zürich, Otto-Stern-Weg 3, 8093 Zürich, Switzerland
+    index: 7
 date: 19 March 2026
 bibliography: paper.bib
 ---
@@ -56,7 +61,7 @@ SIRIUS mass spectrometry annotation framework [@duhrkop_sirius_2019] and the
 RforMassSpectrometry software ecosystem. SIRIUS is a widely used tool suite for
 the computational annotation of tandem mass spectrometry (MS/MS) data,
 encompassing molecular formula identification, compound class prediction,
-structure database search, de novo structure generation, and spectral library
+structure database search, *de novo* structure generation, and spectral library
 matching. The RforMassSpectrometry software ecosystem [@rainer_modular_2022]
 provides the main infrastructure for handling and analyzing MS data in
 R/Bioconductor.  *RuSirius* connects to SIRIUS through its REST API via the
@@ -153,7 +158,7 @@ The main user-facing functions follow the typical annotation workflow:
    prediction and formula identification).
 4. **`results()`** and **`summary()`** retrieve annotation results as data
    frames, supporting formula candidates, structure candidates, compound
-   classes, de novo structures, spectral matches, and fragmentation trees.
+   classes, *de novo* structures, spectral matches, and fragmentation trees.
 5. **Database management** functions (`listDbs()`, `createDb()`, `removeDb()`)
    allow users to create and query custom spectral and structure databases.
 
@@ -199,7 +204,7 @@ phrasing and correcting typos.
 <https://github.com/RforMassSpectrometry/RuSirius> under the Artistic-2.0
 license. Documentation for all exported functions and five tutorials (package vignettes)
 covering the main workflows are available at
-<https://rformassspectrometry.github.io/RuSirius/>. The *Metabonaut*
+<https://rformassspectrometry.github.io/RuSirius>. The *Metabonaut*
 website [@philippine_louail_rformassspectrometrymetabonaut_2026] demonstrates
 its use within a complete end-to-end workflow. A Docker image with
 SIRIUS and all dependencies pre-installed is available on Docker Hub at
