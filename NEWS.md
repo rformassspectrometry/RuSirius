@@ -1,5 +1,10 @@
 # Version 1.0
 
+## Changes in 1.0.1
+
+- Bumped SIRIUS dependency to 6.4 and updated RSirius pin to the
+  corresponding tag (commit `6470a73`).
+
 ## Changes in 1.0.0
 
 - Publication-ready release.
@@ -7,7 +12,7 @@
   method for the `Sirius` class.
 - Fixed bug in `saveConfig()` using `@` instead of `$` for API access.
 - Fixed newline escape in `Sirius()` retry message.
-- Moved `jsonlite` from Depends to Imports.
+- Moved `jsonlite` from `Depends` to `Imports`.
 - Lowered minimum R version to >= 4.4.0.
 - Added `biocViews` to DESCRIPTION.
 - Replaced placeholder `@references` with real citations in all parameter
@@ -21,7 +26,7 @@
 
 ## Changes in 0.2.6
 
-- Rewrote `Dockerfile` to install Sirius 6.3.3 directly (replaces conda).
+- Rewrote `Dockerfile` to install Sirius 6.3.4 directly (replaces conda).
   Sirius REST API now auto-starts on port 9999 via s6-overlay init script.
 - All vignettes now use `port = 9999` in `Sirius()` calls.
 - Added pre-computed vignette infrastructure (`.Rmd.orig` + `pre-render.R`)
