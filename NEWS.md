@@ -1,5 +1,10 @@
 # Version 1.0
 
+## Changes in 1.0.1
+
+- Bumped SIRIUS dependency to 6.4 and updated RSirius pin to the
+  corresponding tag (commit `6470a73`).
+
 ## Changes in 1.0.0
 
 - Publication-ready release.

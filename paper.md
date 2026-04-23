@@ -64,7 +64,7 @@ encompassing molecular formula identification, compound class prediction,
 structure database search, *de novo* structure generation, and spectral library
 matching. The RforMassSpectrometry software ecosystem [@rainer_modular_2022]
 provides the main infrastructure for handling and analyzing MS data in
-R/Bioconductor.  *RuSirius* connects to SIRIUS through its REST API via the
+R/Bioconductor.  *RuSirius* connects to SIRIUS (version 6.4) through its REST API via the
 [*RSirius* client library](https://github.com/sirius-ms/sirius-client-openAPI), enabling users to
 control the full SIRIUS annotation pipeline from within R. By directly working
 on common R MS objects and converting them to SIRIUS-specific
