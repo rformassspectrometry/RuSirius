@@ -211,19 +211,31 @@
 ## to eliminate duplicated verbose / port branching.
 
 #' @noRd
-.sdk_connect <- function(sdk, port = integer(), verbose = FALSE) {
+.sdk_connect <- function(sdk, port = integer(), path_to_sirius = character(),
+                         verbose = FALSE) {
     call_fn <- function() {
-        if (length(port)) sdk$attach_to_sirius(sirius_port = port)
+        if (length(path_to_sirius)) {
+            api <- sdk$attach_to_sirius(sirius_port = if (length(port)) port
+                                        else NULL)
+            if (is.null(api))
+                api <- sdk$start_sirius(sirius_path = path_to_sirius,
+                                        port = if (length(port)) port
+                                        else NULL)
+            api
+        } else if (length(port)) sdk$attach_to_sirius(sirius_port = port)
         else sdk$attach_or_start_sirius()
     }
     if (verbose) call_fn() else suppressMessages(call_fn())
 }
 
 #' @noRd
-.sdk_start <- function(sdk, port = integer(), verbose = FALSE) {
+.sdk_start <- function(sdk, port = integer(), path_to_sirius = character(),
+                       verbose = FALSE) {
     call_fn <- function() {
-        if (length(port)) sdk$start_sirius(port = port)
-        else sdk$start_sirius()
+        args <- list()
+        if (length(port)) args$port <- port
+        if (length(path_to_sirius)) args$sirius_path <- path_to_sirius
+        do.call(sdk$start_sirius, args)
     }
     if (verbose) call_fn() else suppressMessages(call_fn())
 }

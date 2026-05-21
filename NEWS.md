@@ -1,5 +1,11 @@
 # Version 1.0
 
+## Changes in 1.0.2
+
+- Added `path_to_sirius` parameter to `Sirius()` to allow specifying a custom
+  path to the Sirius executable. Useful when running on a cluster or any
+  environment where the executable is not on `PATH`.
+
 ## Changes in 1.0.1
 
 - Bumped SIRIUS dependency to 6.4 and updated RSirius pin to the
