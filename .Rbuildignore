@@ -29,3 +29,6 @@ README.Rmd
 
 # Empty test folder
 ^test$
+
+# Full license text kept for GitHub/JOSS; License field already declares Apache License 2.0
+^LICENSE$
