@@ -1,5 +1,10 @@
 # Version 1.0
 
+## Changes in 1.0.3
+
+- Switched license to the Apache License 2.0 (matching RSirius) and added the
+  full license text as a plain-text `LICENSE` file in the repository root.
+
 ## Changes in 1.0.2
 
 - Added `path_to_sirius` parameter to `Sirius()` to allow specifying a custom
