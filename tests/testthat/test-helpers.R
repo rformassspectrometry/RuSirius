@@ -485,3 +485,100 @@ test_that(".createspectraMSn returns NULL for empty input", {
     result <- RuSirius:::.createspectraMSn(character())
     expect_null(result)
 })
+
+# =============================================================================
+# .job_state / .wait_for_job  (job-waiting helpers used by run(wait = TRUE))
+# These use a mocked Sirius API and do not require a running server.
+# =============================================================================
+
+# Build a mock Sirius object whose GetJob returns the supplied progress
+# objects on successive calls. A NULL entry simulates an HTTP/GetJob error.
+.mock_sirius <- function(states) {
+    i <- 0L
+    getjob <- function(project_id, job_id, ...) {
+        i <<- i + 1L
+        st <- states[[min(i, length(states))]]
+        if (is.null(st)) stop("simulated GetJob HTTP error")
+        list(id = job_id, progress = st)
+    }
+    api <- list(jobs_api = list(GetJob = getjob))
+    new("Sirius", api = api, projectId = "p")
+}
+
+test_that(".job_state returns a single character state", {
+    srs <- .mock_sirius(list(list(state = "RUNNING")))
+    expect_equal(RuSirius:::.job_state(srs, "1")$state, "RUNNING")
+})
+
+test_that(".job_state returns NA (not NULL) when progress is missing", {
+    srs <- .mock_sirius(list(list(state = NULL)))
+    s <- RuSirius:::.job_state(srs, "1")
+    expect_true(is.na(s$state))
+    expect_length(s$state, 1L)
+})
+
+test_that(".job_state returns NA when GetJob errors", {
+    srs <- .mock_sirius(list(NULL))
+    expect_true(is.na(RuSirius:::.job_state(srs, "1")$state))
+})
+
+test_that(".wait_for_job returns invisibly when the job is DONE", {
+    srs <- .mock_sirius(list(
+        list(state = "RUNNING", currentProgress = 1, maxProgress = 10),
+        list(state = "DONE",    currentProgress = 10, maxProgress = 10)
+    ))
+    expect_invisible(RuSirius:::.wait_for_job(srs, "1", pollInterval = 0))
+    expect_identical(
+        RuSirius:::.wait_for_job(
+            .mock_sirius(list(list(state = "DONE"))), "1", pollInterval = 0),
+        "1"
+    )
+})
+
+test_that(".wait_for_job errors (not loops) on FAILED with the error message", {
+    srs <- .mock_sirius(list(
+        list(state = "RUNNING"),
+        list(state = "FAILED", errorMessage = "boom in tree computation")
+    ))
+    expect_error(
+        RuSirius:::.wait_for_job(srs, "7", pollInterval = 0),
+        "FAILED.*boom in tree computation"
+    )
+})
+
+test_that(".wait_for_job errors on CANCELED", {
+    srs <- .mock_sirius(list(list(state = "CANCELED")))
+    expect_error(
+        RuSirius:::.wait_for_job(srs, "9", pollInterval = 0),
+        "CANCELED"
+    )
+})
+
+test_that(".wait_for_job aborts (no length-0 crash) on repeated unreadable progress", {
+    srs <- .mock_sirius(rep(list(NULL), 6))
+    expect_error(
+        RuSirius:::.wait_for_job(srs, "3", pollInterval = 0),
+        "Could not read the progress"
+    )
+})
+
+test_that(".wait_for_job recovers from transient read failures", {
+    srs <- .mock_sirius(list(
+        NULL,
+        list(state = "RUNNING", currentProgress = 2, maxProgress = 4),
+        NULL,
+        list(state = "DONE", currentProgress = 4, maxProgress = 4)
+    ))
+    expect_identical(RuSirius:::.wait_for_job(srs, "5", pollInterval = 0), "5")
+})
+
+test_that(".wait_for_job times out on a stalled (stuck RUNNING) job", {
+    srs <- .mock_sirius(
+        rep(list(list(state = "RUNNING",
+                      currentProgress = 1100, maxProgress = 1600)), 100)
+    )
+    expect_error(
+        RuSirius:::.wait_for_job(srs, "1", timeout = 1, pollInterval = 0.2),
+        "Timed out"
+    )
+})

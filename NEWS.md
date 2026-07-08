@@ -1,5 +1,27 @@
 # Version 1.0
 
+## Changes in 1.0.1
+
+- Updated `RSirius` dependency to the latest release (API `6.3.4`, commit
+  `6470a73`) and bumped the Docker image to Sirius `6.3.7`.
+- Fixed `run(wait = TRUE)` hanging forever ("progress never reaches DONE").
+  The wait loop previously used `while (state != "DONE")`, which looped
+  indefinitely on jobs that ended in `FAILED`/`CANCELED`, crashed with
+  "argument is of length zero" when the server returned no progress object,
+  and hung silently when a web-service tool (CSI:FingerID, CANOPUS,
+  structure DB search, MSNovelist) stalled. `run()` now:
+  - returns on `DONE` and stops with an informative error (including the
+    server's error message) on `FAILED`/`CANCELED`;
+  - tolerates transient/missing progress reads and aborts gracefully after
+    repeated failures;
+  - accepts a `timeout` (default `Inf`) so a stalled job no longer hangs the
+    session indefinitely, plus `pollInterval` and `verbose` arguments.
+- Fixed `run(configFile = ...)`: the call to `StartJobFromConfig` no longer
+  matched the updated RSirius client signature (it passed the fetched config
+  object as the config name and `recompute` as the request body). It now
+  passes the config name and the feature/compound id list correctly.
+- Added `test-wait-job.R` covering the new job-waiting helpers.
+
 ## Changes in 1.0.0
 
 - Publication-ready release.
