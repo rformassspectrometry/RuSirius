@@ -1,9 +1,8 @@
 # Version 1.0
 
-## Changes in 1.0.1
+## Changes in 1.0.4
 
-- Updated `RSirius` dependency to the latest release (API `6.3.4`, commit
-  `6470a73`) and bumped the Docker image to Sirius `6.3.7`.
+- Bumped the Docker image from Sirius 6.3.4 to 6.3.7.
 - Fixed `run(wait = TRUE)` hanging forever ("progress never reaches DONE").
   The wait loop previously used `while (state != "DONE")`, which looped
   indefinitely on jobs that ended in `FAILED`/`CANCELED`, crashed with
@@ -20,7 +19,23 @@
   matched the updated RSirius client signature (it passed the fetched config
   object as the config name and `recompute` as the request body). It now
   passes the config name and the feature/compound id list correctly.
-- Added `test-wait-job.R` covering the new job-waiting helpers.
+- Added tests for the new job-waiting helpers in `test-helpers.R`.
+
+## Changes in 1.0.3
+
+- Switched license to the Apache License 2.0 (matching RSirius) and added the
+  full license text as a plain-text `LICENSE` file in the repository root.
+
+## Changes in 1.0.2
+
+- Added `path_to_sirius` parameter to `Sirius()` to allow specifying a custom
+  path to the Sirius executable. Useful when running on a cluster or any
+  environment where the executable is not on `PATH`.
+
+## Changes in 1.0.1
+
+- Bumped SIRIUS dependency to 6.4 and updated RSirius pin to the
+  corresponding tag (commit `6470a73`).
 
 ## Changes in 1.0.0
 
@@ -29,7 +44,7 @@
   method for the `Sirius` class.
 - Fixed bug in `saveConfig()` using `@` instead of `$` for API access.
 - Fixed newline escape in `Sirius()` retry message.
-- Moved `jsonlite` from Depends to Imports.
+- Moved `jsonlite` from `Depends` to `Imports`.
 - Lowered minimum R version to >= 4.4.0.
 - Added `biocViews` to DESCRIPTION.
 - Replaced placeholder `@references` with real citations in all parameter
@@ -43,7 +58,7 @@
 
 ## Changes in 0.2.6
 
-- Rewrote `Dockerfile` to install Sirius 6.3.3 directly (replaces conda).
+- Rewrote `Dockerfile` to install Sirius 6.3.4 directly (replaces conda).
   Sirius REST API now auto-starts on port 9999 via s6-overlay init script.
 - All vignettes now use `port = 9999` in `Sirius()` calls.
 - Added pre-computed vignette infrastructure (`.Rmd.orig` + `pre-render.R`)

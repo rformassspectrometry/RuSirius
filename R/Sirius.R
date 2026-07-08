@@ -72,6 +72,12 @@ setClass("Sirius",
 #'        define the port to connect to. If not specified (the default) the
 #'        port information will be read from a Sirius-config file.
 #'
+#' @param path_to_sirius `character(1)`, optional path to the Sirius executable.
+#'        Default is `character()`, in which case the executable is expected to
+#'        be available on the system `PATH`. Provide this when running on a
+#'        cluster or any environment where the executable is in a non-standard
+#'        location.
+#'
 #' @param verbose `logical(1)`, if `TRUE` the function will print all messages
 #'       to the console. Use if need debug, default is `FALSE`.
 #'
@@ -83,11 +89,12 @@ setClass("Sirius",
 #' @export
 Sirius <- function(username = character(), password = character(),
                    projectId = character(), path = character(),
-                   port = integer(), verbose = FALSE) {
+                   port = integer(), path_to_sirius = character(),
+                   verbose = FALSE) {
     srs <- new("Sirius")
     srs@sdk <- SiriusSDK$new()
     if (length(port)) srs@sdk$port <- port
-    srs@api <- .sdk_connect(srs@sdk, port, verbose)
+    srs@api <- .sdk_connect(srs@sdk, port, path_to_sirius, verbose)
 
     max_retries <- 5
     attempts <- 0
@@ -98,7 +105,7 @@ Sirius <- function(username = character(), password = character(),
         shutdown(srs, closeProject = FALSE)
         Sys.sleep(2)
         srs@sdk <- SiriusSDK$new()
-        srs@api <- .sdk_start(srs@sdk, port, verbose)
+        srs@api <- .sdk_start(srs@sdk, port, path_to_sirius, verbose)
     }
 
     if (!checkConnection(srs)) {

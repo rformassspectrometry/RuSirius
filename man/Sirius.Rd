@@ -11,6 +11,7 @@ Sirius(
   projectId = character(),
   path = character(),
   port = integer(),
+  path_to_sirius = character(),
   verbose = FALSE
 )
 
@@ -30,6 +31,12 @@ current \code{"."} directory.}
 \item{port}{\code{integer(1)} defining the port for Sirius. Allows to manually
 define the port to connect to. If not specified (the default) the
 port information will be read from a Sirius-config file.}
+
+\item{path_to_sirius}{\code{character(1)}, optional path to the Sirius executable.
+Default is \code{character()}, in which case the executable is expected to
+be available on the system \code{PATH}. Provide this when running on a
+cluster or any environment where the executable is in a non-standard
+location.}
 
 \item{verbose}{\code{logical(1)}, if \code{TRUE} the function will print all messages
 to the console. Use if need debug, default is \code{FALSE}.}
