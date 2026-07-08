@@ -23,7 +23,10 @@ run(
   msNovelistParams = NA,
   recompute = FALSE,
   configFile = character(),
-  wait = TRUE
+  wait = TRUE,
+  timeout = Inf,
+  pollInterval = 1,
+  verbose = FALSE
 )
 
 config(
@@ -84,11 +87,27 @@ the parameters for the de novo structure generation.}
 \item{recompute}{\code{logical}, whether to recompute the job , only necessary if
 the configfile comes from a saved file. Default is FALSE.}
 
-\item{configFile}{\code{character}, the path to the configuration file to use for
-the job submission, optional.}
+\item{configFile}{\code{character}, the name of a job configuration previously
+stored with \code{\link{saveConfig}} to use for the job submission, optional.
+The job is run on \code{compoundsIds} if provided, otherwise on
+\code{alignedFeaturesIds}.}
 
 \item{wait}{\code{logical}, whether to wait for the job to finish. Default is
-\code{TRUE}}
+\code{TRUE}. When waiting, the job is polled until it reaches a terminal
+state: the function returns on \code{DONE} and stops with an informative
+error if the job ends in \code{FAILED} or \code{CANCELED}.}
+
+\item{timeout}{\code{numeric}, maximum number of seconds to wait for the job to
+finish when \code{wait = TRUE}. Defaults to \code{Inf} (wait indefinitely).
+Set a finite value to avoid hanging on a stalled job, e.g. when a
+web-service tool (CSI:FingerID, CANOPUS, structure DB search,
+MSNovelist) does not return.}
+
+\item{pollInterval}{\code{numeric}, number of seconds between progress checks
+while waiting. Default is \code{1}.}
+
+\item{verbose}{\code{logical}, whether to report job state changes while
+waiting. Default is \code{FALSE}.}
 }
 \value{
 The job ID of the submitted job, it can be inputted in the

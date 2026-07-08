@@ -207,6 +207,106 @@
     )
 }
 
+## ── Job waiting helper ───────────────────────────────────────────────
+
+#' @description
+#' Read the current state of a Sirius job defensively. Returns a list with
+#' the (single, character) `state` and the full `job` object. If the job
+#' cannot be retrieved, or the server does not return a usable progress
+#' object, `state` is `NA_character_` (rather than `NULL`, which would break
+#' comparisons such as `state != "DONE"`).
+#'
+#' @param sirius A `Sirius` object.
+#' @param jobId `character(1)` job id.
+#'
+#' @return `list(state = character(1) or NA, job = <Job> or NULL)`.
+#'
+#' @noRd
+.job_state <- function(sirius, jobId) {
+    j <- tryCatch(
+        sirius@api$jobs_api$GetJob(sirius@projectId, jobId),
+        error = function(e) NULL
+    )
+    st <- tryCatch(j$progress$state, error = function(e) NULL)
+    if (is.null(st) || length(st) != 1L || is.na(st))
+        st <- NA_character_
+    list(state = st, job = j)
+}
+
+#' @description
+#' Poll a Sirius job until it reaches a terminal state. Unlike a plain
+#' `while (state != "DONE")` loop this:
+#'   * returns cleanly when the job is `DONE`;
+#'   * raises an informative error when the job ends in `FAILED` or
+#'     `CANCELED` (previously such jobs looped forever, since the state is
+#'     never `"DONE"`);
+#'   * tolerates transient read failures / missing progress (a `NULL` state
+#'     no longer crashes the loop with "argument is of length zero"), and
+#'     aborts after several consecutive unreadable responses;
+#'   * honours an optional `timeout` so a stalled job (e.g. a web service
+#'     that never returns) does not hang the R session indefinitely;
+#'   * reports state transitions when `verbose = TRUE`.
+#'
+#' @param sirius A `Sirius` object.
+#' @param jobId `character(1)` job id to wait for.
+#' @param timeout `numeric(1)` maximum number of seconds to wait. `Inf`
+#'        (default) waits indefinitely for legitimately long computations.
+#' @param pollInterval `numeric(1)` seconds between polls.
+#' @param verbose `logical(1)` whether to message on state changes.
+#'
+#' @return Invisibly, `jobId`, once the job is `DONE`.
+#'
+#' @noRd
+.wait_for_job <- function(sirius, jobId, timeout = Inf,
+                          pollInterval = 1, verbose = FALSE) {
+    terminal_ok <- "DONE"
+    terminal_bad <- c("FAILED", "CANCELED")
+    start <- Sys.time()
+    unreadable <- 0L
+    last_state <- NA_character_
+    repeat {
+        s <- .job_state(sirius, jobId)
+        st <- s$state
+        if (!is.na(st)) {
+            unreadable <- 0L
+            if (verbose && !identical(st, last_state)) {
+                pr <- s$job$progress
+                message("Job ", jobId, ": ", st, " (",
+                        pr$currentProgress %||% "?", "/",
+                        pr$maxProgress %||% "?", ")")
+            }
+            last_state <- st
+            if (st %in% terminal_ok)
+                return(invisible(jobId))
+            if (st %in% terminal_bad) {
+                em <- tryCatch(s$job$progress$errorMessage,
+                               error = function(e) NULL)
+                stop("Sirius job ", jobId, " ended with state '", st, "'",
+                     if (!is.null(em) && nzchar(em))
+                         paste0(": ", em) else ".",
+                     call. = FALSE)
+            }
+        } else {
+            unreadable <- unreadable + 1L
+            if (unreadable >= 5L)
+                stop("Could not read the progress of job ", jobId,
+                     " after ", unreadable, " attempts. The job may have ",
+                     "been removed or the Sirius server is unreachable.",
+                     call. = FALSE)
+        }
+        if (is.finite(timeout) &&
+            as.numeric(difftime(Sys.time(), start, units = "secs")) > timeout)
+            stop("Timed out after ", timeout, "s waiting for job ", jobId,
+                 " to finish (last observed state: ",
+                 if (is.na(last_state)) "unknown" else last_state,
+                 "). Increase 'timeout', or check the Sirius server and, for ",
+                 "web-service tools (CSI:FingerID, CANOPUS, structure DB ",
+                 "search, MSNovelist), your login and internet connection.",
+                 call. = FALSE)
+        Sys.sleep(pollInterval)
+    }
+}
+
 ## SDK connection helpers used by the Sirius() constructor
 ## to eliminate duplicated verbose / port branching.
 

@@ -99,12 +99,25 @@ NULL
 #' @importFrom jsonlite toJSON
 #'
 #' @param sirius `Sirius` object, the connection to the Sirius server.
-#' @param configFile `character`, the path to the configuration file to use for
-#'        the job submission, optional.
+#' @param configFile `character`, the name of a job configuration previously
+#'        stored with [`saveConfig`] to use for the job submission, optional.
+#'        The job is run on `compoundsIds` if provided, otherwise on
+#'        `alignedFeaturesIds`.
 #' @param recompute `logical`, whether to recompute the job , only necessary if
 #'        the configfile comes from a saved file. Default is FALSE.
 #' @param wait `logical`, whether to wait for the job to finish. Default is
-#'        `TRUE`
+#'        `TRUE`. When waiting, the job is polled until it reaches a terminal
+#'        state: the function returns on `DONE` and stops with an informative
+#'        error if the job ends in `FAILED` or `CANCELED`.
+#' @param timeout `numeric`, maximum number of seconds to wait for the job to
+#'        finish when `wait = TRUE`. Defaults to `Inf` (wait indefinitely).
+#'        Set a finite value to avoid hanging on a stalled job, e.g. when a
+#'        web-service tool (CSI:FingerID, CANOPUS, structure DB search,
+#'        MSNovelist) does not return.
+#' @param pollInterval `numeric`, number of seconds between progress checks
+#'        while waiting. Default is `1`.
+#' @param verbose `logical`, whether to report job state changes while
+#'        waiting. Default is `FALSE`.
 #'
 #' @export
 run <- function(sirius,
@@ -130,16 +143,28 @@ run <- function(sirius,
                 msNovelistParams = NA,
                 recompute = FALSE,
                 configFile = character(),
-                wait = TRUE) {
+                wait = TRUE,
+                timeout = Inf,
+                pollInterval = 1,
+                verbose = FALSE) {
     fallbackAdducts <- .normalize_adducts(fallbackAdducts)
     if (length(enforceAdducts))
         enforceAdducts <- .normalize_adducts(enforceAdducts)
     detectableAdducts <- .normalize_adducts(detectableAdducts)
     if (length(configFile)) {
-        configfile <- sirius@api$jobs_api$GetJobConfig(configFile)
-        job <- sirius@api$jobs_api$StartJobFromConfig(sirius@projectId,
-                                                        configfile,
-                                                        recompute)
+        ## `configFile` is the *name* of a job config previously stored with
+        ## `saveConfig()`. The current Sirius API expects the config name as a
+        ## query parameter (`job_config_name`) and the list of feature /
+        ## compound ids to run on as the request body; `recompute` is a
+        ## separate flag. (The previous positional call passed the fetched
+        ## config object as the name and `recompute` as the body, which the
+        ## updated RSirius client rejects.)
+        ids <- if (length(compoundsIds)) compoundsIds else alignedFeaturesIds
+        job <- sirius@api$jobs_api$StartJobFromConfig(
+            project_id = sirius@projectId,
+            job_config_name = configFile,
+            request_body = as.list(ids),
+            recompute = recompute)
     } else {
         config <- config(
             compoundsIds = compoundsIds,
@@ -178,11 +203,9 @@ run <- function(sirius,
         }
         job <- sirius@api$jobs_api$StartJob(sirius@projectId, js)
     }
-    if (wait) {
-        while (sirius@api$jobs_api$GetJob(sirius@projectId,
-                                          job$id)$progress$state != "DONE")
-            Sys.sleep(1)
-    }
+    if (wait)
+        .wait_for_job(sirius, job$id, timeout = timeout,
+                      pollInterval = pollInterval, verbose = verbose)
     return(job$id)
 }
 
