@@ -207,14 +207,13 @@
     )
 }
 
-## ── Job waiting helper ───────────────────────────────────────────────
+### job waiting
 
 #' @description
-#' Read the current state of a Sirius job defensively. Returns a list with
-#' the (single, character) `state` and the full `job` object. If the job
-#' cannot be retrieved, or the server does not return a usable progress
-#' object, `state` is `NA_character_` (rather than `NULL`, which would break
-#' comparisons such as `state != "DONE"`).
+#' Read the current state of a Sirius job. Returns a list with the
+#' `state` and the full `job` object. If the job cannot be retrieved, or
+#' the server does not return a usable progress object, `state` is
+#' `NA_character_`. Used in `.wait_for_job()`.
 #'
 #' @param sirius A `Sirius` object.
 #' @param jobId `character(1)` job id.
@@ -234,18 +233,9 @@
 }
 
 #' @description
-#' Poll a Sirius job until it reaches a terminal state. Unlike a plain
-#' `while (state != "DONE")` loop this:
-#'   * returns cleanly when the job is `DONE`;
-#'   * raises an informative error when the job ends in `FAILED` or
-#'     `CANCELED` (previously such jobs looped forever, since the state is
-#'     never `"DONE"`);
-#'   * tolerates transient read failures / missing progress (a `NULL` state
-#'     no longer crashes the loop with "argument is of length zero"), and
-#'     aborts after several consecutive unreadable responses;
-#'   * honours an optional `timeout` so a stalled job (e.g. a web service
-#'     that never returns) does not hang the R session indefinitely;
-#'   * reports state transitions when `verbose = TRUE`.
+#' Poll a Sirius job until it reaches a terminal state: returns when the
+#' job is `DONE`, errors when it ends in `FAILED` or `CANCELED`, and
+#' aborts after several consecutive unreadable responses. Used in `run()`.
 #'
 #' @param sirius A `Sirius` object.
 #' @param jobId `character(1)` job id to wait for.

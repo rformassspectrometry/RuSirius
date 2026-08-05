@@ -152,13 +152,8 @@ run <- function(sirius,
         enforceAdducts <- .normalize_adducts(enforceAdducts)
     detectableAdducts <- .normalize_adducts(detectableAdducts)
     if (length(configFile)) {
-        ## `configFile` is the *name* of a job config previously stored with
-        ## `saveConfig()`. The current Sirius API expects the config name as a
-        ## query parameter (`job_config_name`) and the list of feature /
-        ## compound ids to run on as the request body; `recompute` is a
-        ## separate flag. (The previous positional call passed the fetched
-        ## config object as the name and `recompute` as the body, which the
-        ## updated RSirius client rejects.)
+        ## `configFile` is the *name* of a job config stored with
+        ## `saveConfig()`; the ids to run on are passed as the request body.
         ids <- if (length(compoundsIds)) compoundsIds else alignedFeaturesIds
         job <- sirius@api$jobs_api$StartJobFromConfig(
             project_id = sirius@projectId,
