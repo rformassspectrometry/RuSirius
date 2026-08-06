@@ -201,7 +201,7 @@ phrasing and correcting typos.
 # Availability
 
 *RuSirius* is available on GitHub at
-<https://github.com/RforMassSpectrometry/RuSirius> under the Artistic-2.0
+<https://github.com/RforMassSpectrometry/RuSirius> under the Apache-2.0
 license. Documentation for all exported functions and five tutorials (package vignettes)
 covering the main workflows are available at
 <https://rformassspectrometry.github.io/RuSirius>. The *Metabonaut*
