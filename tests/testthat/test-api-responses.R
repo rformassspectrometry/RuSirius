@@ -144,3 +144,18 @@ test_that("FeatureImport toJSON/fromJSON round-trip works", {
     expect_true("toJSON" %in% names(feature) ||
                     "toJSONString" %in% names(feature))
 })
+
+test_that("API payload rows tolerate empty and nested fields", {
+    payload <- list(inchiKey = "BSYNRYMUTXBXSQ-UHFFFAOYSA-N", csiScore = 0.9,
+        libraryMatches = character(0), # problem with no matches
+        adducts = c("[M+H]+", "[M+Na]+"))
+    row <- .row_from_payload(payload)
+    expect_equal(nrow(row), 1L)
+    expect_true(is.na(row$libraryMatches))
+})
+
+test_that("Features with heterogeneous payloads bind", {
+    a <- .row_from_payload(list(id = "1", score = 0.5, extra = "x"))
+    b <- .row_from_payload(list(id = "2", score = 0.7, extra = NULL))
+    expect_equal(nrow(dplyr::bind_rows(a, b)), 2L)
+})
