@@ -98,8 +98,8 @@ setMethod("summary", "Sirius", function(object,
     })
     flattened <- lapply(res,
                         function(x)
-                            as.data.frame(.flatten_list(x$toSimpleType()),
-                                          stringsAsFactors = FALSE))
+                            .standardize_columns(.row_from_payload(
+                                .flatten_list(x$toSimpleType()))))
     res <- dplyr::bind_rows(flattened)
     if (nrow(res) == 0) return(df)
     cbind(df, res)
@@ -198,7 +198,8 @@ results <- function(sirius,
         aligned_feature_id = feature_id
     )
     if (length(candidates) > top) candidates <- candidates[seq_len(top)]
-    df <- lapply(candidates, function(c) as.data.frame(c$toSimpleType()))
+    df <- lapply(candidates, function(c)
+        .standardize_columns(.row_from_payload(c$toSimpleType())))
     results <- if (length(df)) dplyr::bind_rows(df) else return(data.frame())
     results$xcms_fts <- .map_sirius_to_xcms(sirius, feature_id)
     return(results)
@@ -238,7 +239,8 @@ results <- function(sirius,
 .spectral_match_for_one_feature <- function(sirius, feature_id, top) {
     candidates <- sirius@api$features_api$GetSpectralLibraryMatches(sirius@projectId, feature_id)
     if (length(candidates) > top) candidates <- candidates[seq_len(top)]
-    df <- lapply(candidates, function(c) as.data.frame(c$toSimpleType()))
+    df <- lapply(candidates, function(c)
+        .standardize_columns(.row_from_payload(c$toSimpleType())))
     results <- if (length(df)) dplyr::bind_rows(df) else return(data.frame())
     results$xcms_fts <- .map_sirius_to_xcms(sirius, feature_id)
     return(results)
@@ -348,7 +350,7 @@ results <- function(sirius,
         items <- frag_tree[[type]]
         if (length(items) > 0) {
             df <- dplyr::bind_rows(lapply(items, function(x)
-                as.data.frame(x$toSimpleType())))
+                .standardize_columns(.row_from_payload(x$toSimpleType()))))
             df$type <- type
             return(df)
         } else return(data.frame())

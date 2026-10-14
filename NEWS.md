@@ -1,5 +1,19 @@
 # Version 1.0
 
+## Changes in 1.0.5
+
+- Fixed errors in `summary()` and `results()` when the Sirius API returns
+  heterogeneous payloads across features, e.g. "Can't combine
+  `confidenceExactMatch` <double> and <character>" or "arguments imply
+  differing number of rows: 1, 0" (#54, fixed by @jmorim in #55). API
+  payloads are now normalized with `.row_from_payload()` and
+  `.standardize_columns()` before being bound into a `data.frame`, and
+  `confidenceExactMatch` / `confidenceApproxMatch` are always coerced to
+  numeric.
+- Applied the same normalization to the remaining result types:
+  `summary(result.type = "spectralDbMatch")` and `results()` with
+  `result.type = "formulaId"`, `"spectralDbMatch"` and `"fragTree"`.
+
 ## Changes in 1.0.4
 
 - Bumped the Docker image from Sirius 6.3.4 to 6.3.7.
