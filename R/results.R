@@ -71,8 +71,7 @@ setMethod("summary", "Sirius", function(object,
                                                       opt_fields = opt_fields)
     if (length(res) == 0) return(data.frame())
     flattened <- lapply(res, function(x)
-        as.data.frame(.flatten_list(x$toSimpleType()),
-                      stringsAsFactors = FALSE))
+        .standardize_columns(.row_from_payload(.flatten_list(x$toSimpleType()))))
     dplyr::bind_rows(flattened)
 }
 
@@ -252,7 +251,9 @@ results <- function(sirius,
     )
     candidates <- lapply(structures, function(x) x$toSimpleType())
     if (length(candidates) > top) candidates <- candidates[seq_len(top)]
-    df <- dplyr::bind_rows(lapply(candidates, as.data.frame))
+    df <- dplyr::bind_rows(lapply(candidates, function(x) {
+        .standardize_columns(.row_from_payload(x))
+    }))
     df$formulaId <- formula_id
     return(df)
 }
@@ -263,7 +264,9 @@ results <- function(sirius,
     )
     candidates <- lapply(de_novo_structures, function(x) x$toSimpleType())
     if (length(candidates) > top) candidates <- candidates[seq_len(top)]
-    df <- dplyr::bind_rows(lapply(candidates, as.data.frame))
+    df <- dplyr::bind_rows(lapply(candidates, function(x) {
+        .standardize_columns(.row_from_payload(x))
+    }))
     df$formulaId <- formula_id
     return(df)
 }
@@ -319,7 +322,9 @@ results <- function(sirius,
     structureName = "character",
     xlogP = "double",
     mcesDistToTopHit = "double",
-    csiScore = "double"
+    csiScore = "double",
+    confidenceExactMatch = "double",
+    confidenceApproxMatch = "double"
 )
 
 .fragTree_for_one_feature <- function(sirius, fts_id, formula_res, top) {
@@ -388,3 +393,12 @@ results <- function(sirius,
     return(matching_xcms)
 }
 
+# Fixes mismatched rows
+.row_from_payload <- function(payload) {
+    row <- lapply(payload, function(x) {
+        if (is.null(x) || length(x) == 0) return(NA)
+        if (is.list(x) || length(x) > 1) return(I(list(x)))
+        return(x)
+    })
+    return(as.data.frame(row, stringsAsFactors = FALSE))
+}
