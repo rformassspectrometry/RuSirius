@@ -102,7 +102,7 @@ test_that("RSirius package version is as expected",
     # This test will fail if the API version changes unexpectedly
 
     # Update expected version when intentionally upgrading
-    expect_equal(as.character(pkg_version), "6.3.4",
+    expect_equal(as.character(pkg_version), "6.5.4",
                  label = paste("RSirius version changed from expected.",
                                "Current:", pkg_version,
                                "- Review API changes and update tests if needed."))

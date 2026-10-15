@@ -155,6 +155,10 @@ openProject <- function(sirius, projectId, path = character()) {
         stop("The connection to the Sirius instance is not valid.")
     if (!.is_logged_in(sirius))
         stop("You must be logged in to open a project. Use logIn() first.")
+    if (length(path) > 0) {
+        if (!file.exists(path))
+            stop("The provided 'path' does not exist.")
+    } else path <- getwd()
     l <- listOpenProjects(sirius)
     if (!is.null(l) && length(l) > 0) {
         for (project in l) {
@@ -167,10 +171,6 @@ openProject <- function(sirius, projectId, path = character()) {
             })
         }
     }
-    if (length(path) > 0) {
-        if (!file.exists(path))
-            stop("The provided 'path' does not exist.")
-    } else path <- getwd()
     f <- file.path(path, paste0(projectId, ".sirius"))
     if (file.exists(f))
         sirius@api$projects_api$OpenProject(project_id = projectId,
@@ -216,11 +216,11 @@ featuresInfo <- function(sirius) {
 deleteFeatures <- function(sirius, featureId = featuresId(sirius)) {
     if (!all(featureId %in% featuresId(sirius)))
         stop("Some of the featureId provided are not in the project.")
-    for (ft in featureId) {
-        sirius@api$features_api$DeleteAlignedFeature(sirius@projectId, ft)
-        sirius@featureMap <- sirius@featureMap[!sirius@featureMap$fts_sirius
-                                               %in% ft, ]
-    }
+    if (length(featureId))
+        sirius@api$features_api$DeleteAlignedFeatures(sirius@projectId,
+                                                      as.list(featureId))
+    sirius@featureMap <- sirius@featureMap[!sirius@featureMap$fts_sirius
+                                           %in% featureId, ]
     sirius
 }
 

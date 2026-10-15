@@ -39,7 +39,7 @@ library(Spectra)
 See the session info for information on packages used and the date the vignette
 was rendered. The vignette requires a running
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
-reproduce this analysis, you will need Sirius 6.3 installed and running.
+reproduce this analysis, you will need Sirius 6.5 installed and running.
 
 Sirius can search against custom databases in addition to the built-in
 databases (BIO, PubChem, etc.). This is useful when you have:
@@ -94,12 +94,14 @@ listDbs(srs)
 
 ### From a Spectral Library (MGF)
 
-Spectral libraries in MGF format can also be imported. An example MGF file is
-included in the package:
+Spectral libraries in MGF format can also be imported. Here we download the
+MassBank EU library from [GNPS](https://external.gnps2.org/gnpslibrary):
 
 ```{r}
-# Path to example MassBank MGF file
-mgf_file <- system.file("vignettes", "MASSBANKEU.mgf", package = "RuSirius")
+# Download the MassBank EU spectral library (MGF)
+mgf_file <- file.path(getwd(), "MASSBANKEU.mgf")
+download.file("https://external.gnps2.org/gnpslibrary/MASSBANKEU.mgf",
+              destfile = mgf_file, mode = "wb")
 
 createDb(srs,
          databaseId = "massbank_custom",
@@ -186,9 +188,12 @@ your compounds are well-represented in the custom database.
 
 ## Removing a Database
 
+By default `removeDb()` only removes the database from Sirius and keeps its
+file; use `delete = TRUE` to also delete the file:
+
 ```{r}
 # Remove a custom database when no longer needed
-removeDb(srs, databaseId = "massbank_custom")
+removeDb(srs, databaseId = "massbank_custom", delete = TRUE)
 
 # Verify removal
 listDbs(srs)

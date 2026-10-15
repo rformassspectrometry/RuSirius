@@ -189,6 +189,11 @@ run <- function(sirius,
         configjson <- toJSON(l_config, auto_unbox = TRUE)
         js <- JobSubmission$new()
         js$fromJSON(configjson)
+        ## API field names differ from the config slots, so set ids directly
+        if (length(config@compoundsIds))
+            js$compoundIds <- as.list(config@compoundsIds)
+        if (length(config@alignedFeaturesIds))
+            js$alignedFeatureIds <- as.list(config@alignedFeaturesIds)
         ## Pass candidate formulas via the generic configMap
         if (length(candidate_formulas) > 0) {
             js$configMap <- list(

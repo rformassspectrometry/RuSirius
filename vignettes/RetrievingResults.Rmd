@@ -22,6 +22,7 @@ knitr::knit("RetrievingResults.Rmd.orig", output = "RetrievingResults.Rmd")
 ``` r
 library(RSirius)
 library(RuSirius)
+#> Warning: package 'generics' was built under R version 4.6.1
 ```
 
 ## Introduction
@@ -31,7 +32,7 @@ library(RuSirius)
 See the session info for information on packages used and the date the vignette
 was rendered. The vignette requires a running
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
-reproduce this analysis, you will need Sirius 6.3 installed and running.
+reproduce this analysis, you will need Sirius 6.5 installed and running.
 
 After running Sirius computations (see the "Importing Spectra" vignette), you
 can retrieve various types of results. RuSirius provides two main functions:
@@ -41,13 +42,13 @@ can retrieve various types of results. RuSirius provides two main functions:
 
 ## Connecting to a Project
 
-First, connect to an existing Sirius project that has completed computations:
+First, connect to an existing Sirius project that has completed computations.
+Here we reuse the `test_spectra` project created and computed in the
+"Importing Spectra" vignette:
 
 
 ``` r
-srs <- Sirius(projectId = "my_analysis", path = getwd(), port = 9999)
-#> Error in `Sirius()`:
-#> ! unused argument (port = 9999)
+srs <- Sirius(projectId = "test_spectra", path = getwd(), port = 9999)
 ```
 
 ## Quick Summary with `summary()`
@@ -61,11 +62,55 @@ useful for a quick overview of your results.
 ``` r
 # Top formula candidates
 summary_formula <- summary(srs, result.type = "formulaId")
-#> Error:
-#> ! object 'srs' not found
 head(summary_formula)
-#> Error in `h()`:
-#> ! error in evaluating the argument 'x' in selecting a method for function 'head': object 'summary_formula' not found
+#>     alignedFeatureId         compoundId externalFeatureId  ionMass charge
+#> 1 898503867363106669 898503867363106666               421 217.1185      1
+#> 2 898503867421826927 898503867363106668               895   0.0000      1
+#> 3 898503867400855406 898503867363106667               707 445.1181      1
+#>   detectedAdducts        quality hasMs1 hasMsMs          formulaId
+#> 1        [M + ?]+ NOT_APPLICABLE   TRUE    TRUE 898503890498887619
+#> 2        [M + ?]+ NOT_APPLICABLE   TRUE   FALSE 898503886988255141
+#> 3        [M + ?]+ NOT_APPLICABLE   TRUE    TRUE 898503893137105049
+#>   molecularFormula    adduct rank siriusScoreNormalized siriusScore
+#> 1        C9H16N2O4  [M + H]+    1             1.0000000    93.65962
+#> 2             C3HN  [M + H]+    1             1.0000000     0.00000
+#> 3     C15H20F6N2O5 [M + Na]+    2             0.2575964    32.53867
+#>   isotopeScore treeScore chainsUnknown       inchiKey
+#> 1    0.0000000  93.65962         FALSE HJJBFVPLKKKFTP
+#> 2    0.0000000   0.00000         FALSE           <NA>
+#> 3    0.2012745  32.33740         FALSE SBPVPWWNQIKSKL
+#>                                                      smiles
+#> 1                                CCOC(=O)C(=NN(C)C)C(=O)OCC
+#> 2                                                      <NA>
+#> 3 CC(CC(=O)OC(C)(C)C)NC(=O)C1=NOC(C1)C(C(F)(F)F)(C(F)(F)F)O
+#>                                                                                                                  structureName
+#> 1                                                                         Malonic acid, oxo-, diethyl ester, dimethylhydrazone
+#> 2                                                                                                                         <NA>
+#> 3 tert-butyl-(3R)-3-{[5-(2,2,2-trifluoro-1-hydroxy-1-trifluoromethyl-ethyl)-4,5-dihydro-isoxazole-3-carbonyl]-amino}-butanoate
+#>   xlogP rank.1  csiScore tanimotoSimilarity mcesDistToTopHit type   level
+#> 1   1.8      1 -230.1218          0.2098765                0  NPC PATHWAY
+#> 2    NA     NA        NA                 NA               NA <NA>    <NA>
+#> 3   2.2      1 -257.9119          0.3937500                0  NPC PATHWAY
+#>   levelIndex        name          description id probability index type.1
+#> 1          0 Fatty acids Pathway: Fatty acids  3   0.9712808     3    NPC
+#> 2         NA        <NA>                 <NA> NA          NA    NA   <NA>
+#> 3          0   Alkaloids   Pathway: Alkaloids  0   0.4939631     0    NPC
+#>      level.1 levelIndex.1              name.1                   description.1
+#> 1 SUPERCLASS            1        Fatty amides        Superclass: Fatty amides
+#> 2       <NA>           NA                <NA>                            <NA>
+#> 3 SUPERCLASS            1 Ornithine alkaloids Superclass: Ornithine alkaloids
+#>   id.1 probability.1 index.1 type.2 level.2 levelIndex.2                 name.2
+#> 1   27     0.6177541      27    NPC   CLASS            2         Primary amides
+#> 2   NA            NA      NA   <NA>    <NA>           NA                   <NA>
+#> 3   48     0.4983223      48    NPC   CLASS            2 Pyrimidine nucleosides
+#>                   description.2 id.2 probability.2 index.2 confidenceExactMatch
+#> 1         Class: Primary amides  587    0.17305040     587           0.05037627
+#> 2                          <NA>   NA            NA      NA                   NA
+#> 3 Class: Pyrimidine nucleosides  603    0.04471469     603           0.05173050
+#>   confidenceApproxMatch expansiveSearchState computing
+#> 1            0.05037627                  OFF     FALSE
+#> 2                    NA                 <NA>     FALSE
+#> 3            0.05173050                  OFF     FALSE
 ```
 
 Key columns include `confidenceApproxMatch` (overall confidence for the feature)
@@ -77,8 +122,6 @@ and `confidenceExactMatch` (confidence for the top hit).
 ``` r
 # Top structure hits
 summary_structure <- summary(srs, result.type = "structure")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ### De Novo Structure Summary
@@ -87,8 +130,6 @@ summary_structure <- summary(srs, result.type = "structure")
 ``` r
 # Top MSNovelist predictions
 summary_denovo <- summary(srs, result.type = "deNovo")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ### Spectral Library Match Summary
@@ -97,8 +138,6 @@ summary_denovo <- summary(srs, result.type = "deNovo")
 ``` r
 # Best spectral matches
 summary_spectral <- summary(srs, result.type = "spectralDbMatch")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ## Detailed Results with `results()`
@@ -115,11 +154,28 @@ formulas <- results(srs,
                     result.type = "formulaId",
                     topFormula = 5,
                     return.type = "data.frame")
-#> Error:
-#> ! object 'srs' not found
 head(formulas)
-#> Error in `h()`:
-#> ! error in evaluating the argument 'x' in selecting a method for function 'head': object 'formulas' not found
+#>            formulaId molecularFormula    adduct rank siriusScoreNormalized
+#> 1 898503890498887619        C9H16N2O4  [M + H]+    1          1.000000e+00
+#> 2 898503890498887620        C7H14N5O3  [M + H]+    2          2.026043e-09
+#> 3 898503890498887621        C7H18N2O4 [M + Na]+    3          1.248176e-22
+#> 4 898503890498887622       C5H19N3O4P  [M + H]+    4          2.027193e-24
+#> 5 898503890498887623       C3H17N6O3P  [M + H]+    5          1.566101e-24
+#> 6 898503886988255141             C3HN  [M + H]+    1          1.000000e+00
+#>   siriusScore isotopeScore treeScore lipidAnnotation xcms_fts
+#> 1    93.65962            0  93.65962           FALSE      421
+#> 2    73.64244            0  73.64244           FALSE      421
+#> 3    43.22443            0  43.22443           FALSE      421
+#> 4    39.10423            0  39.10423           FALSE      421
+#> 5    38.84616            0  38.84616           FALSE      421
+#> 6     0.00000            0   0.00000           FALSE      895
+#>           sirius_fts
+#> 1 898503867363106669
+#> 2 898503867363106669
+#> 3 898503867363106669
+#> 4 898503867363106669
+#> 5 898503867363106669
+#> 6 898503867421826927
 ```
 
 ### Structure Database Results
@@ -132,8 +188,6 @@ structures <- results(srs,
                       topFormula = 3,
                       topStructure = 5,
                       return.type = "data.frame")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 Key columns: `inchiKey`, `smiles`, `structureName`, `csiScore`.
@@ -147,8 +201,8 @@ classes <- results(srs,
                    result.type = "compoundClass",
                    topFormula = 1,
                    return.type = "data.frame")
-#> Error:
-#> ! object 'srs' not found
+#> Warning in value[[3L]](cond): Formula: 898503886988255141 for feature:
+#> 898503867421826927 does not have compound classes information.
 ```
 
 Returns ClassyFire and NPC classifications with confidence scores.
@@ -163,8 +217,6 @@ denovo <- results(srs,
                   topFormula = 1,
                   topStructure = 5,
                   return.type = "data.frame")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ### Spectral Library Matches
@@ -176,8 +228,6 @@ spectral <- results(srs,
                     result.type = "spectralDbMatch",
                     topSpectralMatches = 5,
                     return.type = "data.frame")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ### Fragmentation Trees
@@ -189,8 +239,6 @@ fragtrees <- results(srs,
                      result.type = "fragTree",
                      topFormula = 1,
                      return.type = "data.frame")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ## Filtering by Feature
@@ -201,16 +249,12 @@ You can retrieve results for specific features only:
 ``` r
 # Get feature IDs
 feature_ids <- featuresId(srs)
-#> Error:
-#> ! object 'srs' not found
 
 # Get results for first two features only
 subset_results <- results(srs,
                           features = feature_ids[1:2],
                           result.type = "structureDb",
                           return.type = "data.frame")
-#> Error:
-#> ! object 'feature_ids' not found
 ```
 
 ## Return Types
@@ -223,8 +267,6 @@ Results can be returned as a data.frame (default) or as a list:
 results_list <- results(srs,
                         result.type = "formulaId",
                         return.type = "list")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 Access individual features by name:
@@ -244,8 +286,10 @@ in the `xcms_fts` column for easy mapping back to your original data.
 ``` r
 # Get the feature mapping
 mapFeatures(srs)
-#> Error:
-#> ! object 'srs' not found
+#>           fts_sirius fts_xcms
+#> 1 898503867363106669      421
+#> 2 898503867421826927      895
+#> 3 898503867400855406      707
 ```
 
 ## Session Info
@@ -253,71 +297,81 @@ mapFeatures(srs)
 
 ``` r
 sessionInfo()
-#> R version 4.5.2 (2025-10-31 ucrt)
+#> R version 4.6.0 (2026-04-24 ucrt)
 #> Platform: x86_64-w64-mingw32/x64
-#> Running under: Windows 11 x64 (build 26100)
+#> Running under: Windows 11 x64 (build 26300)
 #> 
 #> Matrix products: default
 #>   LAPACK version 3.12.1
 #> 
 #> locale:
-#> [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8   
-#> [3] LC_MONETARY=English_United States.utf8 LC_NUMERIC=C                          
-#> [5] LC_TIME=English_United States.utf8    
+#> [1] LC_COLLATE=English_United Kingdom.utf8 
+#> [2] LC_CTYPE=English_United Kingdom.utf8   
+#> [3] LC_MONETARY=English_United Kingdom.utf8
+#> [4] LC_NUMERIC=C                           
+#> [5] LC_TIME=English_United Kingdom.utf8    
 #> 
-#> time zone: Europe/Rome
+#> time zone: Europe/Paris
 #> tzcode source: internal
 #> 
 #> attached base packages:
-#> [1] stats4    stats     graphics  grDevices utils     datasets  methods   base     
+#> [1] stats4    stats     graphics  grDevices utils     datasets  methods  
+#> [8] base     
 #> 
 #> other attached packages:
-#>  [1] MsDataHub_1.10.0        dplyr_1.2.0             RuSirius_0.2.0         
-#>  [4] jsonlite_2.0.0          MetaboAnnotation_1.14.0 RSirius_6.3.3          
-#>  [7] xcms_4.8.0              MsExperiment_1.12.0     ProtGenerics_1.42.0    
-#> [10] Spectra_1.20.1          BiocParallel_1.44.0     S4Vectors_0.48.0       
-#> [13] BiocGenerics_0.56.0     generics_0.1.4         
+#> [1] RuSirius_1.0.6      Spectra_1.22.2      BiocParallel_1.46.0
+#> [4] S4Vectors_0.50.1    BiocGenerics_0.58.1 generics_0.1.4     
+#> [7] ProtGenerics_1.44.0 RSirius_6.5.4      
 #> 
 #> loaded via a namespace (and not attached):
-#>   [1] RColorBrewer_1.1-3          MultiAssayExperiment_1.36.1 magrittr_2.0.4             
-#>   [4] farver_2.1.2                MALDIquant_1.22.3           fs_1.6.6                   
-#>   [7] vctrs_0.7.1                 memoise_2.0.1               RCurl_1.98-1.17            
-#>  [10] base64enc_0.1-6             htmltools_0.5.9             S4Arrays_1.10.1            
-#>  [13] BiocBaseUtils_1.12.0        progress_1.2.3              curl_7.0.0                 
-#>  [16] AnnotationHub_4.0.0         SparseArray_1.10.8          mzID_1.48.0                
-#>  [19] htmlwidgets_1.6.4           plyr_1.8.9                  httr2_1.2.2                
-#>  [22] impute_1.84.0               cachem_1.1.0                igraph_2.2.1               
-#>  [25] lifecycle_1.0.5             iterators_1.0.14            pkgconfig_2.0.3            
-#>  [28] Matrix_1.7-4                R6_2.6.1                    fastmap_1.2.0              
-#>  [31] MatrixGenerics_1.22.0       clue_0.3-66                 digest_0.6.39              
-#>  [34] pcaMethods_2.2.0            rsvg_2.7.0                  AnnotationDbi_1.72.0       
-#>  [37] ExperimentHub_3.0.0         GenomicRanges_1.62.1        RSQLite_2.4.5              
-#>  [40] filelock_1.0.3              httr_1.4.7                  abind_1.4-8                
-#>  [43] compiler_4.5.2              withr_3.0.2                 bit64_4.6.0-1              
-#>  [46] doParallel_1.0.17           S7_0.2.1                    DBI_1.2.3                  
-#>  [49] MASS_7.3-65                 ChemmineR_3.62.0            rappdirs_0.3.4             
-#>  [52] DelayedArray_0.36.0         rjson_0.2.23                mzR_2.44.0                 
-#>  [55] tools_4.5.2                 PSMatch_1.14.0              otel_0.2.0                 
-#>  [58] CompoundDb_1.14.2           glue_1.8.0                  QFeatures_1.20.0           
-#>  [61] grid_4.5.2                  cluster_2.1.8.1             reshape2_1.4.5             
-#>  [64] snow_0.4-4                  gtable_0.3.6                preprocessCore_1.72.0      
-#>  [67] tidyr_1.3.2                 data.table_1.18.2.1         hms_1.1.4                  
-#>  [70] MetaboCoreUtils_1.19.2      xml2_1.5.2                  XVector_0.50.0             
-#>  [73] BiocVersion_3.22.0          foreach_1.5.2               pillar_1.11.1              
-#>  [76] stringr_1.6.0               limma_3.66.0                BiocFileCache_3.0.0        
-#>  [79] lattice_0.22-7              bit_4.6.0                   tidyselect_1.2.1           
-#>  [82] Biostrings_2.78.0           knitr_1.51                  gridExtra_2.3              
-#>  [85] IRanges_2.44.0              Seqinfo_1.0.0               SummarizedExperiment_1.40.0
-#>  [88] xfun_0.56                   Biobase_2.70.0              statmod_1.5.1              
-#>  [91] MSnbase_2.36.0              matrixStats_1.5.0           DT_0.34.0                  
-#>  [94] stringi_1.8.7               yaml_2.3.12                 lazyeval_0.2.2             
-#>  [97] evaluate_1.0.5              codetools_0.2-20            MsCoreUtils_1.22.1         
-#> [100] tibble_3.3.1                BiocManager_1.30.27         cli_3.6.5                  
-#> [103] affyio_1.80.0               Rcpp_1.1.1                  MassSpecWavelet_1.76.0     
-#> [106] dbplyr_2.5.1                png_0.1-8                   XML_3.99-0.20              
-#> [109] parallel_4.5.2              ggplot2_4.0.2               blob_1.3.0                 
-#> [112] prettyunits_1.2.0           AnnotationFilter_1.34.0     bitops_1.0-9               
-#> [115] MsFeatures_1.18.0           scales_1.4.0                affy_1.88.0                
-#> [118] ncdf4_1.24                  purrr_1.2.1                 crayon_1.5.3               
-#> [121] rlang_1.1.7                 KEGGREST_1.50.0             vsn_3.78.1
+#>  [1] tidyselect_1.2.1            dplyr_1.2.1                
+#>  [3] farver_2.1.2                blob_1.3.0                 
+#>  [5] Biostrings_2.80.1           filelock_1.0.3             
+#>  [7] S7_0.2.2                    bitops_1.0-9               
+#>  [9] fastmap_1.2.0               lazyeval_0.2.3             
+#> [11] RCurl_1.98-1.19             BiocFileCache_3.2.0        
+#> [13] digest_0.6.39               lifecycle_1.0.5            
+#> [15] cluster_2.1.8.2             rsvg_2.7.0                 
+#> [17] KEGGREST_1.52.2             RSQLite_3.53.3             
+#> [19] magrittr_2.0.5              compiler_4.6.0             
+#> [21] rlang_1.2.0                 tools_4.6.0                
+#> [23] yaml_2.3.12                 igraph_2.3.3               
+#> [25] data.table_1.18.4           knitr_1.51                 
+#> [27] S4Arrays_1.12.0             htmlwidgets_1.6.4          
+#> [29] curl_7.1.0                  bit_4.6.0                  
+#> [31] DelayedArray_0.38.2         plyr_1.8.9                 
+#> [33] xml2_1.6.0                  RColorBrewer_1.1-3         
+#> [35] abind_1.4-8                 purrr_1.2.2                
+#> [37] grid_4.6.0                  ggplot2_4.0.3              
+#> [39] scales_1.4.0                MASS_7.3-65                
+#> [41] MultiAssayExperiment_1.38.0 SummarizedExperiment_1.42.0
+#> [43] cli_3.6.6                   crayon_1.5.3               
+#> [45] otel_0.2.0                  httr_1.4.8                 
+#> [47] reshape2_1.4.5              rjson_0.2.23               
+#> [49] DBI_1.3.0                   cachem_1.1.0               
+#> [51] stringr_1.6.0               parallel_4.6.0             
+#> [53] AnnotationDbi_1.74.0        BiocManager_1.30.27        
+#> [55] XVector_0.52.0              AnnotationFilter_1.36.0    
+#> [57] matrixStats_1.5.0           base64enc_0.1-6            
+#> [59] vctrs_0.7.3                 Matrix_1.7-5               
+#> [61] jsonlite_2.0.0              IRanges_2.46.0             
+#> [63] bit64_4.8.2                 clue_0.3-68                
+#> [65] tidyr_1.3.2                 glue_1.8.1                 
+#> [67] codetools_0.2-20            QFeatures_1.22.0           
+#> [69] DT_0.34.0                   stringi_1.8.7              
+#> [71] gtable_0.3.6                BiocVersion_3.23.1         
+#> [73] GenomicRanges_1.64.0        tibble_3.3.1               
+#> [75] MetaboAnnotation_1.16.0     pillar_1.11.1              
+#> [77] rappdirs_0.3.4              htmltools_0.5.9            
+#> [79] Seqinfo_1.2.0               R6_2.6.1                   
+#> [81] dbplyr_2.6.0                httr2_1.2.3                
+#> [83] evaluate_1.0.5              Biobase_2.72.0             
+#> [85] lattice_0.22-9              AnnotationHub_4.2.1        
+#> [87] png_0.1-9                   memoise_2.0.1              
+#> [89] MetaboCoreUtils_1.20.1      Rcpp_1.1.1-1.1             
+#> [91] SparseArray_1.12.2          gridExtra_2.3.1            
+#> [93] CompoundDb_1.16.0           ChemmineR_3.64.0           
+#> [95] xfun_0.59                   MsCoreUtils_1.24.0         
+#> [97] fs_2.1.0                    MatrixGenerics_1.24.0      
+#> [99] pkgconfig_2.0.3
 ```

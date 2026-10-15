@@ -12,7 +12,7 @@ listDbs(sirius)
 
 infoDb(sirius, databaseId = character())
 
-removeDb(sirius, databaseId = character())
+removeDb(sirius, databaseId = character(), delete = FALSE)
 
 createDb(
   sirius,
@@ -25,6 +25,10 @@ createDb(
 \item{sirius}{A \code{Sirius} object representing the Sirius connection.}
 
 \item{databaseId}{A \code{character(1)} string specifying the new database ID.}
+
+\item{delete}{\code{logical(1)}, whether to also delete the database file from
+disk. If \code{FALSE} (default) the database is only removed from Sirius
+and its file is kept.}
 
 \item{files}{A \code{character} vector of file paths to add to the database.}
 

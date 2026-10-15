@@ -3,7 +3,7 @@ FROM bioconductor/bioconductor_docker:RELEASE_3_22
 LABEL name="rformassspectrometry/rusirius" \
       url="https://github.com/rformassspectrometry/RuSirius" \
       maintainer="philippine.louail@eurac.edu" \
-      description="Docker container with RuSirius package and Sirius 6.3 for metabolite identification. Includes RStudio Server with all dependencies pre-installed. Sirius REST API starts automatically on port 9999." \
+      description="Docker container with RuSirius package and Sirius 6.5 for metabolite identification. Includes RStudio Server with all dependencies pre-installed. Sirius REST API starts automatically on port 9999." \
       license="Artistic-2.0"
 
 WORKDIR /home/rstudio
@@ -21,8 +21,8 @@ USER root
 ## Clean up
 RUN rm -rf /tmp/*
 
-## Install Sirius 6.3.7
-RUN wget -nv https://github.com/sirius-ms/sirius/releases/download/v6.3.7/sirius-6.3.7-linux-x64.zip && \
+## Install Sirius 6.5.4
+RUN wget -nv https://github.com/sirius-ms/sirius/releases/download/v6.5.4/sirius-6.5.4-linux-x64.zip && \
     unzip sirius-*.zip && \
     rm sirius-*.zip && \
     chown -R rstudio:rstudio sirius && \

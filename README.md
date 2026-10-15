@@ -15,6 +15,15 @@ REST API library for the R programming language, which you can find
 
 ## Installation Instructions
 
+### Compatibility
+
+Sirius and the RSirius R API must come from the same release line:
+
+| RuSirius | Sirius | RSirius (R API) |
+|----------|--------|-----------------|
+| 1.1.x    | 6.5.x  | 6.5.4           |
+| 1.0.x    | 6.3.x  | 6.3.x           |
+
 ### Option 1: Install Sirius and R-api via Conda
 
 1.  You can install both the Sirius software and the R API using **conda** with
@@ -24,6 +33,9 @@ REST API library for the R programming language, which you can find
 conda create -n sirius conda-forge::r-sirius-ms
 conda activate sirius
 ```
+
+RuSirius 1.1 needs the `sirius6.5` build (currently `3.2+sirius6.5.4`); you
+can check the installed build with `conda list r-sirius-ms`.
 
 2.  Then, in an R session, install *RuSirius* and it's dependencies :
 
@@ -38,7 +50,7 @@ Alternatively, you can manually install Sirius and then RuSirius:
 
 1.  Download the Sirius software from the [official releases
     page](https://github.com/sirius-ms/sirius/releases). *RuSirius* is dependent
-    on Sirius 6.3, please ensure you have the right version downloaded.
+    on Sirius 6.5, please ensure you have the right version downloaded.
 2.  Install *RuSirius* and it's dependencies (which includes the R-api) by
     running the following code in R:
 
@@ -46,6 +58,9 @@ Alternatively, you can manually install Sirius and then RuSirius:
 library(remotes)
 install_github("RforMassSpectrometry/RuSirius")
 ```
+
+This also installs the matching RSirius R API (6.5.4); you can check it with
+`packageVersion("RSirius")`.
 
 --------------------------------------------------------------------------------
 
@@ -89,23 +104,25 @@ on the [GitHub repository](https://github.com/RforMassSpectrometry/RuSirius).
 
 Before submitting a PR, please ensure:
 
-1.  **Tests pass locally**: Run tests **one file at a time** to avoid API
-    conflicts. Running all tests together with `devtools::test()` can cause
-    SIRIUS startup issues due to port conflicts:
+1.  **Tests pass locally**: run the full test suite with
 
     ```r
-    testthat::test_file("tests/testthat/test-api-responses.R")
-    testthat::test_file("tests/testthat/test-helpers.R")
-    testthat::test_file("tests/testthat/test-import-helpers.R")
-    testthat::test_file("tests/testthat/test-input-validation.R")
-    testthat::test_file("tests/testthat/test-integration.R")
-    testthat::test_file("tests/testthat/test-msn-import.R")
-    testthat::test_file("tests/testthat/test-param-classes.R")
+    devtools::test()
     ```
+
+    The tests start and stop Sirius themselves, so close any running Sirius
+    instance first; you need Sirius installed and a valid login. Without
+    Sirius, the tests that need a server are skipped.
 2.  **Pre-rendered vignettes are up to date**: All five vignettes are
     pre-rendered from `.Rmd.orig` sources. If your changes affect package
-    output or vignette content, re-run the pre-render script from the package
-    root with Sirius running on port 9999:
+    output or vignette content, start Sirius on port 9999 (with Sirius 6.5,
+    the port option goes after `service`):
+
+    ```bash
+    sirius service --port 9999
+    ```
+
+    log in, and re-run the pre-render script from the package root:
 
     ```r
     source("vignettes/pre-render.R")
@@ -135,7 +152,7 @@ running Sirius instance with authentication.
 
 A pre-built Docker image is available on Docker Hub, based on the official
 Bioconductor docker image `bioconductor/bioconductor_docker:RELEASE_3_22`. It
-includes *RuSirius*, all dependencies, and Sirius 6.3.7 (downloaded directly
+includes *RuSirius*, all dependencies, and Sirius 6.5.4 (downloaded directly
 from the official GitHub releases). The Sirius REST API starts automatically on
 port 9999 when the container launches.
 
