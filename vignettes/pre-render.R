@@ -11,7 +11,8 @@
 ##   source("vignettes/pre-render.R")
 ##
 ## Requirements:
-##   - Sirius 6.3+ running on port 9999 (e.g. inside the Docker container)
+##   - Sirius 6.5 running on port 9999 (e.g. inside the Docker container, or
+##     started with `sirius service --port 9999`)
 ##   - All package dependencies installed
 ##   - A valid Sirius login (for structure database searches)
 
