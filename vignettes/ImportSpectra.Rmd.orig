@@ -38,7 +38,7 @@ library(Spectra)
 See the session info for information on packages used and the date the vignette
 was rendered. The vignette requires a running
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
-reproduce this analysis, you will need Sirius 6.3 installed and running.
+reproduce this analysis, you will need Sirius 6.5 installed and running.
 
 This vignette demonstrates a basic workflow for importing MS data in a Spectra
 object object into *Sirius*. It then runs Sirius's main tools: formula

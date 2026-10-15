@@ -37,7 +37,7 @@ library(RuSirius)
 See the session info for information on packages used and the date the vignette
 was rendered. The vignette requires a running
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
-reproduce this analysis, you will need Sirius 6.3 installed and running.
+reproduce this analysis, you will need Sirius 6.5 installed and running.
 
 After running Sirius computations (see the "Importing Spectra" vignette), you
 can retrieve various types of results. RuSirius provides two main functions:
@@ -47,10 +47,12 @@ can retrieve various types of results. RuSirius provides two main functions:
 
 ## Connecting to a Project
 
-First, connect to an existing Sirius project that has completed computations:
+First, connect to an existing Sirius project that has completed computations.
+Here we reuse the `test_spectra` project created and computed in the
+"Importing Spectra" vignette:
 
 ```{r}
-srs <- Sirius(projectId = "my_analysis", path = getwd(), port = 9999)
+srs <- Sirius(projectId = "test_spectra", path = getwd(), port = 9999)
 ```
 
 ## Quick Summary with `summary()`

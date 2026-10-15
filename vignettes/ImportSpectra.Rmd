@@ -21,6 +21,7 @@ knitr::knit("ImportSpectra.Rmd.orig", output = "ImportSpectra.Rmd")
 
 ``` r
 library(RuSirius)
+#> Warning: package 'generics' was built under R version 4.6.1
 library(MsDataHub)
 library(Spectra)
 ```
@@ -32,7 +33,7 @@ library(Spectra)
 See the session info for information on packages used and the date the vignette
 was rendered. The vignette requires a running
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
-reproduce this analysis, you will need Sirius 6.3 installed and running.
+reproduce this analysis, you will need Sirius 6.5 installed and running.
 
 This vignette demonstrates a basic workflow for importing MS data in a Spectra
 object object into *Sirius*. It then runs Sirius's main tools: formula
@@ -58,6 +59,12 @@ Below we load the example mass spectrometry (MS) data, provided by the
 ``` r
 dda_file <- MsDataHub::PestMix1_DDA.mzML()
 sp <- Spectra(dda_file)
+#> Warning in fun(libname, pkgname): mzR has been built against a different Rcpp version (1.1.1.9)
+#> than is installed on your system (1.1.1.1.1). This might lead to errors
+#> when loading mzR. If you encounter such issues, please send a report,
+#> including the output of sessionInfo() to the Bioc support forum at 
+#> https://support.bioconductor.org/. For details see also
+#> https://github.com/sneumann/mzR/wiki/mzR-Rcpp-compiler-linker-issue.
 sp <- setBackend(sp, MsBackendMemory())
 sp <- filterEmptySpectra(sp)
 ```
@@ -100,8 +107,6 @@ want to save it somewhere else you can specify the `path =` parameter.
 
 ``` r
 srs <- Sirius(projectId = "test_spectra", path = getwd(), port = 9999)
-#> Error in `Sirius()`:
-#> ! unused argument (port = 9999)
 ```
 
 You could import the entire `Spectra` object, but for demonstration purposes, we
@@ -122,13 +127,17 @@ srs <- import(sirius = srs,
               spectra = sp_subset,
               ms_column_name = "Msn_idx",
               deleteExistingFeatures = TRUE)
-#> Error:
-#> ! object 'srs' not found
 
 ## See information about the features
 featuresInfo(srs)
-#> Error:
-#> ! object 'srs' not found
+#>      alignedFeatureId     compoundId           externalFeatureId ionMass 
+#> [1,] "898503867363106669" "898503867363106666" "421"             217.1185
+#> [2,] "898503867421826927" "898503867363106668" "895"             0       
+#> [3,] "898503867400855406" "898503867363106667" "707"             445.1181
+#>      charge detectedAdducts quality          hasMs1 hasMsMs computing
+#> [1,] 1      "[M + ?]+"      "NOT_APPLICABLE" TRUE   TRUE    FALSE    
+#> [2,] 1      "[M + ?]+"      "NOT_APPLICABLE" TRUE   FALSE   FALSE    
+#> [3,] 1      "[M + ?]+"      "NOT_APPLICABLE" TRUE   TRUE    FALSE
 ```
 
 ## Submit job to Sirius - For structure DB search
@@ -158,13 +167,10 @@ run(srs,
     recompute = TRUE,
     wait = TRUE
     )
-#> Error:
-#> ! object 'srs' not found
+#> [1] "9"
 
 ## could test featureInfo vs featureId
 info <- featuresInfo(srs)
-#> Error:
-#> ! object 'srs' not found
 ```
 
 ## Retrieve Results
@@ -175,8 +181,6 @@ class predictions—use the following:
 
 ``` r
 summarytb <- summary(srs, result.type = "structure")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 This summary table offers a quick overview for checking whether the predictions
@@ -196,12 +200,9 @@ run(srs,
     recompute = FALSE,
     wait = TRUE
 )
-#> Error:
-#> ! object 'srs' not found
+#> [1] "10"
 
 summaryDeNovo <- summary(srs, result.type = "deNovo")
-#> Error:
-#> ! object 'srs' not found
 ```
 
 Interestingly, for the first feature, the results remain consistent, while for
@@ -212,9 +213,7 @@ For a visual exploration of results, you can open the Sirius GUI:
 
 ``` r
 shutdown(srs)
-#> Warning in value[[3L]](cond): Could not retrieve open projects: object 'srs' not found
-#> Warning in doTryCatch(return(expr), name, parentenv, handler): restarting interrupted
-#> promise evaluation
+#> There does not seem to be any process or process_id to shut down...
 
 # openGUI(srs)
 # closeGUI(srs)
@@ -263,7 +262,7 @@ The R code was run on:
 
 ``` r
 date()
-#> [1] "Mon Mar 23 11:27:17 2026"
+#> [1] "Thu Oct 15 11:34:03 2026"
 ```
 
 Information on the R session:
@@ -271,71 +270,83 @@ Information on the R session:
 
 ``` r
 sessionInfo()
-#> R version 4.5.2 (2025-10-31 ucrt)
+#> R version 4.6.0 (2026-04-24 ucrt)
 #> Platform: x86_64-w64-mingw32/x64
-#> Running under: Windows 11 x64 (build 26100)
+#> Running under: Windows 11 x64 (build 26300)
 #> 
 #> Matrix products: default
 #>   LAPACK version 3.12.1
 #> 
 #> locale:
-#> [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8   
-#> [3] LC_MONETARY=English_United States.utf8 LC_NUMERIC=C                          
-#> [5] LC_TIME=English_United States.utf8    
+#> [1] LC_COLLATE=English_United Kingdom.utf8 
+#> [2] LC_CTYPE=English_United Kingdom.utf8   
+#> [3] LC_MONETARY=English_United Kingdom.utf8
+#> [4] LC_NUMERIC=C                           
+#> [5] LC_TIME=English_United Kingdom.utf8    
 #> 
-#> time zone: Europe/Rome
+#> time zone: Europe/Paris
 #> tzcode source: internal
 #> 
 #> attached base packages:
-#> [1] stats4    stats     graphics  grDevices utils     datasets  methods   base     
+#> [1] stats4    stats     graphics  grDevices utils     datasets  methods  
+#> [8] base     
 #> 
 #> other attached packages:
-#>  [1] MsDataHub_1.10.0        dplyr_1.2.0             RuSirius_0.2.0         
-#>  [4] jsonlite_2.0.0          MetaboAnnotation_1.14.0 RSirius_6.3.3          
-#>  [7] xcms_4.8.0              MsExperiment_1.12.0     ProtGenerics_1.42.0    
-#> [10] Spectra_1.20.1          BiocParallel_1.44.0     S4Vectors_0.48.0       
-#> [13] BiocGenerics_0.56.0     generics_0.1.4         
+#> [1] MsDataHub_1.12.0    RuSirius_1.0.6      Spectra_1.22.2     
+#> [4] BiocParallel_1.46.0 S4Vectors_0.50.1    BiocGenerics_0.58.1
+#> [7] generics_0.1.4      RSirius_6.5.4       ProtGenerics_1.44.0
 #> 
 #> loaded via a namespace (and not attached):
-#>   [1] RColorBrewer_1.1-3          MultiAssayExperiment_1.36.1 magrittr_2.0.4             
-#>   [4] farver_2.1.2                MALDIquant_1.22.3           fs_1.6.6                   
-#>   [7] vctrs_0.7.1                 memoise_2.0.1               RCurl_1.98-1.17            
-#>  [10] base64enc_0.1-6             htmltools_0.5.9             S4Arrays_1.10.1            
-#>  [13] BiocBaseUtils_1.12.0        progress_1.2.3              curl_7.0.0                 
-#>  [16] AnnotationHub_4.0.0         SparseArray_1.10.8          mzID_1.48.0                
-#>  [19] htmlwidgets_1.6.4           plyr_1.8.9                  httr2_1.2.2                
-#>  [22] impute_1.84.0               cachem_1.1.0                igraph_2.2.1               
-#>  [25] lifecycle_1.0.5             iterators_1.0.14            pkgconfig_2.0.3            
-#>  [28] Matrix_1.7-4                R6_2.6.1                    fastmap_1.2.0              
-#>  [31] MatrixGenerics_1.22.0       clue_0.3-66                 digest_0.6.39              
-#>  [34] pcaMethods_2.2.0            rsvg_2.7.0                  AnnotationDbi_1.72.0       
-#>  [37] ExperimentHub_3.0.0         GenomicRanges_1.62.1        RSQLite_2.4.5              
-#>  [40] filelock_1.0.3              httr_1.4.7                  abind_1.4-8                
-#>  [43] compiler_4.5.2              withr_3.0.2                 bit64_4.6.0-1              
-#>  [46] doParallel_1.0.17           S7_0.2.1                    DBI_1.2.3                  
-#>  [49] MASS_7.3-65                 ChemmineR_3.62.0            rappdirs_0.3.4             
-#>  [52] DelayedArray_0.36.0         rjson_0.2.23                mzR_2.44.0                 
-#>  [55] tools_4.5.2                 PSMatch_1.14.0              otel_0.2.0                 
-#>  [58] CompoundDb_1.14.2           glue_1.8.0                  QFeatures_1.20.0           
-#>  [61] grid_4.5.2                  cluster_2.1.8.1             reshape2_1.4.5             
-#>  [64] snow_0.4-4                  gtable_0.3.6                preprocessCore_1.72.0      
-#>  [67] tidyr_1.3.2                 data.table_1.18.2.1         hms_1.1.4                  
-#>  [70] MetaboCoreUtils_1.19.2      xml2_1.5.2                  XVector_0.50.0             
-#>  [73] BiocVersion_3.22.0          foreach_1.5.2               pillar_1.11.1              
-#>  [76] stringr_1.6.0               limma_3.66.0                BiocFileCache_3.0.0        
-#>  [79] lattice_0.22-7              bit_4.6.0                   tidyselect_1.2.1           
-#>  [82] Biostrings_2.78.0           knitr_1.51                  gridExtra_2.3              
-#>  [85] IRanges_2.44.0              Seqinfo_1.0.0               SummarizedExperiment_1.40.0
-#>  [88] xfun_0.56                   Biobase_2.70.0              statmod_1.5.1              
-#>  [91] MSnbase_2.36.0              matrixStats_1.5.0           DT_0.34.0                  
-#>  [94] stringi_1.8.7               yaml_2.3.12                 lazyeval_0.2.2             
-#>  [97] evaluate_1.0.5              codetools_0.2-20            MsCoreUtils_1.22.1         
-#> [100] tibble_3.3.1                BiocManager_1.30.27         cli_3.6.5                  
-#> [103] affyio_1.80.0               Rcpp_1.1.1                  MassSpecWavelet_1.76.0     
-#> [106] dbplyr_2.5.1                png_0.1-8                   XML_3.99-0.20              
-#> [109] parallel_4.5.2              ggplot2_4.0.2               blob_1.3.0                 
-#> [112] prettyunits_1.2.0           AnnotationFilter_1.34.0     bitops_1.0-9               
-#> [115] MsFeatures_1.18.0           scales_1.4.0                affy_1.88.0                
-#> [118] ncdf4_1.24                  purrr_1.2.1                 crayon_1.5.3               
-#> [121] rlang_1.1.7                 KEGGREST_1.50.0             vsn_3.78.1
+#>   [1] DBI_1.3.0                   bitops_1.0-9               
+#>   [3] MetaboAnnotation_1.16.0     gridExtra_2.3.1            
+#>   [5] httr2_1.2.3                 rlang_1.2.0                
+#>   [7] magrittr_2.0.5              clue_0.3-68                
+#>   [9] otel_0.2.0                  matrixStats_1.5.0          
+#>  [11] compiler_4.6.0              RSQLite_3.53.3             
+#>  [13] png_0.1-9                   vctrs_0.7.3                
+#>  [15] reshape2_1.4.5              stringr_1.6.0              
+#>  [17] pkgconfig_2.0.3             MetaboCoreUtils_1.20.1     
+#>  [19] crayon_1.5.3                fastmap_1.2.0              
+#>  [21] dbplyr_2.6.0                XVector_0.52.0             
+#>  [23] purrr_1.2.2                 bit_4.6.0                  
+#>  [25] xfun_0.59                   MultiAssayExperiment_1.38.0
+#>  [27] cachem_1.1.0                ChemmineR_3.64.0           
+#>  [29] jsonlite_2.0.0              blob_1.3.0                 
+#>  [31] DelayedArray_0.38.2         parallel_4.6.0             
+#>  [33] cluster_2.1.8.2             R6_2.6.1                   
+#>  [35] stringi_1.8.7               RColorBrewer_1.1-3         
+#>  [37] GenomicRanges_1.64.0        Rcpp_1.1.1-1.1             
+#>  [39] Seqinfo_1.2.0               SummarizedExperiment_1.42.0
+#>  [41] knitr_1.51                  snow_0.4-4                 
+#>  [43] base64enc_0.1-6             IRanges_2.46.0             
+#>  [45] Matrix_1.7-5                igraph_2.3.3               
+#>  [47] tidyselect_1.2.1            abind_1.4-8                
+#>  [49] yaml_2.3.12                 codetools_0.2-20           
+#>  [51] curl_7.1.0                  lattice_0.22-9             
+#>  [53] tibble_3.3.1                plyr_1.8.9                 
+#>  [55] withr_3.0.3                 Biobase_2.72.0             
+#>  [57] KEGGREST_1.52.2             S7_0.2.2                   
+#>  [59] evaluate_1.0.5              BiocFileCache_3.2.0        
+#>  [61] xml2_1.6.0                  ExperimentHub_3.2.0        
+#>  [63] Biostrings_2.80.1           pillar_1.11.1              
+#>  [65] BiocManager_1.30.27         filelock_1.0.3             
+#>  [67] MatrixGenerics_1.24.0       DT_0.34.0                  
+#>  [69] ncdf4_1.24                  RCurl_1.98-1.19            
+#>  [71] BiocVersion_3.23.1          ggplot2_4.0.3              
+#>  [73] scales_1.4.0                glue_1.8.1                 
+#>  [75] lazyeval_0.2.3              tools_4.6.0                
+#>  [77] AnnotationHub_4.2.1         data.table_1.18.4          
+#>  [79] mzR_2.46.0                  QFeatures_1.22.0           
+#>  [81] fs_2.1.0                    grid_4.6.0                 
+#>  [83] tidyr_1.3.2                 MsCoreUtils_1.24.0         
+#>  [85] AnnotationDbi_1.74.0        cli_3.6.6                  
+#>  [87] rappdirs_0.3.4              rsvg_2.7.0                 
+#>  [89] S4Arrays_1.12.0             dplyr_1.2.1                
+#>  [91] AnnotationFilter_1.36.0     gtable_0.3.6               
+#>  [93] digest_0.6.39               SparseArray_1.12.2         
+#>  [95] rjson_0.2.23                htmlwidgets_1.6.4          
+#>  [97] farver_2.1.2                memoise_2.0.1              
+#>  [99] htmltools_0.5.9             lifecycle_1.0.5            
+#> [101] httr_1.4.8                  CompoundDb_1.16.0          
+#> [103] bit64_4.8.2                 MASS_7.3-65
 ```

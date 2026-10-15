@@ -129,8 +129,8 @@ results <- function(sirius,
                                                        feature_id,
                                                        top = topFormula)
                    if (!nrow(form_res)) return(data.frame())
-                   .structure_for_one_feature(sirius, feature_id,
-                                              form_res, topStructure)
+                   .structures_for_one_feature(sirius, feature_id,
+                                               form_res, topStructure)
                    },
                compoundClass = function(feature_id) {
                    form_res <- .process_single_feature(sirius,
@@ -146,10 +146,9 @@ results <- function(sirius,
                                                        feature_id,
                                                        top = topFormula)
                    if (!nrow(form_res)) return(data.frame())
-                   .de_novo_for_one_feature(sirius,
-                                            feature_id,
-                                            form_res,
-                                            topStructure)
+                   .structures_for_one_feature(sirius, feature_id,
+                                               form_res, topStructure,
+                                               deNovo = TRUE)
                    },
                spectralDbMatch = function(feature_id) {
                    .spectral_match_for_one_feature(sirius,
@@ -205,16 +204,34 @@ results <- function(sirius,
     return(results)
 }
 
-.structure_for_one_feature <- function(sirius, fts_id, formula_res, top) {
-    all_forms <- lapply(formula_res$formulaId, function(fid) {
-        .structure_for_one_formula(sirius, fts_id, fid, top)
-    })
-    all_forms <- lapply(all_forms, .standardize_columns)
-    merged <- merge(formula_res,
-                    dplyr::bind_rows(all_forms),
-                    by = "formulaId",
-                    all.x = TRUE)
-    return(merged)
+## One API call per feature, top `top` structures per formula
+.structures_for_one_feature <- function(sirius, fts_id, formula_res, top,
+                                        deNovo = FALSE) {
+    fetch <- if (deNovo)
+        sirius@api$features_api$GetDeNovoStructureCandidates
+    else sirius@api$features_api$GetStructureCandidates
+    structures <- fetch(sirius@projectId, fts_id,
+                        opt_fields = c("libraryMatches"))
+    df <- dplyr::bind_rows(lapply(structures, function(x)
+        .standardize_columns(.row_from_payload(x$toSimpleType()))))
+    if (!nrow(df) || !"formulaId" %in% names(df))
+        return(formula_res)
+    ## adduct and molecularFormula already come with formula_res
+    df <- df[df$formulaId %in% formula_res$formulaId,
+             setdiff(names(df), c("adduct", "molecularFormula")),
+             drop = FALSE]
+    ## group by formula in formula_res order (stable), as merge() depends on it
+    df <- df[order(match(df$formulaId, formula_res$formulaId)), , drop = FALSE]
+    ## position of each candidate within its formula (API order is ranked)
+    rank_in_formula <- integer(nrow(df))
+    for (fid in unique(df$formulaId)) {
+        idx <- which(df$formulaId == fid)
+        rank_in_formula[idx] <- seq_along(idx)
+    }
+    df <- df[rank_in_formula <= top, , drop = FALSE]
+    if (!nrow(df))
+        return(formula_res)
+    merge(formula_res, df, by = "formulaId", all.x = TRUE)
 }
 
 .compound_for_one_feature <- function(sirius, fts_id, formula_res) {
@@ -224,15 +241,6 @@ results <- function(sirius,
     merged <- merge(formula_res,
                     dplyr::bind_rows(all_forms),
                     by = "formulaId", all.x = TRUE)
-    return(merged)
-}
-
-.de_novo_for_one_feature <- function(sirius, fts_id, formula_res, top) {
-    all_forms <- lapply(formula_res$formulaId, function(fid) {
-        .de_novo_for_one_formula(sirius, fts_id, fid, top)
-    })
-    all_forms <- lapply(all_forms, .standardize_columns)
-    merged <- merge(formula_res, dplyr::bind_rows(all_forms), by = "formulaId", all.x = TRUE)
     return(merged)
 }
 
@@ -247,32 +255,6 @@ results <- function(sirius,
 }
 
 # Shared Methods for Specific Data Types
-.structure_for_one_formula <- function(sirius, fts_id, formula_id, top) {
-    structures <- sirius@api$features_api$GetStructureCandidatesByFormula(
-        sirius@projectId, fts_id, formula_id, opt_fields = c("libraryMatches")
-    )
-    candidates <- lapply(structures, function(x) x$toSimpleType())
-    if (length(candidates) > top) candidates <- candidates[seq_len(top)]
-    df <- dplyr::bind_rows(lapply(candidates, function(x) {
-        .standardize_columns(.row_from_payload(x))
-    }))
-    df$formulaId <- formula_id
-    return(df)
-}
-
-.de_novo_for_one_formula <- function(sirius, fts_id, formula_id, top) {
-    de_novo_structures <- sirius@api$features_api$GetDeNovoStructureCandidatesByFormula(
-        sirius@projectId, fts_id, formula_id, opt_fields = c("libraryMatches")
-    )
-    candidates <- lapply(de_novo_structures, function(x) x$toSimpleType())
-    if (length(candidates) > top) candidates <- candidates[seq_len(top)]
-    df <- dplyr::bind_rows(lapply(candidates, function(x) {
-        .standardize_columns(.row_from_payload(x))
-    }))
-    df$formulaId <- formula_id
-    return(df)
-}
-
 .compound_for_one_formula <- function(sirius, fts_id, formula_id) {
     tryCatch({
         compound <- sirius@api$features_api$GetBestMatchingCompoundClasses(

@@ -16,7 +16,7 @@ test_that(".groupMSnIndex groups MS2 scans by precursorMz in order", {
         intensity = I(list(c(999), c(500), c(999)))
     ))
 
-    idx <- RuSirius:::.groupMSnIndex(sp)
+    idx <- .groupMSnIndex(sp)
     # 300, 400, 300 again = 3 groups (new group each time precursorMz changes)
     expect_equal(idx, c(1L, 2L, 3L))
 })
@@ -31,7 +31,7 @@ test_that(".groupMSnIndex keeps MS3 with preceding MS2", {
         intensity = I(list(c(999), c(100), c(500)))
     ))
 
-    idx <- RuSirius:::.groupMSnIndex(sp)
+    idx <- .groupMSnIndex(sp)
     # MS3 should belong to same group as preceding MS2
     expect_equal(idx, c(1L, 1L, 2L))
 })
@@ -45,7 +45,7 @@ test_that(".groupMSnIndex handles multiple dataOrigins independently", {
         intensity = I(list(c(999), c(500), c(999), c(500)))
     ))
 
-    idx <- RuSirius:::.groupMSnIndex(sp)
+    idx <- .groupMSnIndex(sp)
     # file1: group 1, 2; file2: group 3, 4
     expect_equal(idx, c(1L, 2L, 3L, 4L))
 })
@@ -60,7 +60,7 @@ test_that(".groupMSnIndex groups consecutive same precursorMz MS2 together", {
         intensity = I(list(c(999), c(800), c(500)))
     ))
 
-    idx <- RuSirius:::.groupMSnIndex(sp)
+    idx <- .groupMSnIndex(sp)
     expect_equal(idx, c(1L, 1L, 2L))
 })
 
@@ -79,7 +79,7 @@ test_that(".createfeatures includes MS2 spectra when no MS1 present", {
         intensity = I(list(c(999, 500), c(800, 200)))
     ))
 
-    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    feat <- .createfeatures(sp, idx = 1, adduct = "[M+H]+")
 
     expect_true(is.null(feat$mergedMs1))
     expect_length(feat$ms2Spectra, 2)
@@ -100,7 +100,7 @@ test_that(".createfeatures sets ionMass to precursorMz without MS1", {
         intensity = I(list(c(999, 500)))
     ))
 
-    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    feat <- .createfeatures(sp, idx = 1, adduct = "[M+H]+")
     expect_equal(feat$ionMass, 456.123)
     expect_true(is.null(feat$mergedMs1))
 })
@@ -116,7 +116,7 @@ test_that(".createfeatures sets ionMass from precursorMz with MS1+MS2", {
         intensity = I(list(c(9999), c(999, 500)))
     ))
 
-    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    feat <- .createfeatures(sp, idx = 1, adduct = "[M+H]+")
     ## ionMass should always come from precursorMz when MSn data exists
     expect_equal(feat$ionMass, 300.0)
     expect_false(is.null(feat$mergedMs1))
@@ -133,7 +133,7 @@ test_that(".createfeatures sets ionMass to 0 for MS1-only data", {
         intensity = I(list(c(9999, 500)))
     ))
 
-    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    feat <- .createfeatures(sp, idx = 1, adduct = "[M+H]+")
     ## No MSn data: ionMass = 0, Sirius derives it from the MS1 spectrum
     expect_equal(feat$ionMass, 0)
     expect_false(is.null(feat$mergedMs1))
@@ -151,7 +151,7 @@ test_that(".createfeatures includes MS3 spectra alongside MS2", {
         intensity = I(list(c(999, 500), c(100, 80)))
     ))
 
-    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+")
+    feat <- .createfeatures(sp, idx = 1, adduct = "[M+H]+")
 
     expect_true(is.null(feat$mergedMs1))
     expect_length(feat$ms2Spectra, 2)
@@ -418,7 +418,7 @@ test_that(".createfeatures errors on NA polarity", {
     ))
 
     expect_error(
-        RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M+H]+"),
+        .createfeatures(sp, idx = 1, adduct = "[M+H]+"),
         "polarity.*is NA"
     )
 })
@@ -433,7 +433,7 @@ test_that(".groupMSnIndex errors on NA dataOrigin", {
     ))
 
     expect_error(
-        RuSirius:::.groupMSnIndex(sp),
+        .groupMSnIndex(sp),
         "dataOrigin.*must not contain NA"
     )
 })
@@ -449,7 +449,7 @@ test_that(".createfeatures sets charge -1 for negative mode (polarity 0)", {
         intensity = I(list(c(999, 500)))
     ))
 
-    feat <- RuSirius:::.createfeatures(sp, idx = 1, adduct = "[M-H]-")
+    feat <- .createfeatures(sp, idx = 1, adduct = "[M-H]-")
     expect_equal(feat$charge, -1L)
 })
 

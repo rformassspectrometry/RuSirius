@@ -301,6 +301,9 @@ test_that("run computes formula identification", {
                  formulaIdParams = formulaIdParam())
 
     expect_type(jobId, "character")
+    ## the job must only touch the selected feature, not the whole project
+    job <- srs@api$jobs_api$GetJob(srs@projectId, jobId, list("affectedIds"))
+    expect_equal(unlist(job$affectedAlignedFeatureIds), ids[1])
 })
 
 test_that("results returns list by default", {

@@ -5,7 +5,7 @@
 echo "[sirius-init] Starting Sirius REST API on port 9999..."
 
 s6-setuidgid rstudio \
-    /home/rstudio/sirius/bin/sirius -p 9999 service \
+    /home/rstudio/sirius/bin/sirius service --port 9999 \
     > /var/log/sirius.log 2>&1 &
 
 echo "[sirius-init] Sirius service launched (PID: $!)"

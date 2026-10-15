@@ -38,7 +38,7 @@ Alternatively, you can manually install Sirius and then RuSirius:
 
 1.  Download the Sirius software from the [official releases
     page](https://github.com/sirius-ms/sirius/releases). *RuSirius* is dependent
-    on Sirius 6.3, please ensure you have the right version downloaded.
+    on Sirius 6.5, please ensure you have the right version downloaded.
 2.  Install *RuSirius* and it's dependencies (which includes the R-api) by
     running the following code in R:
 
@@ -135,7 +135,7 @@ running Sirius instance with authentication.
 
 A pre-built Docker image is available on Docker Hub, based on the official
 Bioconductor docker image `bioconductor/bioconductor_docker:RELEASE_3_22`. It
-includes *RuSirius*, all dependencies, and Sirius 6.3.7 (downloaded directly
+includes *RuSirius*, all dependencies, and Sirius 6.5.4 (downloaded directly
 from the official GitHub releases). The Sirius REST API starts automatically on
 port 9999 when the container launches.
 

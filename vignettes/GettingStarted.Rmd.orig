@@ -36,7 +36,7 @@ library(RuSirius)
 See the session info for information on packages used and the date the vignette
 was rendered. The vignette requires a running
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) instance. To
-reproduce this analysis, you will need Sirius 6.3 installed and running.
+reproduce this analysis, you will need Sirius 6.5 installed and running.
 
 **RuSirius** provides an R interface to the
 [Sirius](https://bio.informatik.uni-jena.de/software/sirius/) mass spectrometry
@@ -47,7 +47,7 @@ connecting to Sirius and managing projects.
 
 Before using RuSirius, you need:
 
-1. **Sirius 6.3** installed on your system. Download from the
+1. **Sirius 6.5** installed on your system. Download from the
    [official releases page](https://github.com/sirius-ms/sirius/releases).
 2. A **Sirius account** (free registration at
    [bright-giant.com](https://bright-giant.com/))

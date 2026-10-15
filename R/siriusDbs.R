@@ -56,12 +56,15 @@ infoDb <- function(sirius, databaseId = character()) {
 #' Delete a database from Sirius.
 #' @param databaseId A `character(1)` string specifying the database ID to
 #'        delete.
+#' @param delete `logical(1)`, whether to also delete the database file from
+#'        disk. If `FALSE` (default) the database is only removed from Sirius
+#'        and its file is kept.
 #'
 #' @return A `logical(1)` indicating whether the database was successfully
 #'         removed.
 #'
 #' @export
-removeDb <- function(sirius, databaseId = character()) {
+removeDb <- function(sirius, databaseId = character(), delete = FALSE) {
     if (!checkConnection(sirius))
         stop("The connection to the Sirius instance is not valid.")
     if (!.is_logged_in(sirius))
@@ -69,7 +72,8 @@ removeDb <- function(sirius, databaseId = character()) {
     if (!nzchar(databaseId)) {
         stop("Please provide a valid database ID.")
     }
-    sirius@api$searchable_databases_api$RemoveDatabase(databaseId)
+    sirius@api$searchable_databases_api$RemoveDatabase(databaseId,
+                                                       delete = delete)
     TRUE
 }
 
@@ -99,16 +103,26 @@ createDb <- function(sirius, databaseId = character(), files = character(),
         stop("Please provide a valid directory path for the `location` ",
              "parameter.")
 
-    db_path <- file.path(location, paste0(databaseId, ".siriusdb"))
-
-    tryCatch({
-        sirius@api$searchable_databases_api$CreateDatabase(
-            database_id = databaseId, data_file = db_path)
-        db <- sirius@api$searchable_databases_api$ImportIntoDatabase(
-            database_id = databaseId, input_file = files)
-    }, error = function(e) {
-        stop("Failed to create the database: ", e$message)
-    })
-
+    db_path <- file.path(normalizePath(location), paste0(databaseId, ".siriusdb"))
+    params <- RSirius::SearchableDatabaseParameters$new(location = db_path)
+    api <- sirius@api$searchable_databases_api
+    .check_db_response(api$CreateDatabase(database_id = databaseId,
+                                          searchable_database_parameters = params),
+                       databaseId)
+    db <- .check_db_response(api$ImportIntoDatabase(database_id = databaseId,
+                                                    input_file = files),
+                             databaseId)
     db$toSimpleType()
+}
+
+## Stop with the server's message when the API returns an error response
+.check_db_response <- function(res, databaseId) {
+    if (inherits(res, "ApiResponse")) {
+        detail <- tryCatch(jsonlite::fromJSON(res$response_as_text())$detail,
+                           error = function(e) NULL)
+        stop("Failed to create database '", databaseId, "' (HTTP ",
+             res$status_code, ")",
+             if (length(detail)) paste0(": ", detail) else ".", call. = FALSE)
+    }
+    res
 }

@@ -1,3 +1,47 @@
+# Version 1.1
+
+## Changes in 1.1.0
+
+- Updated the RSirius dependency to the 6.5.4 client (commit `846e9fb`),
+  matching the current Sirius 6.5.x line, and bumped the Docker image to
+  Sirius 6.5.4.
+- Corrected the documented Sirius requirement to 6.5 in DESCRIPTION, README
+  and the vignettes (there is no Sirius 6.4 release).
+- The RSirius client interface used by RuSirius (endpoints, SDK methods and
+  model classes) is unchanged in 6.5.4; API 3.2 only adds new paged
+  endpoints. Updated the RSirius version check in `test-api-responses.R`.
+- `results()` with `result.type = "structureDb"` or `"deNovo"` now fetches
+  all structure candidates of a feature in a single API call (new per-feature
+  endpoints `GetStructureCandidates` / `GetDeNovoStructureCandidates`)
+  instead of one call per formula. The output is the same: the top
+  `topStructure` candidates per formula, joined onto the top `topFormula`
+  formulas (de novo results may now include an empty `structureName`
+  column).
+- Fixed the Docker start script for Sirius 6.5: a `-p` placed before the
+  subcommand now means `--project`, so the service is started with
+  `sirius service --port 9999`.
+- Fixed `run()` ignoring `alignedFeaturesIds` and `compoundsIds`: the ids
+  were dropped when building the job (`alignedFeaturesIds` vs the API field
+  `alignedFeatureIds`), so every job ran on the whole project. Jobs now only
+  process the selected features/compounds; the default (all features) is
+  unchanged. Added tests checking the ids reach the submitted job.
+- `openProject()` now checks the `path` before closing the open projects, so
+  a wrong path no longer closes the project you are working on.
+- The "Retrieving Results" vignette now uses the `test_spectra` project
+  computed in the "Importing Spectra" vignette (the `my_analysis` project it
+  used never contained any data).
+- Fixed `createDb()` ignoring `location`: the path was passed as the
+  client's `data_file` (where the HTTP response is saved), so Sirius always
+  wrote to its default `custom.siriusdb` and creating a second database
+  failed. `createDb()` also now reports the server's error message.
+- `deleteFeatures()` (and `import(deleteExistingFeatures = TRUE)`) now
+  deletes all features in a single API call instead of one call per feature,
+  and updates the feature map once; faster for large projects.
+- `removeDb()` gains a `delete` argument (default `FALSE`) to also delete the
+  database file from disk.
+- The "Custom Databases" vignette now downloads the MassBank EU library from
+  GNPS instead of looking for an MGF file that is not part of the package.
+
 # Version 1.0
 
 ## Changes in 1.0.5
